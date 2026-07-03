@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-cairo: "Cairo", "Segoe UI", Roboto, sans-serif;
+}
+
+/* Minimalist, Book-like Base Styles */
+body {
+  font-family: var(--font-cairo);
+  background-color: #fcfbfa; /* Warm paper color */
+  color: #1c1917; /* Soft charcoal black */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  direction: rtl;
+  text-align: right;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+body.dark {
+  background-color: #121212; /* Matte dark */
+  color: #e7e5e4; /* Soft paper white */
+}
+
+/* Clean Custom Selections */
+::selection {
+  background-color: #e7e5e4;
+  color: #1c1917;
+}
+
+.dark ::selection {
+  background-color: #2e2a24;
+  color: #e7e5e4;
+}
+
+/* Elegant Scrollbars */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d6d3d1;
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a29e;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #2e2a24;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #44403c;
+}
+
+/* Form inputs - clean, no AI glow */
+input, textarea, select {
+  transition: border-color 0.1s ease;
+}
