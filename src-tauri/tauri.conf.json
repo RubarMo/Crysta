@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "tauri-app",
+  "productName": "Snowflake Arabic",
   "version": "1.0.0",
   "identifier": "com.snowflake.arabic",
   "build": {

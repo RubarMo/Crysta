@@ -3,7 +3,7 @@ import { Sidebar } from "./components/Sidebar";
 import { Workspace } from "./components/Workspace";
 import { ThemeToggle } from "./components/ThemeToggle";
 import { Novel, StepProgress, getNovels, createNovel, deleteNovel, getStepsProgress } from "./lib";
-import { BookOpen } from "lucide-react";
+import { BookOpen, Plus } from "lucide-react";
 
 function App() {
   const [novels, setNovels] = useState<Novel[]>([]);
@@ -144,18 +144,121 @@ function App() {
               activeStep={activeStep}
             />
           ) : (
-            <div className="h-full flex flex-col items-center justify-center text-center p-8 max-w-md mx-auto space-y-4">
-              <BookOpen className="w-10 h-10 text-zinc-300 dark:text-zinc-800 stroke-[1.2]" />
-              <h2 className="text-md font-bold text-zinc-800 dark:text-zinc-100 font-cairo">مرحباً بك في أداة Snowflake</h2>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed font-cairo">
-                تعتمد هذه الأداة على طريقة سنوفليك (Snowflake Method) لبناء الروايات خطوة بخطوة من الفكرة البسيطة إلى الهيكل المتكامل.
-              </p>
-              <button
-                onClick={handleCreateNovel}
-                className="px-4 py-2 border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-[#181818] hover:bg-zinc-50 dark:hover:bg-zinc-900 text-xs font-bold transition-all duration-150 rounded"
-              >
-                إنشاء رواية جديدة للبدء
-              </button>
+            <div className="max-w-4xl mx-auto p-8 space-y-8 fade-in font-cairo select-text">
+              {/* Header */}
+              <div className="border-b border-zinc-200 dark:border-zinc-800 pb-5 flex justify-between items-end">
+                <div>
+                  <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-50">رواياتك ومشاريعك</h1>
+                  <p className="text-zinc-400 dark:text-zinc-500 text-xs mt-1">اختر رواية لإكمال الكتابة والتخطيط، أو أنشئ مشروعاً جديداً.</p>
+                </div>
+                <button
+                  onClick={handleCreateNovel}
+                  className="flex items-center gap-1.5 text-xs px-3 py-2 border border-zinc-350 dark:border-zinc-700 bg-white dark:bg-[#1a1a1a] hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors font-semibold rounded text-zinc-700 dark:text-zinc-300 cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>إنشاء رواية جديدة</span>
+                </button>
+              </div>
+
+              {/* Stats Summary */}
+              {novels.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="bg-white dark:bg-[#181818] p-4 border border-zinc-200 dark:border-zinc-800 rounded">
+                    <span className="text-[10px] font-bold text-zinc-400 block">إجمالي الروايات</span>
+                    <p className="text-xl font-bold text-zinc-900 dark:text-zinc-50 mt-1">{novels.length}</p>
+                  </div>
+                  <div className="bg-white dark:bg-[#181818] p-4 border border-zinc-200 dark:border-zinc-800 rounded">
+                    <span className="text-[10px] font-bold text-zinc-400 block">الكلمات المكتوبة</span>
+                    <p className="text-xl font-bold text-zinc-900 dark:text-zinc-50 mt-1">
+                      {novels.reduce((sum, n) => sum + n.current_word_count, 0).toLocaleString()} كلمة
+                    </p>
+                  </div>
+                  <div className="bg-white dark:bg-[#181818] p-4 border border-zinc-200 dark:border-zinc-800 rounded">
+                    <span className="text-[10px] font-bold text-zinc-400 block">متوسط الكلمات المستهدف</span>
+                    <p className="text-xl font-bold text-zinc-900 dark:text-zinc-50 mt-1">
+                      {novels.length > 0 
+                        ? Math.round(novels.reduce((sum, n) => sum + n.target_word_count, 0) / novels.length).toLocaleString()
+                        : 0} كلمة
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Novels Grid */}
+              {novels.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-20 text-center space-y-4 border border-dashed border-zinc-200 dark:border-zinc-800 rounded bg-white dark:bg-[#181818]">
+                  <BookOpen className="w-10 h-10 text-zinc-300 dark:text-zinc-700 stroke-[1.2]" />
+                  <h2 className="text-sm font-bold text-zinc-800 dark:text-zinc-200">لا توجد روايات مضافة بعد</h2>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-xs leading-relaxed font-cairo">
+                    ابدأ روايتك الأولى الآن! ستساعدك طريقة سنوفليك على هيكلة أفكارك خطوة بخطوة.
+                  </p>
+                  <button
+                    onClick={handleCreateNovel}
+                    className="px-4 py-2 bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-950 text-xs font-bold transition-all rounded cursor-pointer"
+                  >
+                    ابدأ رواية جديدة
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  {novels.map((novel) => {
+                    const progressPercent = novel.target_word_count > 0 
+                      ? Math.min(Math.round((novel.current_word_count / novel.target_word_count) * 100), 100) 
+                      : 0;
+                    return (
+                      <div 
+                        key={novel.id}
+                        onClick={() => {
+                          setActiveNovelId(novel.id!);
+                          setActiveStep(0);
+                        }}
+                        className="bg-white dark:bg-[#181818] p-5 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-700 rounded cursor-pointer transition-all duration-150 flex flex-col justify-between h-40 group relative"
+                      >
+                        <div>
+                          <div className="flex justify-between items-start">
+                            <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-200 group-hover:text-zinc-600 dark:group-hover:text-white transition-colors">
+                              {novel.title}
+                            </h3>
+                            <span className="text-[10px] bg-zinc-100 dark:bg-zinc-850 px-2 py-0.5 rounded text-zinc-505 dark:text-zinc-400 font-medium">
+                              {novel.genre || 'عام'}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-zinc-400 dark:text-zinc-500 mt-2">الجمهور: {novel.target_audience || 'كافة القراء'}</p>
+                        </div>
+
+                        <div className="space-y-1.5 pt-4">
+                          <div className="flex justify-between items-center text-[10px] text-zinc-400">
+                            <span>التقدم: {novel.current_word_count.toLocaleString()} / {novel.target_word_count.toLocaleString()} كلمة</span>
+                            <span>{progressPercent}%</span>
+                          </div>
+                          <div className="w-full bg-zinc-100 dark:bg-zinc-900 h-1 rounded overflow-hidden">
+                            <div 
+                              className="bg-zinc-800 dark:bg-zinc-200 h-full transition-all duration-300"
+                              style={{ width: `${progressPercent}%` }}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Hover Quick Delete */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (confirm('هل أنت متأكد من حذف هذه الرواية؟')) {
+                              handleDeleteNovel(novel.id!);
+                            }
+                          }}
+                          className="absolute top-2 left-2 p-1.5 text-zinc-300 hover:text-rose-500 dark:text-zinc-700 dark:hover:text-rose-450 opacity-0 group-hover:opacity-100 transition-opacity rounded cursor-pointer"
+                          title="حذف الرواية"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
         </main>
