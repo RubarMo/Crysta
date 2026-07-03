@@ -86,8 +86,9 @@ export const Workspace: React.FC<WorkspaceProps> = ({
     try {
       await saveStepProgress(activeNovel.id, activeStep, text, completed);
       onReloadSteps();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to save step progress', err);
+      alert(`خطأ أثناء حفظ تقدم الخطوة: ${err}`);
     }
   };
 
@@ -110,8 +111,9 @@ export const Workspace: React.FC<WorkspaceProps> = ({
         target_audience: novelAudience,
         target_word_count: novelTargetWords,
       });
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to update novel', err);
+      alert(`خطأ أثناء حفظ بيانات الرواية: ${err}`);
     }
   };
 

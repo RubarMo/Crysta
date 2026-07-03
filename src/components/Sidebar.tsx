@@ -1,32 +1,25 @@
 import React from 'react';
 import { Novel, StepProgress } from '../lib';
-import { Plus, Trash2 } from 'lucide-react';
 
 interface SidebarProps {
-  novels: Novel[];
-  activeNovelId: number | null;
-  onSelectNovel: (id: number | null) => void;
-  onCreateNovel: () => void;
-  onDeleteNovel: (id: number) => void;
+  novel: Novel | null;
+  activeProjectPath: string | null;
+  onCloseProject: () => void;
   activeStep: number;
   onSelectStep: (step: number) => void;
   stepsProgress: StepProgress[];
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
-  novels,
-  activeNovelId,
-  onSelectNovel,
-  onCreateNovel,
-  onDeleteNovel,
+  novel,
+  activeProjectPath,
+  onCloseProject,
   activeStep,
   onSelectStep,
   stepsProgress,
 }) => {
-  const activeNovel = novels.find(n => n.id === activeNovelId) || null;
-
   // Calculate progress (completed steps out of 10)
-  const completedSteps = activeNovelId 
+  const completedSteps = novel 
     ? stepsProgress.filter(p => p.is_completed).length 
     : 0;
 
@@ -43,63 +36,45 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { num: 10, title: 'المسودة الأولى والتصدير' },
   ];
 
-  const handleNovelDelete = (e: React.MouseEvent, id: number) => {
-    e.stopPropagation();
-    if (confirm('هل أنت متأكد من حذف هذه الرواية؟')) {
-      onDeleteNovel(id);
-    }
-  };
+  const projectFileName = activeProjectPath ? activeProjectPath.split(/[/\\]/).pop() : "";
 
   return (
-    <aside className="w-72 border-e border-zinc-200 dark:border-zinc-800 bg-[#f8f6f4] dark:bg-[#161616] flex flex-col h-screen select-none font-cairo">
+    <aside className="w-72 border-e border-zinc-200 dark:border-zinc-800 bg-[#f8f6f4] dark:bg-[#161616] flex flex-col h-screen select-none font-cairo shrink-0">
       {/* Header */}
-      <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 space-y-3">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-bold text-zinc-400 dark:text-zinc-500">رواياتك</span>
-          <button
-            onClick={onCreateNovel}
-            className="flex items-center gap-1 text-[11px] px-2 py-1 border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-[#1a1a1a] hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors font-semibold rounded"
-          >
-            <Plus className="w-3 h-3" />
-            <span>رواية جديدة</span>
-          </button>
-        </div>
-
-        {novels.length === 0 ? (
-          <div className="text-center py-4 text-xs text-zinc-400 dark:text-zinc-600 border border-dashed border-zinc-200 dark:border-zinc-800 rounded">
-            لا توجد روايات مضافة بعد
+      <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 space-y-2 bg-white/30 dark:bg-black/10">
+        {novel ? (
+          <div className="flex items-center justify-between gap-2">
+            <div className="min-w-0 flex-1">
+              <h2 className="text-xs font-bold text-zinc-800 dark:text-zinc-200 truncate" title={novel.title}>
+                {novel.title}
+              </h2>
+              <p 
+                className="text-[9px] font-mono text-zinc-400 dark:text-zinc-500 truncate" 
+                title={activeProjectPath || ""}
+                dir="ltr"
+              >
+                {projectFileName}
+              </p>
+            </div>
+            <button
+              onClick={onCloseProject}
+              className="text-[10px] px-2 py-1 shrink-0 border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-[#1a1a1a] hover:bg-rose-50 dark:hover:bg-rose-950/20 hover:text-rose-600 dark:hover:text-rose-450 hover:border-rose-200 dark:hover:border-rose-800 transition-colors font-semibold rounded cursor-pointer"
+              title="إغلاق المشروع والعودة للرئيسية"
+            >
+              إغلاق
+            </button>
           </div>
         ) : (
-          <div className="relative group">
-            <select
-              value={activeNovelId || ''}
-              onChange={(e) => onSelectNovel(Number(e.target.value) || null)}
-              className="w-full text-xs font-semibold rounded border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#1a1a1a] p-2 focus:outline-none focus:ring-1 focus:ring-zinc-400 appearance-none cursor-pointer"
-            >
-              <option value="" disabled>اختر رواية...</option>
-              {novels.map((novel) => (
-                <option key={novel.id} value={novel.id!}>
-                  {novel.title}
-                </option>
-              ))}
-            </select>
-            {activeNovel && (
-              <button
-                onClick={(e) => handleNovelDelete(e, activeNovel.id!)}
-                className="absolute top-1/2 left-2 -translate-y-1/2 p-1 text-zinc-400 hover:text-rose-500 transition-colors"
-                title="حذف الرواية الحالية"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
-            )}
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-zinc-400 dark:text-zinc-500">منصة Snowflake</span>
           </div>
         )}
       </div>
 
-      {activeNovel ? (
+      {novel ? (
         <>
           {/* Progress */}
-          <div className="px-4 py-3 border-b border-zinc-200 dark:border-zinc-800 bg-white/40 dark:bg-black/10">
+          <div className="px-4 py-3 border-b border-zinc-200 dark:border-zinc-800 bg-white/40 dark:bg-black/5">
             <div className="flex justify-between items-center text-[10px] font-bold text-zinc-400 dark:text-zinc-500 mb-1">
               <span>الخطوات المكتملة</span>
               <span>{completedSteps} / 10</span>
@@ -122,7 +97,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   : 'hover:bg-zinc-200/50 dark:hover:bg-zinc-900/50 text-zinc-600 dark:text-zinc-400'
               }`}
             >
-              الرئيسية / لوحة التحكم
+              لوحة تحكم الرواية
             </button>
 
             <div className="my-1 border-t border-zinc-200 dark:border-zinc-800/80 mx-1" />
@@ -155,8 +130,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </nav>
         </>
       ) : (
-        <div className="flex-1 flex flex-col items-center justify-center p-6 text-center text-zinc-400 dark:text-zinc-600">
-          <p className="text-[11px] leading-relaxed">الرجاء اختيار رواية أو إنشاء واحدة جديدة للبدء في كتابتها.</p>
+        <div className="flex-1 flex flex-col items-center justify-center p-6 text-center text-zinc-400 dark:text-zinc-650 font-semibold">
+          <p className="text-[11px] leading-relaxed">الرجاء فتح ملف مشروع أو إنشاء مشروع جديد للبدء.</p>
         </div>
       )}
 

@@ -2,36 +2,57 @@ import { useEffect, useState } from "react";
 import { Sidebar } from "./components/Sidebar";
 import { Workspace } from "./components/Workspace";
 import { ThemeToggle } from "./components/ThemeToggle";
-import { Novel, StepProgress, getNovels, createNovel, deleteNovel, getStepsProgress } from "./lib";
+import { 
+  Novel, 
+  StepProgress, 
+  getStepsProgress,
+  selectProjectFile,
+  createProjectFile,
+  openProject,
+  closeProject
+} from "./lib";
 import { BookOpen, Plus } from "lucide-react";
+
+interface RecentProject {
+  path: string;
+  title: string;
+  lastOpened: string;
+}
 
 function App() {
   const [novels, setNovels] = useState<Novel[]>([]);
   const [activeNovelId, setActiveNovelId] = useState<number | null>(null);
+  const [activeProjectPath, setActiveProjectPath] = useState<string | null>(null);
   const [activeStep, setActiveStep] = useState<number>(0);
   const [stepsProgress, setStepsProgress] = useState<StepProgress[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showHelpModal, setShowHelpModal] = useState<boolean>(false);
 
-  // Load novels
-  const loadNovels = async (selectLatestId?: number) => {
+  // Load recent projects from local storage
+  const [recentProjects, setRecentProjects] = useState<RecentProject[]>(() => {
     try {
-      const list = await getNovels();
-      setNovels(list);
-      setErrorMessage(null);
-      
-      if (selectLatestId) {
-        setActiveNovelId(selectLatestId);
-      } else if (list.length > 0 && activeNovelId === null) {
-        setActiveNovelId(list[0].id || null);
-      }
-    } catch (err: any) {
-      console.error("Failed to load novels", err);
-      setErrorMessage(String(err));
-    } finally {
-      setLoading(false);
+      return JSON.parse(localStorage.getItem("recent_projects") || "[]");
+    } catch {
+      return [];
     }
+  });
+
+  const addRecentProject = (path: string, title: string) => {
+    setRecentProjects(prev => {
+      const filtered = prev.filter(p => p.path !== path);
+      const updated = [{ path, title, lastOpened: new Date().toISOString() }, ...filtered].slice(0, 10);
+      localStorage.setItem("recent_projects", JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const removeRecentProject = (path: string) => {
+    setRecentProjects(prev => {
+      const updated = prev.filter(p => p.path !== path);
+      localStorage.setItem("recent_projects", JSON.stringify(updated));
+      return updated;
+    });
   };
 
   // Load steps progress for the active novel
@@ -49,55 +70,89 @@ function App() {
   };
 
   useEffect(() => {
-    loadNovels();
-  }, []);
-
-  useEffect(() => {
     loadStepsProgress();
   }, [activeNovelId]);
 
-  const handleCreateNovel = async () => {
+  const handleOpenProjectPath = async (path: string) => {
+    setLoading(true);
     try {
-      const newId = await createNovel("رواية جديدة", "عام", "كافة القراء", 50000);
-      await loadNovels(newId);
-      setActiveStep(0); // Go to dashboard
+      const novel = await openProject(path);
+      setNovels([novel]);
+      setActiveNovelId(novel.id || null);
+      setActiveProjectPath(path);
+      setActiveStep(0);
+      addRecentProject(path, novel.title);
+      setErrorMessage(null);
     } catch (err: any) {
-      console.error("Failed to create novel", err);
-      alert(`خطأ في إنشاء الرواية: ${err}`);
+      console.error("Failed to open project path", err);
+      setErrorMessage(`فشل فتح المشروع: ${err}`);
+      removeRecentProject(path);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleDeleteNovel = async (id: number) => {
+  const handleOpenFileDialog = async () => {
     try {
-      await deleteNovel(id);
-      if (activeNovelId === id) {
-        setActiveNovelId(null);
-        setStepsProgress([]);
+      const path = await selectProjectFile();
+      if (path) {
+        await handleOpenProjectPath(path);
       }
-      await loadNovels();
+    } catch (err: any) {
+      console.error("File open error", err);
+      alert(`خطأ: ${err}`);
+    }
+  };
+
+  const handleCreateFileDialog = async () => {
+    try {
+      const path = await createProjectFile("رواية جديدة.snowflake");
+      if (path) {
+        setLoading(true);
+        const novel = await openProject(path);
+        setNovels([novel]);
+        setActiveNovelId(novel.id || null);
+        setActiveProjectPath(path);
+        setActiveStep(0);
+        addRecentProject(path, novel.title);
+        setErrorMessage(null);
+      }
+    } catch (err: any) {
+      console.error("File create error", err);
+      alert(`خطأ: ${err}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCloseProject = async () => {
+    try {
+      await closeProject();
+      setActiveNovelId(null);
+      setActiveProjectPath(null);
+      setNovels([]);
+      setStepsProgress([]);
     } catch (err) {
-      console.error("Failed to delete novel", err);
+      console.error("Close project error", err);
     }
   };
 
   const handleUpdateNovelLocally = (updated: Novel) => {
-    setNovels(prev => prev.map(n => n.id === updated.id ? updated : n));
+    setNovels([updated]);
+    if (activeProjectPath) {
+      addRecentProject(activeProjectPath, updated.title);
+    }
   };
 
   const activeNovel = novels.find(n => n.id === activeNovelId) || null;
 
   return (
-    <div className="flex h-screen bg-[#fcfbfa] text-[#1c1917] dark:bg-[#121212] dark:text-[#e7e5e4] overflow-hidden font-cairo">
+    <div className="flex h-screen bg-[#fcfbfa] text-[#1c1917] dark:bg-[#121212] dark:text-[#e7e5e4] overflow-hidden font-cairo select-none">
       {/* Right Sidebar (Navigation) */}
       <Sidebar
-        novels={novels}
-        activeNovelId={activeNovelId}
-        onSelectNovel={(id) => {
-          setActiveNovelId(id);
-          setActiveStep(0);
-        }}
-        onCreateNovel={handleCreateNovel}
-        onDeleteNovel={handleDeleteNovel}
+        novel={activeNovel}
+        activeProjectPath={activeProjectPath}
+        onCloseProject={handleCloseProject}
         activeStep={activeStep}
         onSelectStep={setActiveStep}
         stepsProgress={stepsProgress}
@@ -107,16 +162,27 @@ function App() {
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
         {/* Top bar with Toggle / Logo */}
         <header className="h-14 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#181818] px-6 flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-sm tracking-wide text-zinc-900 dark:text-zinc-50">
+          <div className="flex items-center gap-3">
+            <span 
+              onClick={handleCloseProject}
+              className="font-bold text-sm tracking-wide text-zinc-900 dark:text-zinc-50 cursor-pointer hover:opacity-85 transition-opacity"
+            >
               Snowflake Arabic
             </span>
+            {activeNovelId !== null && (
+              <button
+                onClick={handleCloseProject}
+                className="text-[10px] px-2 py-0.5 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900 text-zinc-500 dark:text-zinc-400 rounded transition-colors cursor-pointer"
+              >
+                المشاريع
+              </button>
+            )}
           </div>
           
           <div className="flex items-center gap-4">
             {errorMessage && (
               <span className="text-xs text-rose-500 bg-rose-50 dark:bg-rose-950/20 px-2.5 py-1 rounded">
-                خطأ الاتصال: {errorMessage}
+                خطأ: {errorMessage}
               </span>
             )}
             <button
@@ -130,10 +196,10 @@ function App() {
         </header>
 
         {/* Content area */}
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto bg-zinc-50 dark:bg-[#0c0c0c]">
           {loading ? (
             <div className="h-full flex items-center justify-center text-xs text-zinc-400">
-              جاري تحميل الروايات والبيانات...
+              جاري تحميل ملف المشروع...
             </div>
           ) : activeNovel ? (
             <Workspace
@@ -146,119 +212,78 @@ function App() {
           ) : (
             <div className="max-w-4xl mx-auto p-8 space-y-8 fade-in font-cairo select-text">
               {/* Header */}
-              <div className="border-b border-zinc-200 dark:border-zinc-800 pb-5 flex justify-between items-end">
+              <div className="border-b border-zinc-200 dark:border-zinc-800 pb-6 flex justify-between items-center">
                 <div>
-                  <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-50">رواياتك ومشاريعك</h1>
-                  <p className="text-zinc-400 dark:text-zinc-500 text-xs mt-1">اختر رواية لإكمال الكتابة والتخطيط، أو أنشئ مشروعاً جديداً.</p>
+                  <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50 font-cairo">Snowflake Arabic</h1>
+                  <p className="text-zinc-400 dark:text-zinc-500 text-xs mt-1 font-cairo">أداة التخطيط والكتابة الذكية للروايات بطريقة سنوفليك</p>
                 </div>
-                <button
-                  onClick={handleCreateNovel}
-                  className="flex items-center gap-1.5 text-xs px-3 py-2 border border-zinc-350 dark:border-zinc-700 bg-white dark:bg-[#1a1a1a] hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors font-semibold rounded text-zinc-700 dark:text-zinc-300 cursor-pointer"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>إنشاء رواية جديدة</span>
-                </button>
-              </div>
-
-              {/* Stats Summary */}
-              {novels.length > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="bg-white dark:bg-[#181818] p-4 border border-zinc-200 dark:border-zinc-800 rounded">
-                    <span className="text-[10px] font-bold text-zinc-400 block">إجمالي الروايات</span>
-                    <p className="text-xl font-bold text-zinc-900 dark:text-zinc-50 mt-1">{novels.length}</p>
-                  </div>
-                  <div className="bg-white dark:bg-[#181818] p-4 border border-zinc-200 dark:border-zinc-800 rounded">
-                    <span className="text-[10px] font-bold text-zinc-400 block">الكلمات المكتوبة</span>
-                    <p className="text-xl font-bold text-zinc-900 dark:text-zinc-50 mt-1">
-                      {novels.reduce((sum, n) => sum + n.current_word_count, 0).toLocaleString()} كلمة
-                    </p>
-                  </div>
-                  <div className="bg-white dark:bg-[#181818] p-4 border border-zinc-200 dark:border-zinc-800 rounded">
-                    <span className="text-[10px] font-bold text-zinc-400 block">متوسط الكلمات المستهدف</span>
-                    <p className="text-xl font-bold text-zinc-900 dark:text-zinc-50 mt-1">
-                      {novels.length > 0 
-                        ? Math.round(novels.reduce((sum, n) => sum + n.target_word_count, 0) / novels.length).toLocaleString()
-                        : 0} كلمة
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Novels Grid */}
-              {novels.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-20 text-center space-y-4 border border-dashed border-zinc-200 dark:border-zinc-800 rounded bg-white dark:bg-[#181818]">
-                  <BookOpen className="w-10 h-10 text-zinc-300 dark:text-zinc-700 stroke-[1.2]" />
-                  <h2 className="text-sm font-bold text-zinc-800 dark:text-zinc-200">لا توجد روايات مضافة بعد</h2>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-xs leading-relaxed font-cairo">
-                    ابدأ روايتك الأولى الآن! ستساعدك طريقة سنوفليك على هيكلة أفكارك خطوة بخطوة.
-                  </p>
+                <div className="flex gap-2">
                   <button
-                    onClick={handleCreateNovel}
-                    className="px-4 py-2 bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-950 text-xs font-bold transition-all rounded cursor-pointer"
+                    onClick={handleOpenFileDialog}
+                    className="flex items-center gap-1.5 text-xs px-3.5 py-2 border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-[#1a1a1a] hover:bg-zinc-50 dark:hover:bg-[#252525] text-zinc-700 dark:text-zinc-300 font-semibold rounded cursor-pointer transition-colors"
                   >
-                    ابدأ رواية جديدة
+                    <span>فتح مشروع</span>
+                  </button>
+                  <button
+                    onClick={handleCreateFileDialog}
+                    className="flex items-center gap-1.5 text-xs px-3.5 py-2 bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-zinc-100 dark:hover:bg-zinc-200 dark:text-zinc-950 font-bold rounded cursor-pointer transition-colors"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>إنشاء مشروع جديد</span>
                   </button>
                 </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  {novels.map((novel) => {
-                    const progressPercent = novel.target_word_count > 0 
-                      ? Math.min(Math.round((novel.current_word_count / novel.target_word_count) * 100), 100) 
-                      : 0;
-                    return (
+              </div>
+
+              {/* Recent Projects List */}
+              <div className="space-y-4">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">المشاريع الأخيرة</h3>
+                {recentProjects.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-20 text-center space-y-4 border border-dashed border-zinc-200 dark:border-zinc-800 rounded bg-white dark:bg-[#181818]">
+                    <BookOpen className="w-10 h-10 text-zinc-300 dark:text-zinc-700 stroke-[1.2]" />
+                    <h2 className="text-sm font-bold text-zinc-800 dark:text-zinc-200 font-cairo">لا توجد مشاريع سابقة</h2>
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-xs leading-relaxed font-cairo font-semibold">
+                      افتح ملف مشروع قائم أو أنشئ ملفاً جديداً للبدء في كتابة روايتك الأولى.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 gap-3">
+                    {recentProjects.map((project) => (
                       <div 
-                        key={novel.id}
-                        onClick={() => {
-                          setActiveNovelId(novel.id!);
-                          setActiveStep(0);
-                        }}
-                        className="bg-white dark:bg-[#181818] p-5 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-700 rounded cursor-pointer transition-all duration-150 flex flex-col justify-between h-40 group relative"
+                        key={project.path}
+                        onClick={() => handleOpenProjectPath(project.path)}
+                        className="bg-white dark:bg-[#181818] p-4 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-700 rounded cursor-pointer transition-all flex justify-between items-center group relative select-text"
                       >
-                        <div>
-                          <div className="flex justify-between items-start">
-                            <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-200 group-hover:text-zinc-600 dark:group-hover:text-white transition-colors">
-                              {novel.title}
-                            </h3>
-                            <span className="text-[10px] bg-zinc-100 dark:bg-zinc-850 px-2 py-0.5 rounded text-zinc-505 dark:text-zinc-400 font-medium">
-                              {novel.genre || 'عام'}
-                            </span>
-                          </div>
-                          <p className="text-[11px] text-zinc-400 dark:text-zinc-500 mt-2">الجمهور: {novel.target_audience || 'كافة القراء'}</p>
+                        <div className="space-y-1">
+                          <h4 className="text-sm font-bold text-zinc-900 dark:text-zinc-200 group-hover:text-zinc-650 dark:group-hover:text-white transition-colors font-cairo">
+                            {project.title}
+                          </h4>
+                          <p className="text-[10px] text-zinc-400 dark:text-zinc-500 font-mono truncate max-w-lg select-all" dir="ltr" title={project.path}>
+                            {project.path}
+                          </p>
                         </div>
-
-                        <div className="space-y-1.5 pt-4">
-                          <div className="flex justify-between items-center text-[10px] text-zinc-400">
-                            <span>التقدم: {novel.current_word_count.toLocaleString()} / {novel.target_word_count.toLocaleString()} كلمة</span>
-                            <span>{progressPercent}%</span>
-                          </div>
-                          <div className="w-full bg-zinc-100 dark:bg-zinc-900 h-1 rounded overflow-hidden">
-                            <div 
-                              className="bg-zinc-800 dark:bg-zinc-200 h-full transition-all duration-300"
-                              style={{ width: `${progressPercent}%` }}
-                            />
-                          </div>
+                        
+                        <div className="flex items-center gap-4">
+                          <span className="text-[10px] text-zinc-400">
+                            فتح: {new Date(project.lastOpened).toLocaleDateString("ar-EG", { day: "numeric", month: "short", year: "numeric" })}
+                          </span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeRecentProject(project.path);
+                            }}
+                            className="p-1.5 text-zinc-300 hover:text-rose-500 dark:text-zinc-700 dark:hover:text-rose-450 opacity-0 group-hover:opacity-100 transition-opacity rounded cursor-pointer"
+                            title="إزالة من القائمة"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
                         </div>
-
-                        {/* Hover Quick Delete */}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (confirm('هل أنت متأكد من حذف هذه الرواية؟')) {
-                              handleDeleteNovel(novel.id!);
-                            }
-                          }}
-                          className="absolute top-2 left-2 p-1.5 text-zinc-300 hover:text-rose-500 dark:text-zinc-700 dark:hover:text-rose-450 opacity-0 group-hover:opacity-100 transition-opacity rounded cursor-pointer"
-                          title="حذف الرواية"
-                        >
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
                       </div>
-                    );
-                  })}
-                </div>
-              )}
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </main>
@@ -267,79 +292,86 @@ function App() {
       {/* Help Modal */}
       {showHelpModal && (
         <div 
+          className="fixed inset-0 bg-black/60 dark:bg-black/80 flex items-center justify-center z-50 p-4 font-cairo select-text"
           onClick={() => setShowHelpModal(false)}
-          className="fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in"
         >
           <div 
+            className="bg-white dark:bg-[#181818] border border-zinc-250 dark:border-zinc-800 rounded max-w-2xl w-full max-h-[85vh] overflow-y-auto p-6 shadow-2xl relative"
             onClick={(e) => e.stopPropagation()}
-            className="bg-white dark:bg-[#181818] border border-zinc-200 dark:border-zinc-800 rounded max-w-2xl w-full max-h-[85vh] flex flex-col shadow-xl overflow-hidden font-cairo"
           >
-            <header className="px-5 py-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between shrink-0">
-              <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-50">دليل طريقة سنوفليك (Snowflake Method)</h2>
-              <button
+            <div className="flex justify-between items-start border-b border-zinc-200 dark:border-zinc-800 pb-3 mb-4">
+              <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-50">دليل طريقة سنوفليك (Snowflake Method)</h2>
+              <button 
                 onClick={() => setShowHelpModal(false)}
-                className="text-xs text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-205 cursor-pointer font-bold border border-zinc-300 dark:border-zinc-700 px-2 py-1 rounded hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
+                className="text-zinc-400 hover:text-zinc-750 dark:hover:text-zinc-200 text-xs font-semibold cursor-pointer"
               >
                 إغلاق
               </button>
-            </header>
-            
-            <div className="p-5 overflow-y-auto text-xs text-zinc-650 dark:text-zinc-350 space-y-4 select-text leading-relaxed">
-              <p>
-                <strong>طريقة سنوفليك (Snowflake Method)</strong> هي تقنية لتصميم وتخطيط الروايات ابتكرها الكاتب راندي إنجرمانسن. تعتمد الفكرة على البدء بـ "ندفة ثلج" صغيرة بسيطة (فكرة أساسية في جملة واحدة) ثم توسيعها وتفريعها خطوة بخطوة حتى تصبح هيكلاً كاملاً جاهزاً للكتابة.
-              </p>
+            </div>
+
+            <div className="space-y-4 text-xs leading-relaxed text-zinc-700 dark:text-zinc-300">
+              <p className="font-semibold text-zinc-900 dark:text-zinc-100">طريقة سنوفليك هي منهجية شهيرة للتخطيط والكتابة الروائية، طورها الروائي والفيزيائي راندي إنجيرمانسون. تبدأ بفكرة بسيطة جداً وتتوسع تدريجياً وبشكل منطقي لتتحول إلى رواية متكاملة عبر 10 خطوات أساسية:</p>
               
-              <div className="space-y-4 border-t border-zinc-150 dark:border-zinc-850 pt-4">
+              <div className="space-y-3 pt-2">
                 <div>
-                  <h3 className="font-bold text-zinc-900 dark:text-zinc-100">الخطوة 1: ملخص الجملة الواحدة</h3>
-                  <p className="mt-1">اكتب ملخصاً لروايتك في جملة واحدة (أقل من 15 كلمة). تجنب الأسماء، ركّز على الشخصية الرئيسية، العقبة أو الصراع الأكبر، والرهان النهائي.</p>
+                  <h4 className="font-bold text-zinc-900 dark:text-zinc-100">الخطوة 1: جملة ملخصة (One-Sentence Summary)</h4>
+                  <p>اكتب جملة واحدة تلخص الرواية بالكامل (أقل من 15 كلمة). ركز على الشخصية الرئيسية، الهدف، والصراع الرئيسي دون ذكر أسماء.</p>
                 </div>
                 
                 <div>
-                  <h3 className="font-bold text-zinc-900 dark:text-zinc-100">الخطوة 2: ملخص الفقرة الكاملة</h3>
-                  <p className="mt-1">وسّع الجملة إلى فقرة كاملة (5 جمل). جملة تصف البداية والدافع، 3 جمل تصف الأزمات الثلاث الرئيسية (مفارق الحبكة)، وجملة تصف النهاية.</p>
+                  <h4 className="font-bold text-zinc-900 dark:text-zinc-100">الخطوة 2: فقرة ملخصة (One-Paragraph Summary)</h4>
+                  <p>توسّع في الجملة السابقة لتصبح فقرة كاملة من 5 جمل. الجملة الأولى تحدد الخلفية والدافع، الجملة الثانية، الثالثة، والرابعة تصف العقبات والكوارث الكبرى، والجملة الخامسة توضح الحل أو النهاية.</p>
                 </div>
-                
+
                 <div>
-                  <h3 className="font-bold text-zinc-900 dark:text-zinc-100">الخطوة 3: السير الذاتية للشخصيات</h3>
-                  <p className="mt-1">حدّد بطاقة شخصية لكل بطل أساسي. اكتب الاسم، الدافع (ماذا يريد)، الهدف (ماذا سيفعل)، الصراع (ما يمنعه)، ولحظة التنوير (كيف سيتغير).</p>
+                  <h4 className="font-bold text-zinc-900 dark:text-zinc-100">الخطوة 3: أوراق الشخصيات الأساسية (Character Sheets)</h4>
+                  <p>قم بإنشاء ملف لكل شخصية رئيسية يوضح: الاسم، دافعها (ماذا تريد؟)، هدفها الفعلي، الصراع الذي تواجهه، نقطة التحول أو التنوير (Epiphany)، وملخصاً من فقرة واحدة لقصتها.</p>
                 </div>
-                
+
                 <div>
-                  <h3 className="font-bold text-zinc-900 dark:text-zinc-100">الخطوة 4: ملخص الصفحة الكاملة</h3>
-                  <p className="mt-1">خذ كل جملة من الخطوة 2 وقوم بتوسيعها إلى فقرة كاملة لتتحول الفقرة المبدئية إلى صفحة كاملة تلخص كامل أحداث الرواية.</p>
+                  <h4 className="font-bold text-zinc-900 dark:text-zinc-100">الخطوة 4: مخطط الصفحات (One-Page Synopsis)</h4>
+                  <p>خذ كل جملة من الفقرة الملخصة في الخطوة 2 وتوسّع فيها لتصبح فقرة كاملة. سينتج لديك صفحة كاملة تلخص الحبكة الروائية وتفاصيل الأحداث الرئيسية.</p>
                 </div>
-                
+
                 <div>
-                  <h3 className="font-bold text-zinc-900 dark:text-zinc-100">الخطوة 5: ملخصات الشخصيات</h3>
-                  <p className="mt-1">اكتب ملخصاً سردياً تفصيلياً لرحلة كل بطل أساسي من وجهة نظره الشخصية (POV)، لتفهم كيف يرى هو الحبكة وكيف يتفاعل مع الأحداث.</p>
+                  <h4 className="font-bold text-zinc-900 dark:text-zinc-100">الخطوة 5: توصيف الشخصيات الكامل (Character Narratives)</h4>
+                  <p>اكتب وصفاً مفصلاً من صفحة كاملة لكل شخصية رئيسية، وراقب تطورها في القصة من منظورها الخاص. تضمن هذه الخطوة عمق الشخصية ودورها المحوري.</p>
                 </div>
-                
+
                 <div>
-                  <h3 className="font-bold text-zinc-900 dark:text-zinc-100">الخطوة 6: ملخص الصفحات الأربع</h3>
-                  <p className="mt-1">قم بتوسيع ملخص الصفحة الواحدة (الخطوة 4) إلى 4 صفحات كاملة لتغطية الحبكات الفرعية والمشكلات الثانوية، وصقل وتيرة الأحداث.</p>
+                  <h4 className="font-bold text-zinc-900 dark:text-zinc-100">الخطوة 6: الحبكة الموسعة (Four-Page Synopsis)</h4>
+                  <p>توسع في مخطط الصفحة الواحدة (الخطوة 4) ليصبح مخططاً من 4 صفحات. هذا الهيكل التفصيلي سيكشف أي ثغرات في الحبكة قبل البدء في كتابة المشاهد الفعلية.</p>
                 </div>
-                
+
                 <div>
-                  <h3 className="font-bold text-zinc-900 dark:text-zinc-100">الخطوة 7: مخططات تفاصيل الشخصيات</h3>
-                  <p className="mt-1">اصنع دراسة عاطفية وجسدية كاملة للشخصيات. دوّن تفاصيل المظهر، العادات، الخلفية التاريخية، وتطور رحلتهم الشخصية العاطفية.</p>
+                  <h4 className="font-bold text-zinc-900 dark:text-zinc-100">الخطوة 7: أوراق الشخصيات المفصلة (Detailed Character Sheets)</h4>
+                  <p>قم بتعميق أوراق الشخصيات بالكامل وتفصيل صفاتهم الجسدية، تاريخهم، عاداتهم، وعلاقاتهم المتبادلة للتأكد من ثبات وتناسق تصرفاتهم.</p>
                 </div>
-                
+
                 <div>
-                  <h3 className="font-bold text-zinc-900 dark:text-zinc-100">الخطوة 8: قائمة المشاهد</h3>
-                  <p className="mt-1">قم ببناء جدول يضم كافة مشاهد الرواية مشهداً بمشهد (حدد لكل مشهد: شخصية الـ POV، المكان، الزمان، وتفاصيل الحدث، وعدد الكلمات).</p>
+                  <h4 className="font-bold text-zinc-900 dark:text-zinc-100">الخطوة 8: جدول المشاهد (Scene List)</h4>
+                  <p>اصنع قائمة بجميع المشاهد المطلوبة لبناء الرواية بناءً على الحبكة الموسعة. حدد لكل مشهد: الشخصية التي تروي المشهد (POV)، البيئة/المكان، ما الذي يحدث فيه، وعدد الكلمات المتوقع.</p>
                 </div>
-                
+
                 <div>
-                  <h3 className="font-bold text-zinc-900 dark:text-zinc-100">الخطوة 9: سرد أحداث المشاهد</h3>
-                  <p className="mt-1">اكتب ملخصاً سردياً مسودة لكل مشهد على حدة قبل البدء في كتابة فصول الرواية الفعلية.</p>
+                  <h4 className="font-bold text-zinc-900 dark:text-zinc-100">الخطوة 9: تفصيل المشاهد (Scene Outlines)</h4>
+                  <p>اختياري ولكن مفيد جداً: خذ كل مشهد واكتب وصفاً سردياً تفصيلياً لأحداثه وحواراته، وتوقع العقبات اللحظية التي تواجه البطل.</p>
                 </div>
-                
+
                 <div>
-                  <h3 className="font-bold text-zinc-900 dark:text-zinc-100">الخطوة 10: المسودة الأولى والتصدير</h3>
-                  <p className="mt-1">اجمع كل أفكارك المنسقة واشرع في كتابة المسودة الكاملة، ثم قم بتصدير تفاصيل القصة لمتابعة المراجعة والتنقيح.</p>
+                  <h4 className="font-bold text-zinc-900 dark:text-zinc-100">الخطوة 10: المسودة الأولى والكتابة الفعلية (First Draft)</h4>
+                  <p>ابدأ الكتابة الفعلية للمشاهد مستعيناً بكل المراجع والمخططات التي أعددتها في الخطوات السابقة. تتبع عدد الكلمات المكتوبة حتى تصل لهدفك النهائي.</p>
                 </div>
               </div>
+            </div>
+
+            <div className="mt-6 flex justify-end border-t border-zinc-200 dark:border-zinc-800 pt-4">
+              <button 
+                onClick={() => setShowHelpModal(false)}
+                className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-zinc-200 text-white dark:text-zinc-950 font-bold rounded text-xs transition-colors cursor-pointer"
+              >
+                فهمت ذلك
+              </button>
             </div>
           </div>
         </div>

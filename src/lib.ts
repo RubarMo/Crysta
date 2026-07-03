@@ -91,10 +91,12 @@ export async function saveStepProgress(
   isCompleted: boolean
 ): Promise<void> {
   return invoke<void>("save_step_progress", {
-    novelId,
-    stepNumber,
-    contentText,
-    isCompleted,
+    progress: {
+      novel_id: novelId,
+      step_number: stepNumber,
+      content_text: contentText,
+      is_completed: isCompleted,
+    }
   });
 }
 
@@ -120,4 +122,21 @@ export async function saveScene(scene: Scene): Promise<number> {
 
 export async function deleteScene(id: number, novelId: number): Promise<void> {
   return invoke<void>("delete_scene", { id, novelId });
+}
+
+// Project Lifecycle API Bindings
+export async function selectProjectFile(): Promise<string | null> {
+  return invoke<string | null>("select_project_file");
+}
+
+export async function createProjectFile(defaultName: string): Promise<string | null> {
+  return invoke<string | null>("create_project_file", { defaultName });
+}
+
+export async function openProject(path: string): Promise<Novel> {
+  return invoke<Novel>("open_project", { path });
+}
+
+export async function closeProject(): Promise<void> {
+  return invoke<void>("close_project");
 }
