@@ -44,8 +44,8 @@ Make sure you have the following installed on your machine:
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/RubarMo/snowflake-arabic.git
-   cd snowflake-arabic
+   git clone https://github.com/RubarMo/crysta.git
+   cd crysta
    ```
 
 2. Install dependencies:
