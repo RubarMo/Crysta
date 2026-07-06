@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="src-tauri/icons/128x128.png" alt="Snowflake Arabic Logo" width="128" height="128" />
+</p>
+
 # Snowflake Arabic ❄️✍️
 
 **Snowflake Arabic** is a sleek, professional, and lightweight desktop application designed for writers and novelists to outline, structure, and write their stories using the famous **Snowflake Method (طريقة سنوفليك)**. 
