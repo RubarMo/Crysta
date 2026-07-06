@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Sidebar } from "./components/Sidebar";
 import { Workspace } from "./components/Workspace";
 import { ThemeToggle } from "./components/ThemeToggle";
+import { useLanguage } from "./LanguageContext";
 import { 
   Novel, 
   StepProgress, 
@@ -20,6 +21,7 @@ interface RecentProject {
 }
 
 function App() {
+  const { language, t } = useLanguage();
   const [novels, setNovels] = useState<Novel[]>([]);
   const [activeNovelId, setActiveNovelId] = useState<number | null>(null);
   const [activeProjectPath, setActiveProjectPath] = useState<string | null>(null);
@@ -85,7 +87,7 @@ function App() {
       setErrorMessage(null);
     } catch (err: any) {
       console.error("Failed to open project path", err);
-      setErrorMessage(`فشل فتح المشروع: ${err}`);
+      setErrorMessage(`${t("failedToOpenProject")}: ${err}`);
       removeRecentProject(path);
     } finally {
       setLoading(false);
@@ -100,13 +102,13 @@ function App() {
       }
     } catch (err: any) {
       console.error("File open error", err);
-      alert(`خطأ: ${err}`);
+      alert(`${t("error")}: ${err}`);
     }
   };
 
   const handleCreateFileDialog = async () => {
     try {
-      const path = await createProjectFile("رواية جديدة.snowflake");
+      const path = await createProjectFile(t("newNovelFilename"));
       if (path) {
         setLoading(true);
         const novel = await openProject(path);
@@ -119,7 +121,7 @@ function App() {
       }
     } catch (err: any) {
       console.error("File create error", err);
-      alert(`خطأ: ${err}`);
+      alert(`${t("error")}: ${err}`);
     } finally {
       setLoading(false);
     }
@@ -148,7 +150,7 @@ function App() {
 
   return (
     <div className="flex h-screen bg-[#fcfbfa] text-[#1c1917] dark:bg-[#121212] dark:text-[#e7e5e4] overflow-hidden font-cairo select-none">
-      {/* Right Sidebar (Navigation) */}
+      {/* Sidebar (Navigation) */}
       <Sidebar
         novel={activeNovel}
         activeProjectPath={activeProjectPath}
@@ -165,16 +167,16 @@ function App() {
           <div className="flex items-center gap-3">
             <span 
               onClick={handleCloseProject}
-              className="font-bold text-sm tracking-wide text-zinc-900 dark:text-zinc-50 cursor-pointer hover:opacity-85 transition-opacity"
+              className="font-bold text-sm tracking-wide text-zinc-900 dark:text-zinc-50 cursor-pointer hover:opacity-85 transition-opacity font-cairo"
             >
-              Snowflake Arabic
+              {t("appName")}
             </span>
             {activeNovelId !== null && (
               <button
                 onClick={handleCloseProject}
                 className="text-[10px] px-2 py-0.5 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900 text-zinc-500 dark:text-zinc-400 rounded transition-colors cursor-pointer"
               >
-                المشاريع
+                {t("projectsBtn")}
               </button>
             )}
           </div>
@@ -182,14 +184,14 @@ function App() {
           <div className="flex items-center gap-4">
             {errorMessage && (
               <span className="text-xs text-rose-500 bg-rose-50 dark:bg-rose-950/20 px-2.5 py-1 rounded">
-                خطأ: {errorMessage}
+                {t("error")}: {errorMessage}
               </span>
             )}
             <button
               onClick={() => setShowHelpModal(true)}
               className="text-xs px-2.5 py-1.5 border border-zinc-350 dark:border-zinc-700 bg-white dark:bg-[#1a1a1a] hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors font-semibold rounded text-zinc-700 dark:text-zinc-300 cursor-pointer"
             >
-              دليل Snowflake
+              {t("helpGuideBtn")}
             </button>
             <ThemeToggle />
           </div>
@@ -199,7 +201,7 @@ function App() {
         <main className="flex-1 overflow-y-auto bg-zinc-50 dark:bg-[#0c0c0c]">
           {loading ? (
             <div className="h-full flex items-center justify-center text-xs text-zinc-400">
-              جاري تحميل ملف المشروع...
+              {t("loadingProjectFile")}
             </div>
           ) : activeNovel ? (
             <Workspace
@@ -214,35 +216,35 @@ function App() {
               {/* Header */}
               <div className="border-b border-zinc-200 dark:border-zinc-800 pb-6 flex justify-between items-center">
                 <div>
-                  <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50 font-cairo">Snowflake Arabic</h1>
-                  <p className="text-zinc-400 dark:text-zinc-500 text-xs mt-1 font-cairo">أداة التخطيط والكتابة الذكية للروايات بطريقة سنوفليك</p>
+                  <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50 font-cairo">{t("appName")}</h1>
+                  <p className="text-zinc-400 dark:text-zinc-500 text-xs mt-1 font-cairo">{t("appTagline")}</p>
                 </div>
                 <div className="flex gap-2">
                   <button
                     onClick={handleOpenFileDialog}
                     className="flex items-center gap-1.5 text-xs px-3.5 py-2 border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-[#1a1a1a] hover:bg-zinc-50 dark:hover:bg-[#252525] text-zinc-700 dark:text-zinc-300 font-semibold rounded cursor-pointer transition-colors"
                   >
-                    <span>فتح مشروع</span>
+                    <span>{t("openProjectBtn")}</span>
                   </button>
                   <button
                     onClick={handleCreateFileDialog}
                     className="flex items-center gap-1.5 text-xs px-3.5 py-2 bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-zinc-100 dark:hover:bg-zinc-200 dark:text-zinc-950 font-bold rounded cursor-pointer transition-colors"
                   >
                     <Plus className="w-3.5 h-3.5" />
-                    <span>إنشاء مشروع جديد</span>
+                    <span>{t("createProjectBtn")}</span>
                   </button>
                 </div>
               </div>
 
               {/* Recent Projects List */}
               <div className="space-y-4">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">المشاريع الأخيرة</h3>
+                <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">{t("recentProjectsTitle")}</h3>
                 {recentProjects.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-20 text-center space-y-4 border border-dashed border-zinc-200 dark:border-zinc-800 rounded bg-white dark:bg-[#181818]">
                     <BookOpen className="w-10 h-10 text-zinc-300 dark:text-zinc-700 stroke-[1.2]" />
-                    <h2 className="text-sm font-bold text-zinc-800 dark:text-zinc-200 font-cairo">لا توجد مشاريع سابقة</h2>
+                    <h2 className="text-sm font-bold text-zinc-800 dark:text-zinc-200 font-cairo">{t("noRecentProjectsTitle")}</h2>
                     <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-xs leading-relaxed font-cairo font-semibold">
-                      افتح ملف مشروع قائم أو أنشئ ملفاً جديداً للبدء في كتابة روايتك الأولى.
+                      {t("noRecentProjectsDesc")}
                     </p>
                   </div>
                 ) : (
@@ -264,7 +266,7 @@ function App() {
                         
                         <div className="flex items-center gap-4">
                           <span className="text-[10px] text-zinc-400">
-                            فتح: {new Date(project.lastOpened).toLocaleDateString("ar-EG", { day: "numeric", month: "short", year: "numeric" })}
+                            {t("openedLabel")} {new Date(project.lastOpened).toLocaleDateString(language === "ar" ? "ar-EG" : "en-US", { day: "numeric", month: "short", year: "numeric" })}
                           </span>
                           <button
                             onClick={(e) => {
@@ -272,7 +274,7 @@ function App() {
                               removeRecentProject(project.path);
                             }}
                             className="p-1.5 text-zinc-300 hover:text-rose-500 dark:text-zinc-700 dark:hover:text-rose-450 opacity-0 group-hover:opacity-100 transition-opacity rounded cursor-pointer"
-                            title="إزالة من القائمة"
+                            title={t("removeFromList")}
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -300,67 +302,67 @@ function App() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-start border-b border-zinc-200 dark:border-zinc-800 pb-3 mb-4">
-              <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-50">دليل طريقة سنوفليك (Snowflake Method)</h2>
+              <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-50">{t("helpModalTitle")}</h2>
               <button 
                 onClick={() => setShowHelpModal(false)}
                 className="text-zinc-400 hover:text-zinc-750 dark:hover:text-zinc-200 text-xs font-semibold cursor-pointer"
               >
-                إغلاق
+                {t("close")}
               </button>
             </div>
 
-            <div className="space-y-4 text-xs leading-relaxed text-zinc-700 dark:text-zinc-300">
-              <p className="font-semibold text-zinc-900 dark:text-zinc-100">طريقة سنوفليك هي منهجية شهيرة للتخطيط والكتابة الروائية، طورها الروائي والفيزيائي راندي إنجيرمانسون. تبدأ بفكرة بسيطة جداً وتتوسع تدريجياً وبشكل منطقي لتتحول إلى رواية متكاملة عبر 10 خطوات أساسية:</p>
+            <div className="space-y-4 text-xs leading-relaxed text-zinc-700 dark:text-zinc-300 text-start">
+              <p className="font-semibold text-zinc-900 dark:text-zinc-100">{t("helpModalDesc")}</p>
               
               <div className="space-y-3 pt-2">
                 <div>
-                  <h4 className="font-bold text-zinc-900 dark:text-zinc-100">الخطوة 1: جملة ملخصة (One-Sentence Summary)</h4>
-                  <p>اكتب جملة واحدة تلخص الرواية بالكامل (أقل من 15 كلمة). ركز على الشخصية الرئيسية، الهدف، والصراع الرئيسي دون ذكر أسماء.</p>
+                  <h4 className="font-bold text-zinc-900 dark:text-zinc-100">{t("helpStep1Title")}</h4>
+                  <p>{t("helpStep1Desc")}</p>
                 </div>
                 
                 <div>
-                  <h4 className="font-bold text-zinc-900 dark:text-zinc-100">الخطوة 2: فقرة ملخصة (One-Paragraph Summary)</h4>
-                  <p>توسّع في الجملة السابقة لتصبح فقرة كاملة من 5 جمل. الجملة الأولى تحدد الخلفية والدافع، الجملة الثانية، الثالثة، والرابعة تصف العقبات والكوارث الكبرى، والجملة الخامسة توضح الحل أو النهاية.</p>
+                  <h4 className="font-bold text-zinc-900 dark:text-zinc-100">{t("helpStep2Title")}</h4>
+                  <p>{t("helpStep2Desc")}</p>
                 </div>
 
                 <div>
-                  <h4 className="font-bold text-zinc-900 dark:text-zinc-100">الخطوة 3: أوراق الشخصيات الأساسية (Character Sheets)</h4>
-                  <p>قم بإنشاء ملف لكل شخصية رئيسية يوضح: الاسم، دافعها (ماذا تريد؟)، هدفها الفعلي، الصراع الذي تواجهه، نقطة التحول أو التنوير (Epiphany)، وملخصاً من فقرة واحدة لقصتها.</p>
+                  <h4 className="font-bold text-zinc-900 dark:text-zinc-100">{t("helpStep3Title")}</h4>
+                  <p>{t("helpStep3Desc")}</p>
                 </div>
 
                 <div>
-                  <h4 className="font-bold text-zinc-900 dark:text-zinc-100">الخطوة 4: مخطط الصفحات (One-Page Synopsis)</h4>
-                  <p>خذ كل جملة من الفقرة الملخصة في الخطوة 2 وتوسّع فيها لتصبح فقرة كاملة. سينتج لديك صفحة كاملة تلخص الحبكة الروائية وتفاصيل الأحداث الرئيسية.</p>
+                  <h4 className="font-bold text-zinc-900 dark:text-zinc-100">{t("helpStep4Title")}</h4>
+                  <p>{t("helpStep4Desc")}</p>
                 </div>
 
                 <div>
-                  <h4 className="font-bold text-zinc-900 dark:text-zinc-100">الخطوة 5: توصيف الشخصيات الكامل (Character Narratives)</h4>
-                  <p>اكتب وصفاً مفصلاً من صفحة كاملة لكل شخصية رئيسية، وراقب تطورها في القصة من منظورها الخاص. تضمن هذه الخطوة عمق الشخصية ودورها المحوري.</p>
+                  <h4 className="font-bold text-zinc-900 dark:text-zinc-100">{t("helpStep5Title")}</h4>
+                  <p>{t("helpStep5Desc")}</p>
                 </div>
 
                 <div>
-                  <h4 className="font-bold text-zinc-900 dark:text-zinc-100">الخطوة 6: الحبكة الموسعة (Four-Page Synopsis)</h4>
-                  <p>توسع في مخطط الصفحة الواحدة (الخطوة 4) ليصبح مخططاً من 4 صفحات. هذا الهيكل التفصيلي سيكشف أي ثغرات في الحبكة قبل البدء في كتابة المشاهد الفعلية.</p>
+                  <h4 className="font-bold text-zinc-900 dark:text-zinc-100">{t("helpStep6Title")}</h4>
+                  <p>{t("helpStep6Desc")}</p>
                 </div>
 
                 <div>
-                  <h4 className="font-bold text-zinc-900 dark:text-zinc-100">الخطوة 7: أوراق الشخصيات المفصلة (Detailed Character Sheets)</h4>
-                  <p>قم بتعميق أوراق الشخصيات بالكامل وتفصيل صفاتهم الجسدية، تاريخهم، عاداتهم، وعلاقاتهم المتبادلة للتأكد من ثبات وتناسق تصرفاتهم.</p>
+                  <h4 className="font-bold text-zinc-900 dark:text-zinc-100">{t("helpStep7Title")}</h4>
+                  <p>{t("helpStep7Desc")}</p>
                 </div>
 
                 <div>
-                  <h4 className="font-bold text-zinc-900 dark:text-zinc-100">الخطوة 8: جدول المشاهد (Scene List)</h4>
-                  <p>اصنع قائمة بجميع المشاهد المطلوبة لبناء الرواية بناءً على الحبكة الموسعة. حدد لكل مشهد: الشخصية التي تروي المشهد (POV)، البيئة/المكان، ما الذي يحدث فيه، وعدد الكلمات المتوقع.</p>
+                  <h4 className="font-bold text-zinc-900 dark:text-zinc-100">{t("helpStep8Title")}</h4>
+                  <p>{t("helpStep8Desc")}</p>
                 </div>
 
                 <div>
-                  <h4 className="font-bold text-zinc-900 dark:text-zinc-100">الخطوة 9: تفصيل المشاهد (Scene Outlines)</h4>
-                  <p>اختياري ولكن مفيد جداً: خذ كل مشهد واكتب وصفاً سردياً تفصيلياً لأحداثه وحواراته، وتوقع العقبات اللحظية التي تواجه البطل.</p>
+                  <h4 className="font-bold text-zinc-900 dark:text-zinc-100">{t("helpStep9Title")}</h4>
+                  <p>{t("helpStep9Desc")}</p>
                 </div>
 
                 <div>
-                  <h4 className="font-bold text-zinc-900 dark:text-zinc-100">الخطوة 10: المسودة الأولى والكتابة الفعلية (First Draft)</h4>
-                  <p>ابدأ الكتابة الفعلية للمشاهد مستعيناً بكل المراجع والمخططات التي أعددتها في الخطوات السابقة. تتبع عدد الكلمات المكتوبة حتى تصل لهدفك النهائي.</p>
+                  <h4 className="font-bold text-zinc-900 dark:text-zinc-100">{t("helpStep10Title")}</h4>
+                  <p>{t("helpStep10Desc")}</p>
                 </div>
               </div>
             </div>
@@ -370,7 +372,7 @@ function App() {
                 onClick={() => setShowHelpModal(false)}
                 className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-zinc-200 text-white dark:text-zinc-950 font-bold rounded text-xs transition-colors cursor-pointer"
               >
-                فهمت ذلك
+                {t("helpModalCloseBtn")}
               </button>
             </div>
           </div>

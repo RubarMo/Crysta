@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Novel, StepProgress, Character, Scene, saveStepProgress, saveCharacter, deleteCharacter, saveScene, deleteScene } from '../lib';
 import { WordCounter } from './WordCounter';
 import { Save, Plus } from 'lucide-react';
+import { useLanguage } from '../LanguageContext';
+import { LocaleKeys } from '../locales';
 
 interface WorkspaceProps {
   activeNovel: Novel;
@@ -18,6 +20,8 @@ export const Workspace: React.FC<WorkspaceProps> = ({
   onReloadSteps,
   activeStep,
 }) => {
+  const { language, t } = useLanguage();
+
   // Local states for novel attributes
   const [novelTitle, setNovelTitle] = useState(activeNovel.title);
   const [novelGenre, setNovelGenre] = useState(activeNovel.genre);
@@ -88,7 +92,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
       onReloadSteps();
     } catch (err: any) {
       console.error('Failed to save step progress', err);
-      alert(`خطأ أثناء حفظ تقدم الخطوة: ${err}`);
+      alert(`${t('error')}: ${err}`);
     }
   };
 
@@ -113,7 +117,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
       });
     } catch (err: any) {
       console.error('Failed to update novel', err);
-      alert(`خطأ أثناء حفظ بيانات الرواية: ${err}`);
+      alert(`${t('error')}: ${err}`);
     }
   };
 
@@ -124,7 +128,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
       const charToSave: Character = {
         id: char.id,
         novel_id: activeNovel.id,
-        name: char.name || 'شخصية جديدة',
+        name: char.name || (language === 'ar' ? 'شخصية جديدة' : 'New Character'),
         motivation: char.motivation || '',
         goal: char.goal || '',
         conflict: char.conflict || '',
@@ -141,7 +145,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
   };
 
   const handleDeleteCharacter = async (id: number) => {
-    if (confirm('هل أنت متأكد من حذف هذه الشخصية؟')) {
+    if (confirm(t('deleteCharConfirm'))) {
       try {
         await deleteCharacter(id);
         loadCharactersAndScenes();
@@ -181,7 +185,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
   };
 
   const handleDeleteScene = async (id: number) => {
-    if (confirm('هل أنت متأكد من حذف هذا المشهد؟')) {
+    if (confirm(t('deleteSceneConfirm'))) {
       try {
         await deleteScene(id, activeNovel.id!);
         loadCharactersAndScenes();
@@ -209,50 +213,50 @@ export const Workspace: React.FC<WorkspaceProps> = ({
   };
 
   const getExportMarkdown = () => {
-    let md = `# رواية: ${activeNovel.title}\n`;
-    md += `**النوع الأدبي:** ${activeNovel.genre}\n`;
-    md += `**الجمهور المستهدف:** ${activeNovel.target_audience}\n`;
-    md += `**عدد الكلمات المستهدف:** ${activeNovel.target_word_count} كلمة\n`;
-    md += `**عدد الكلمات الفعلي:** ${activeNovel.current_word_count} كلمة\n\n`;
+    let md = `# ${t('exportNovelLabel')}: ${activeNovel.title}\n`;
+    md += `**${t('exportGenreLabel')}:** ${activeNovel.genre}\n`;
+    md += `**${t('exportAudienceLabel')}:** ${activeNovel.target_audience}\n`;
+    md += `**${t('exportTargetWordsLabel')}:** ${activeNovel.target_word_count} ${t('words')}\n`;
+    md += `**${t('exportActualWordsLabel')}:** ${activeNovel.current_word_count} ${t('words')}\n\n`;
 
-    md += `## الخطوة 1: ملخص الجملة الواحدة\n`;
-    md += `${getStepText(1) || '_لم يكتب بعد_'}\n\n`;
+    md += `## ${t('step')} 1: ${t('step1Title')}\n`;
+    md += `${getStepText(1) || `_${t('exportNotWritten')}_`}\n\n`;
 
-    md += `## الخطوة 2: ملخص الفقرة الكاملة\n`;
-    md += `${getStepText(2) || '_لم يكتب بعد_'}\n\n`;
+    md += `## ${t('step')} 2: ${t('step2Title')}\n`;
+    md += `${getStepText(2) || `_${t('exportNotWritten')}_`}\n\n`;
 
-    md += `## الخطوة 4: ملخص الصفحة الواحدة (توسيع الملخص)\n`;
-    md += `${getStepText(4) || '_لم يكتب بعد_'}\n\n`;
+    md += `## ${t('step')} 4: ${t('step4Title')}\n`;
+    md += `${getStepText(4) || `_${t('exportNotWritten')}_`}\n\n`;
 
-    md += `## الخطوة 6: ملخص الصفحات الأربع\n`;
-    md += `${getStepText(6) || '_لم يكتب بعد_'}\n\n`;
+    md += `## ${t('step')} 6: ${t('step6Title')}\n`;
+    md += `${getStepText(6) || `_${t('exportNotWritten')}_`}\n\n`;
 
-    md += `## السير الذاتية ومخططات الشخصيات (الخطوات 3، 5، 7)\n`;
+    md += `## ${t('step3Title')} & ${t('charChartsTitle')} (${t('step')} 3, 5, 7)\n`;
     if (characters.length === 0) {
-      md += `_لا توجد شخصيات مضافة_\n\n`;
+      md += `_${t('exportNoChars')}_\n\n`;
     } else {
       characters.forEach((char) => {
         md += `### ${char.name}\n`;
-        md += `- **الدافع الأساسي:** ${char.motivation || '_'}\n`;
-        md += `- **الهدف:** ${char.goal || '_'}\n`;
-        md += `- **الصراع القائم:** ${char.conflict || '_'}\n`;
-        md += `- **لحظة التنوير:** ${char.epiphany || '_'}\n`;
-        md += `- **ملخص الفقرة الواحدة:**\n${char.one_paragraph_summary || '_'}\n`;
-        md += `- **الملخص الكامل الممتد:**\n${char.full_synopsis || '_'}\n\n`;
+        md += `- **${t('exportCharMotivation')}:** ${char.motivation || '_'}\n`;
+        md += `- **${t('exportCharGoal')}:** ${char.goal || '_'}\n`;
+        md += `- **${t('exportCharConflict')}:** ${char.conflict || '_'}\n`;
+        md += `- **${t('exportCharEpiphany')}:** ${char.epiphany || '_'}\n`;
+        md += `- **${t('exportCharOneParagraph')}:**\n${char.one_paragraph_summary || '_'}\n`;
+        md += `- **${t('exportCharFullSynopsis')}:**\n${char.full_synopsis || '_'}\n\n`;
       });
     }
 
-    md += `## قائمة ومسودة المشاهد (الخطوات 8، 9)\n`;
+    md += `## ${t('step8Title')} & ${t('step9Title')} (${t('step')} 8, 9)\n`;
     if (scenes.length === 0) {
-      md += `_لا توجد مشاهد مضافة_\n\n`;
+      md += `_${t('exportNoScenes')}_\n\n`;
     } else {
       scenes.forEach((scn, idx) => {
-        const povName = characters.find(c => c.id === scn.pov_character_id)?.name || 'غير محدد';
-        md += `### مشهد ${idx + 1}: ${scn.setting || 'بدون عنوان'}\n`;
-        md += `- **شخصية وجهة النظر (POV):** ${povName}\n`;
-        md += `- **خط الحبكة:** ${scn.plot_thread || '_'}\n`;
-        md += `- **عدد الكلمات المتوقع:** ${scn.expected_word_count} كلمة | **الفعلي:** ${scn.actual_word_count} كلمة\n`;
-        md += `- **ماذا يحدث:**\n${scn.what_happens || '_'}\n\n`;
+        const povName = characters.find(c => c.id === scn.pov_character_id)?.name || t('sceneNotPlanned');
+        md += `### ${t('sceneNumber')} ${idx + 1}: ${scn.setting || t('sceneNotPlanned')}\n`;
+        md += `- **${t('exportScenePOV')}:** ${povName}\n`;
+        md += `- **${t('exportScenePlot')}:** ${scn.plot_thread || '_'}\n`;
+        md += `- **${t('exportSceneWords')}:** ${scn.expected_word_count} | **${t('exportSceneActual')}:** ${scn.actual_word_count}\n`;
+        md += `- **${t('exportSceneWhatHappens')}:**\n${scn.what_happens || '_'}\n\n`;
       });
     }
 
@@ -260,7 +264,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
   };
 
   // ----------------------------------------------------
-  // DASHBOARD VIEW
+  // DASHBOARD VIEW (STEP 0)
   // ----------------------------------------------------
   if (activeStep === 0) {
     const progressPercent = activeNovel.target_word_count > 0 
@@ -270,15 +274,15 @@ export const Workspace: React.FC<WorkspaceProps> = ({
     return (
       <div className="max-w-3xl mx-auto p-8 space-y-8 fade-in font-cairo">
         <header className="border-b border-zinc-200 dark:border-zinc-800 pb-4">
-          <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-50">لوحة التحكم الرئيسية</h1>
-          <p className="text-zinc-400 dark:text-zinc-500 text-xs mt-1">تعديل معلومات الرواية الحالية ومتابعة الإحصائيات.</p>
+          <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-50">{t('novelDashboardTitle')}</h1>
+          <p className="text-zinc-400 dark:text-zinc-500 text-xs mt-1">{t('novelDashboardDesc')}</p>
         </header>
 
         {/* Word Count Progress */}
         <div className="bg-white dark:bg-[#181818] p-5 border border-zinc-200 dark:border-zinc-800 rounded space-y-2.5">
           <div className="flex justify-between items-center text-xs font-semibold">
-            <span className="text-zinc-400">تقدم كتابة الرواية</span>
-            <span className="text-zinc-900 dark:text-zinc-100">{activeNovel.current_word_count} / {activeNovel.target_word_count} كلمة ({progressPercent}%)</span>
+            <span className="text-zinc-400">{t('writingProgress')}</span>
+            <span className="text-zinc-900 dark:text-zinc-100">{activeNovel.current_word_count} / {activeNovel.target_word_count} {t('words')} ({progressPercent}%)</span>
           </div>
           <div className="w-full bg-zinc-100 dark:bg-zinc-900 h-1.5 rounded overflow-hidden">
             <div 
@@ -290,47 +294,47 @@ export const Workspace: React.FC<WorkspaceProps> = ({
 
         {/* Form Fields */}
         <div className="bg-white dark:bg-[#181818] p-5 border border-zinc-200 dark:border-zinc-800 rounded space-y-5">
-          <h2 className="text-xs font-bold text-zinc-400 uppercase tracking-wider pb-1">بيانات الرواية الأساسية</h2>
+          <h2 className="text-xs font-bold text-zinc-400 uppercase tracking-wider pb-1">{t('novelInfoTitle')}</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1">
-              <label className="text-[11px] font-bold text-zinc-400 dark:text-zinc-500">عنوان الرواية</label>
+              <label className="text-[11px] font-bold text-zinc-400 dark:text-zinc-500">{t('novelTitleLabel')}</label>
               <input
                 type="text"
                 value={novelTitle}
                 onChange={(e) => setNovelTitle(e.target.value)}
                 onBlur={triggerSaveNovel}
                 className="w-full text-xs rounded border border-zinc-200 dark:border-zinc-800 bg-[#fbfbfa] dark:bg-[#121212] p-2 focus:outline-none focus:border-zinc-500 focus:ring-0"
-                placeholder="العنوان الحركي أو النهائي..."
+                placeholder={t('novelTitlePlaceholder')}
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-[11px] font-bold text-zinc-400 dark:text-zinc-500">التصنيف الأدبي</label>
+              <label className="text-[11px] font-bold text-zinc-400 dark:text-zinc-500">{t('novelGenreLabel')}</label>
               <input
                 type="text"
                 value={novelGenre}
                 onChange={(e) => setNovelGenre(e.target.value)}
                 onBlur={triggerSaveNovel}
                 className="w-full text-xs rounded border border-zinc-200 dark:border-zinc-800 bg-[#fbfbfa] dark:bg-[#121212] p-2 focus:outline-none focus:border-zinc-500 focus:ring-0"
-                placeholder="مثال: دراما، خيال علمي..."
+                placeholder={t('novelGenrePlaceholder')}
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-[11px] font-bold text-zinc-400 dark:text-zinc-500">الجمهور المستهدف</label>
+              <label className="text-[11px] font-bold text-zinc-400 dark:text-zinc-500">{t('novelAudienceLabel')}</label>
               <input
                 type="text"
                 value={novelAudience}
                 onChange={(e) => setNovelAudience(e.target.value)}
                 onBlur={triggerSaveNovel}
                 className="w-full text-xs rounded border border-zinc-200 dark:border-zinc-800 bg-[#fbfbfa] dark:bg-[#121212] p-2 focus:outline-none focus:border-zinc-500 focus:ring-0"
-                placeholder="مثال: البالغين..."
+                placeholder={t('novelAudiencePlaceholder')}
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-[11px] font-bold text-zinc-400 dark:text-zinc-500">عدد الكلمات المستهدف</label>
+              <label className="text-[11px] font-bold text-zinc-400 dark:text-zinc-500">{t('novelTargetWordsLabel')}</label>
               <input
                 type="number"
                 value={novelTargetWords || ''}
@@ -342,69 +346,131 @@ export const Workspace: React.FC<WorkspaceProps> = ({
           </div>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-white dark:bg-[#181818] p-4 border border-zinc-200 dark:border-zinc-800 rounded">
-            <span className="text-[10px] font-bold text-zinc-400 block">عدد الشخصيات</span>
-            <p className="text-xl font-bold text-zinc-900 dark:text-zinc-50 mt-1">{characters.length}</p>
-          </div>
+        {/* Aggregate Stats */}
+        <div className="space-y-4">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400">{t('statsTitle')}</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-white dark:bg-[#181818] p-4 border border-zinc-200 dark:border-zinc-800 rounded">
+              <span className="text-[10px] font-bold text-zinc-400 block">{t('statsCharactersCount')}</span>
+              <p className="text-xl font-bold text-zinc-900 dark:text-zinc-50 mt-1">{characters.length}</p>
+            </div>
 
-          <div className="bg-white dark:bg-[#181818] p-4 border border-zinc-200 dark:border-zinc-800 rounded">
-            <span className="text-[10px] font-bold text-zinc-400 block">المشاهد المخططة</span>
-            <p className="text-xl font-bold text-zinc-900 dark:text-zinc-50 mt-1">{scenes.length}</p>
-          </div>
+            <div className="bg-white dark:bg-[#181818] p-4 border border-zinc-200 dark:border-zinc-800 rounded">
+              <span className="text-[10px] font-bold text-zinc-400 block">{t('statsScenesPlanned')}</span>
+              <p className="text-xl font-bold text-zinc-900 dark:text-zinc-50 mt-1">{scenes.length}</p>
+            </div>
 
-          <div className="bg-white dark:bg-[#181818] p-4 border border-zinc-200 dark:border-zinc-800 rounded">
-            <span className="text-[10px] font-bold text-zinc-400 block">المشاهد المنجزة</span>
-            <p className="text-xl font-bold text-zinc-900 dark:text-zinc-50 mt-1">
-              {scenes.filter(s => s.actual_word_count > 0).length} / {scenes.length}
-            </p>
+            <div className="bg-white dark:bg-[#181818] p-4 border border-zinc-200 dark:border-zinc-800 rounded">
+              <span className="text-[10px] font-bold text-zinc-400 block">{t('statsScenesDone')}</span>
+              <p className="text-xl font-bold text-zinc-900 dark:text-zinc-50 mt-1">
+                {scenes.filter(s => s.actual_word_count > 0).length} / {scenes.length}
+              </p>
+            </div>
           </div>
         </div>
       </div>
     );
   }
 
-  const stepTitles: Record<number, { title: string; desc: string; limit?: number; hasRef?: number }> = {
-    1: { title: 'ملخص الجملة الواحدة', desc: 'لخص روايتك بالكامل في جملة واحدة مكثفة. التركيز على الحبكة والنهاية. الحد الأقصى 50 كلمة.', limit: 50 },
-    2: { title: 'ملخص الفقرة الكاملة', desc: 'قم بتوسيع جملة الملخص إلى فقرة كاملة توضح البداية، الأحداث الكبرى الثلاثة، والنهاية.', hasRef: 1 },
-    4: { title: 'توسيع الملخص لصفحة كاملة', desc: 'قم بتوسيع الفقرات الخمسة من الخطوة الثانية إلى صفحة سردية كاملة تقدم حبكة أعمق وصراعات متصاعدة.', hasRef: 2 },
-    6: { title: 'ملخص الصفحات الأربع', desc: 'قم بتوسيع الملخص السردي إلى 4 صفحات كاملة لتوضيح كافة تفاصيل تطور القصة والمسار العام للرواية.', hasRef: 4 },
+  // ----------------------------------------------------
+  // UNIFIED HEADER FOR STEPS 1-10
+  // ----------------------------------------------------
+  const stepTitlesMap: Record<number, { titleKey: LocaleKeys; descKey: LocaleKeys; limit?: number; hasRef?: number }> = {
+    1: { titleKey: 'step1Title', descKey: 'step1Desc', limit: 50 },
+    2: { titleKey: 'step2Title', descKey: 'step2Desc', hasRef: 1 },
+    3: { titleKey: 'step3Title', descKey: 'charactersDesc' },
+    4: { titleKey: 'step4Title', descKey: 'step4Desc', hasRef: 2 },
+    5: { titleKey: 'step5Title', descKey: 'charSynopsesDesc' },
+    6: { titleKey: 'step6Title', descKey: 'step6Desc', hasRef: 4 },
+    7: { titleKey: 'step7Title', descKey: 'charChartsDesc' },
+    8: { titleKey: 'step8Title', descKey: 'scenesDesc' },
+    9: { titleKey: 'step9Title', descKey: 'sceneNarrativesDesc' },
+    10: { titleKey: 'step10Title', descKey: 'exportDesc' },
+  };
+
+  const meta = stepTitlesMap[activeStep];
+
+  const renderHeaderActions = () => {
+    return (
+      <div className="flex flex-wrap items-center gap-4">
+        {/* Unified Checkbox */}
+        <label className="flex items-center gap-1.5 cursor-pointer text-[11px] font-bold text-zinc-500 select-none">
+          <input
+            type="checkbox"
+            checked={stepCompleted}
+            onChange={(e) => {
+              const check = e.target.checked;
+              setStepCompleted(check);
+              const isWritingStep = activeStep === 1 || activeStep === 2 || activeStep === 4 || activeStep === 6;
+              triggerSaveStepProgress(isWritingStep ? stepText : '', check);
+            }}
+            className="rounded border-zinc-300 dark:border-zinc-700 text-zinc-900 focus:ring-0"
+          />
+          <span>{t('markAsCompleted')}</span>
+        </label>
+
+        {/* Step-specific buttons */}
+        {activeStep === 3 && !editingCharacter && (
+          <button
+            onClick={() => setEditingCharacter({ name: '', motivation: '', goal: '', conflict: '', epiphany: '', one_paragraph_summary: '', full_synopsis: '' })}
+            className="flex items-center gap-1 text-xs px-2.5 py-1.5 border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-[#1a1a1a] hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors font-semibold rounded cursor-pointer"
+          >
+            <Plus className="w-3 h-3" />
+            <span>{t('addCharacterBtn')}</span>
+          </button>
+        )}
+
+        {activeStep === 8 && !editingScene && (
+          <button
+            onClick={() => setEditingScene({ pov_character_id: null, setting: '', plot_thread: '', what_happens: '', expected_word_count: 500, actual_word_count: 0 })}
+            className="flex items-center gap-1 text-xs px-2.5 py-1.5 border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-[#1a1a1a] hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors font-semibold rounded cursor-pointer"
+          >
+            <Plus className="w-3 h-3" />
+            <span>{t('addSceneBtn')}</span>
+          </button>
+        )}
+
+        {activeStep === 10 && (
+          <button
+            onClick={() => handleCopyMarkdown(getExportMarkdown())}
+            className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-[#1a1a1a] hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors font-semibold rounded cursor-pointer"
+          >
+            {copied ? (
+              <span className="text-emerald-500">{t('copied')}</span>
+            ) : (
+              <span>{t('copyMarkdown')}</span>
+            )}
+          </button>
+        )}
+      </div>
+    );
+  };
+
+  const renderStepHeader = () => {
+    if (!meta) return null;
+    return (
+      <header className="flex justify-between items-start border-b border-zinc-200 dark:border-zinc-800 pb-3">
+        <div>
+          <h1 className="text-lg font-bold text-zinc-900 dark:text-zinc-50">{t(meta.titleKey)}</h1>
+          <p className="text-zinc-400 dark:text-zinc-500 text-xs mt-0.5">{t(meta.descKey)}</p>
+        </div>
+        {renderHeaderActions()}
+      </header>
+    );
   };
 
   // ----------------------------------------------------
   // WRITING STEPS (1, 2, 4, 6)
   // ----------------------------------------------------
   if (activeStep === 1 || activeStep === 2 || activeStep === 4 || activeStep === 6) {
-    const meta = stepTitles[activeStep];
     return (
       <div className="max-w-3xl mx-auto p-8 space-y-6 fade-in font-cairo">
-        <header className="flex justify-between items-start border-b border-zinc-200 dark:border-zinc-800 pb-3">
-          <div>
-            <h1 className="text-lg font-bold text-zinc-900 dark:text-zinc-50">{meta.title}</h1>
-            <p className="text-zinc-400 dark:text-zinc-500 text-xs mt-0.5">{meta.desc}</p>
-          </div>
-          <div>
-            <label className="flex items-center gap-1.5 cursor-pointer text-[11px] font-bold text-zinc-500">
-              <input
-                type="checkbox"
-                checked={stepCompleted}
-                onChange={(e) => {
-                  const check = e.target.checked;
-                  setStepCompleted(check);
-                  triggerSaveStepProgress(stepText, check);
-                }}
-                className="rounded border-zinc-300 dark:border-zinc-700 text-zinc-900 focus:ring-0"
-              />
-              <span>تعليم كـ مكتملة</span>
-            </label>
-          </div>
-        </header>
+        {renderStepHeader()}
 
         {meta.hasRef && (
-          <div className="bg-[#fcfbfa] dark:bg-zinc-900/10 border border-zinc-200 dark:border-zinc-800 p-4 rounded text-xs leading-relaxed text-zinc-500 whitespace-pre-line">
-            <span className="font-bold text-zinc-400 block mb-1">مرجع للخطوة {meta.hasRef}:</span>
-            {getStepText(meta.hasRef) || 'لم تتم كتابة الخطوة المرجعية بعد.'}
+          <div className="bg-[#fcfbfa] dark:bg-zinc-900/10 border border-zinc-200 dark:border-zinc-800 p-4 rounded text-xs leading-relaxed text-zinc-500 whitespace-pre-line text-start">
+            <span className="font-bold text-zinc-400 block mb-1">{t('referenceToStep')} {meta.hasRef}:</span>
+            {getStepText(meta.hasRef) || t('noReferenceYet')}
           </div>
         )}
 
@@ -414,8 +480,8 @@ export const Workspace: React.FC<WorkspaceProps> = ({
             value={stepText}
             onChange={(e) => setStepText(e.target.value)}
             onBlur={() => triggerSaveStepProgress(stepText, stepCompleted)}
-            className="w-full min-h-[350px] text-sm leading-loose bg-white dark:bg-[#181818] border border-zinc-200 dark:border-zinc-800 p-4 rounded focus:outline-none focus:border-zinc-500 focus:ring-0 resize-y placeholder:text-zinc-300"
-            placeholder="اكتب هنا... يتم الحفظ تلقائياً عند مغادرة حقل النص."
+            className="w-full min-h-[350px] text-sm leading-loose bg-white dark:bg-[#181818] border border-zinc-200 dark:border-zinc-800 p-4 rounded focus:outline-none focus:border-zinc-500 focus:ring-0 resize-y placeholder:text-zinc-300 text-start"
+            placeholder={t('writeHerePlaceholder')}
           />
           <div className="flex justify-end">
             <WordCounter text={stepText} maxWords={meta.limit} />
@@ -431,31 +497,17 @@ export const Workspace: React.FC<WorkspaceProps> = ({
   if (activeStep === 3) {
     return (
       <div className="max-w-3xl mx-auto p-8 space-y-6 fade-in font-cairo">
-        <header className="flex justify-between items-start border-b border-zinc-200 dark:border-zinc-800 pb-3">
-          <div>
-            <h1 className="text-lg font-bold text-zinc-900 dark:text-zinc-50">السير الذاتية للشخصيات</h1>
-            <p className="text-zinc-400 dark:text-zinc-500 text-xs mt-0.5">أضف الشخصيات وحدد رغباتهم وصراعاتهم الأساسية.</p>
-          </div>
-          {!editingCharacter && (
-            <button
-              onClick={() => setEditingCharacter({ name: '', motivation: '', goal: '', conflict: '', epiphany: '', one_paragraph_summary: '', full_synopsis: '' })}
-              className="flex items-center gap-1 text-xs px-2.5 py-1.5 border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-[#1a1a1a] hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors font-semibold rounded"
-            >
-              <Plus className="w-3 h-3" />
-              <span>إضافة شخصية</span>
-            </button>
-          )}
-        </header>
+        {renderStepHeader()}
 
         {editingCharacter ? (
-          <div className="bg-white dark:bg-[#181818] p-5 border border-zinc-200 dark:border-zinc-800 rounded space-y-4">
+          <div className="bg-white dark:bg-[#181818] p-5 border border-zinc-200 dark:border-zinc-800 rounded space-y-4 text-start">
             <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
-              {editingCharacter.id ? 'تعديل الشخصية' : 'إضافة شخصية جديدة'}
+              {editingCharacter.id ? t('editCharacterTitle') : t('addCharacterTitle')}
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1">
-                <label className="text-[11px] text-zinc-500 font-bold">الاسم</label>
+                <label className="text-[11px] text-zinc-500 font-bold">{t('charNameLabel')}</label>
                 <input
                   type="text"
                   value={editingCharacter.name || ''}
@@ -465,7 +517,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
               </div>
 
               <div className="space-y-1">
-                <label className="text-[11px] text-zinc-500 font-bold">الدافع</label>
+                <label className="text-[11px] text-zinc-500 font-bold">{t('charMotivationLabel')}</label>
                 <input
                   type="text"
                   value={editingCharacter.motivation || ''}
@@ -475,7 +527,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
               </div>
 
               <div className="space-y-1">
-                <label className="text-[11px] text-zinc-500 font-bold">الهدف</label>
+                <label className="text-[11px] text-zinc-500 font-bold">{t('charGoalLabel')}</label>
                 <input
                   type="text"
                   value={editingCharacter.goal || ''}
@@ -485,7 +537,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
               </div>
 
               <div className="space-y-1">
-                <label className="text-[11px] text-zinc-500 font-bold">الصراع</label>
+                <label className="text-[11px] text-zinc-500 font-bold">{t('charConflictLabel')}</label>
                 <input
                   type="text"
                   value={editingCharacter.conflict || ''}
@@ -495,7 +547,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
               </div>
 
               <div className="space-y-1 md:col-span-2">
-                <label className="text-[11px] text-zinc-500 font-bold">لحظة التنوير</label>
+                <label className="text-[11px] text-zinc-500 font-bold">{t('charEpiphanyLabel')}</label>
                 <input
                   type="text"
                   value={editingCharacter.epiphany || ''}
@@ -505,11 +557,12 @@ export const Workspace: React.FC<WorkspaceProps> = ({
               </div>
 
               <div className="space-y-1 md:col-span-2 relative">
-                <label className="text-[11px] text-zinc-500 font-bold">ملخص السيرة (فقرة واحدة)</label>
+                <label className="text-[11px] text-zinc-500 font-bold">{t('charSummaryLabel')}</label>
                 <textarea
                   value={editingCharacter.one_paragraph_summary || ''}
                   onChange={(e) => setEditingCharacter({ ...editingCharacter, one_paragraph_summary: e.target.value })}
                   className="w-full min-h-[100px] text-xs rounded border border-zinc-200 dark:border-zinc-800 bg-[#fbfbfa] dark:bg-[#121212] p-2 focus:outline-none focus:border-zinc-500 focus:ring-0 resize-y"
+                  placeholder={t('charSummaryPlaceholder')}
                 />
                 <div className="flex justify-end mt-1">
                   <WordCounter text={editingCharacter.one_paragraph_summary || ''} />
@@ -520,27 +573,27 @@ export const Workspace: React.FC<WorkspaceProps> = ({
             <div className="flex gap-2 justify-end pt-2">
               <button
                 onClick={() => setEditingCharacter(null)}
-                className="px-3 py-1.5 border border-zinc-200 dark:border-zinc-800 text-xs rounded hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
+                className="px-3 py-1.5 border border-zinc-200 dark:border-zinc-800 text-xs rounded hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors cursor-pointer"
               >
-                إلغاء
+                {t('cancel')}
               </button>
               <button
                 onClick={() => handleSaveCharacter(editingCharacter)}
-                className="flex items-center gap-1 px-3 py-1.5 bg-zinc-800 text-white dark:bg-zinc-200 dark:text-zinc-900 text-xs rounded transition-colors font-bold"
+                className="flex items-center gap-1 px-3 py-1.5 bg-zinc-800 text-white dark:bg-zinc-200 dark:text-zinc-900 text-xs rounded transition-colors font-bold cursor-pointer"
               >
                 <Save className="w-3.5 h-3.5" />
-                <span>حفظ الشخصية</span>
+                <span>{t('save')}</span>
               </button>
             </div>
           </div>
         ) : (
           <div className="space-y-4">
             {characters.length === 0 ? (
-              <div className="text-center py-10 bg-white dark:bg-[#181818] border border-zinc-200 dark:border-zinc-800 rounded text-zinc-400 text-xs">
-                لم تتم إضافة شخصيات بعد. أضف أول شخصية لبناء تفاصيلها.
+              <div className="text-center py-10 bg-white dark:bg-[#181818] border border-zinc-200 dark:border-zinc-800 rounded text-zinc-400 text-xs leading-relaxed font-semibold">
+                {t('noCharactersYet')}
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-start">
                 {characters.map((char) => (
                   <div key={char.id} className="bg-white dark:bg-[#181818] p-4 border border-zinc-200 dark:border-zinc-800 rounded flex flex-col justify-between group">
                     <div className="space-y-2">
@@ -549,42 +602,26 @@ export const Workspace: React.FC<WorkspaceProps> = ({
                         <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button
                             onClick={() => setEditingCharacter(char)}
-                            className="text-[10px] text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 font-bold"
+                            className="text-[10px] text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 font-bold cursor-pointer"
                           >
-                            تعديل
+                            {t('edit')}
                           </button>
                           <button
                             onClick={() => handleDeleteCharacter(char.id!)}
-                            className="text-[10px] text-rose-500 hover:text-rose-600 font-bold"
+                            className="text-[10px] text-rose-500 hover:text-rose-600 font-bold cursor-pointer"
                           >
-                            حذف
+                            {t('delete')}
                           </button>
                         </div>
                       </div>
                       <p className="text-[11px] leading-relaxed text-zinc-500 line-clamp-3">
-                        {char.one_paragraph_summary || 'لا يوجد ملخص مضاف.'}
+                        {char.one_paragraph_summary || t('noCharSummary')}
                       </p>
                     </div>
                   </div>
                 ))}
               </div>
             )}
-
-            <div className="border-t border-zinc-200 dark:border-zinc-800 pt-4 flex justify-between">
-              <label className="flex items-center gap-1.5 cursor-pointer text-[11px] font-bold text-zinc-500">
-                <input
-                  type="checkbox"
-                  checked={stepCompleted}
-                  onChange={(e) => {
-                    const check = e.target.checked;
-                    setStepCompleted(check);
-                    triggerSaveStepProgress('', check);
-                  }}
-                  className="rounded border-zinc-300 dark:border-zinc-700 text-zinc-900 focus:ring-0"
-                />
-                <span>تحديد الخطوة 3 كـ مكتملة</span>
-              </label>
-            </div>
           </div>
         )}
       </div>
@@ -612,41 +649,21 @@ export const Workspace: React.FC<WorkspaceProps> = ({
 
     return (
       <div className="max-w-3xl mx-auto p-8 space-y-6 fade-in font-cairo">
-        <header className="flex justify-between items-start border-b border-zinc-200 dark:border-zinc-800 pb-3">
-          <div>
-            <h1 className="text-lg font-bold text-zinc-900 dark:text-zinc-50">توسيع ملخصات الشخصيات</h1>
-            <p className="text-zinc-400 dark:text-zinc-500 text-xs mt-0.5">اختر شخصية لتوسيع سيرتها المقتضبة إلى ملخص سردي كامل ومفصل.</p>
-          </div>
-          <div>
-            <label className="flex items-center gap-1.5 cursor-pointer text-[11px] font-bold text-zinc-500">
-              <input
-                type="checkbox"
-                checked={stepCompleted}
-                onChange={(e) => {
-                  const check = e.target.checked;
-                  setStepCompleted(check);
-                  triggerSaveStepProgress('', check);
-                }}
-                className="rounded border-zinc-300 dark:border-zinc-700 text-zinc-900 focus:ring-0"
-              />
-              <span>تحديد كـ مكتملة</span>
-            </label>
-          </div>
-        </header>
+        {renderStepHeader()}
 
         {characters.length === 0 ? (
           <div className="text-center py-10 bg-white dark:bg-[#181818] border border-zinc-200 dark:border-zinc-800 rounded text-zinc-400 text-xs">
-            يرجى إضافة شخصيات في الخطوة 3 أولاً.
+            {t('pleaseAddCharsFirst')}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="md:col-span-1 space-y-1 border-l border-zinc-200/30 dark:border-zinc-800/30 pl-2">
-              <span className="text-[10px] font-bold text-zinc-400 block pb-1.5">الشخصيات</span>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 text-start">
+            <div className={`md:col-span-1 space-y-1 ${language === 'ar' ? 'border-l pl-2' : 'border-r pr-2'} border-zinc-200/30 dark:border-zinc-800/30`}>
+              <span className="text-[10px] font-bold text-zinc-400 block pb-1.5">{t('charsSelectorLabel')}</span>
               {characters.map((char) => (
                 <button
                   key={char.id}
                   onClick={() => setSelectedCharIdStep5(char.id!)}
-                  className={`w-full text-start p-2 rounded text-xs transition-colors ${
+                  className={`w-full text-start p-2 rounded text-xs transition-colors cursor-pointer ${
                     selectedCharIdStep5 === char.id
                       ? 'bg-zinc-200 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-200 font-bold'
                       : 'hover:bg-zinc-100 dark:hover:bg-zinc-900 text-zinc-600 dark:text-zinc-400'
@@ -660,13 +677,13 @@ export const Workspace: React.FC<WorkspaceProps> = ({
             <div className="md:col-span-3 space-y-4">
               {selectedChar ? (
                 <>
-                  <div className="bg-[#fcfbfa] dark:bg-zinc-900/10 border border-zinc-200 dark:border-zinc-800 p-4 rounded text-xs leading-relaxed text-zinc-500">
-                    <span className="font-bold text-zinc-400 block mb-1">السيرة المرجعية لـ {selectedChar.name}:</span>
-                    {selectedChar.one_paragraph_summary || 'لا توجد سيرة مقتضبة مكتوبة.'}
+                  <div className="bg-[#fcfbfa] dark:bg-zinc-900/10 border border-zinc-200 dark:border-zinc-800 p-4 rounded text-xs leading-relaxed text-zinc-500 whitespace-pre-line">
+                    <span className="font-bold text-zinc-400 block mb-1">{t('charRefBioLabel')} {selectedChar.name}:</span>
+                    {selectedChar.one_paragraph_summary || t('charNoRefBio')}
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-zinc-400 block">الملخص السردي الممتد (Full Synopsis)</label>
+                    <label className="text-[10px] font-bold text-zinc-400 block">{t('charExtendedSynopsisLabel')}</label>
                     <textarea
                       value={selectedChar.full_synopsis || ''}
                       onChange={(e) => {
@@ -675,7 +692,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
                       }}
                       onBlur={(e) => handleSaveSynopsis(e.target.value)}
                       className="w-full min-h-[300px] text-xs leading-loose bg-white dark:bg-[#181818] border border-zinc-200 dark:border-zinc-800 p-3 rounded focus:outline-none focus:border-zinc-500 focus:ring-0 resize-y"
-                      placeholder={`توسيع مسار شخصية ${selectedChar.name} في أحداث الرواية...`}
+                      placeholder={t('charExtendedSynopsisPlaceholder', { name: selectedChar.name })}
                     />
                     <div className="flex justify-end">
                       <WordCounter text={selectedChar.full_synopsis || ''} />
@@ -684,7 +701,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
                 </>
               ) : (
                 <div className="h-[200px] flex items-center justify-center border border-dashed border-zinc-200 dark:border-zinc-800 rounded text-zinc-400 text-xs">
-                  الرجاء اختيار شخصية من القائمة لبدء الكتابة.
+                  {t('selectCharPlaceholder')}
                 </div>
               )}
             </div>
@@ -711,41 +728,21 @@ export const Workspace: React.FC<WorkspaceProps> = ({
 
     return (
       <div className="max-w-3xl mx-auto p-8 space-y-6 fade-in font-cairo">
-        <header className="flex justify-between items-start border-b border-zinc-200 dark:border-zinc-800 pb-3">
-          <div>
-            <h1 className="text-lg font-bold text-zinc-900 dark:text-zinc-50">مخططات تفاصيل الشخصيات</h1>
-            <p className="text-zinc-400 dark:text-zinc-500 text-xs mt-0.5">دراسة عميقة تفصيلية لعواطف وتوجهات ودوافع طاقم الرواية.</p>
-          </div>
-          <div>
-            <label className="flex items-center gap-1.5 cursor-pointer text-[11px] font-bold text-zinc-500">
-              <input
-                type="checkbox"
-                checked={stepCompleted}
-                onChange={(e) => {
-                  const check = e.target.checked;
-                  setStepCompleted(check);
-                  triggerSaveStepProgress('', check);
-                }}
-                className="rounded border-zinc-300 dark:border-zinc-700 text-zinc-900 focus:ring-0"
-              />
-              <span>تحديد كـ مكتملة</span>
-            </label>
-          </div>
-        </header>
+        {renderStepHeader()}
 
         {characters.length === 0 ? (
           <div className="text-center py-10 bg-white dark:bg-[#181818] border border-zinc-200 dark:border-zinc-800 rounded text-zinc-400 text-xs">
-            يرجى إضافة شخصيات في الخطوة 3 أولاً.
+            {t('pleaseAddCharsFirst')}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="md:col-span-1 space-y-1 border-l border-zinc-200/30 dark:border-zinc-800/30 pl-2">
-              <span className="text-[10px] font-bold text-zinc-400 block pb-1.5">الشخصيات</span>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 text-start">
+            <div className={`md:col-span-1 space-y-1 ${language === 'ar' ? 'border-l pl-2' : 'border-r pr-2'} border-zinc-200/30 dark:border-zinc-800/30`}>
+              <span className="text-[10px] font-bold text-zinc-400 block pb-1.5">{t('charsSelectorLabel')}</span>
               {characters.map((char) => (
                 <button
                   key={char.id}
                   onClick={() => setSelectedCharIdStep7(char.id!)}
-                  className={`w-full text-start p-2 rounded text-xs transition-colors ${
+                  className={`w-full text-start p-2 rounded text-xs transition-colors cursor-pointer ${
                     selectedCharIdStep7 === char.id
                       ? 'bg-zinc-200 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-200 font-bold'
                       : 'hover:bg-zinc-100 dark:hover:bg-zinc-900 text-zinc-600 dark:text-zinc-400'
@@ -759,11 +756,11 @@ export const Workspace: React.FC<WorkspaceProps> = ({
             <div className="md:col-span-3">
               {selectedChar ? (
                 <div className="bg-white dark:bg-[#181818] p-5 border border-zinc-200 dark:border-zinc-800 rounded space-y-4">
-                  <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider pb-1">مخطط التفاصيل: {selectedChar.name}</h3>
+                  <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider pb-1">{t('editCharacterTitle')}: {selectedChar.name}</h3>
 
                   <div className="space-y-4">
                     <div className="space-y-1">
-                      <label className="text-[11px] font-bold text-zinc-500">الاسم بالكامل</label>
+                      <label className="text-[11px] font-bold text-zinc-500">{t('charNameLabel')}</label>
                       <input
                         type="text"
                         value={selectedChar.name}
@@ -778,7 +775,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-1">
-                        <label className="text-[11px] font-bold text-zinc-500">الدافع والدافعية الداخلية</label>
+                        <label className="text-[11px] font-bold text-zinc-500">{t('charMotivationLabel')}</label>
                         <textarea
                           value={selectedChar.motivation}
                           onChange={(e) => {
@@ -791,7 +788,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
                       </div>
 
                       <div className="space-y-1">
-                        <label className="text-[11px] font-bold text-zinc-500">الهدف والمسعى الخارجي</label>
+                        <label className="text-[11px] font-bold text-zinc-500">{t('charGoalLabel')}</label>
                         <textarea
                           value={selectedChar.goal}
                           onChange={(e) => {
@@ -804,7 +801,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
                       </div>
 
                       <div className="space-y-1">
-                        <label className="text-[11px] font-bold text-zinc-500">العوائق والصراعات الموجهة</label>
+                        <label className="text-[11px] font-bold text-zinc-500">{t('charConflictLabel')}</label>
                         <textarea
                           value={selectedChar.conflict}
                           onChange={(e) => {
@@ -817,7 +814,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
                       </div>
 
                       <div className="space-y-1">
-                        <label className="text-[11px] font-bold text-zinc-500">لحظة التنوير والتحول</label>
+                        <label className="text-[11px] font-bold text-zinc-500">{t('charEpiphanyLabel')}</label>
                         <textarea
                           value={selectedChar.epiphany}
                           onChange={(e) => {
@@ -833,7 +830,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
                 </div>
               ) : (
                 <div className="h-[200px] flex items-center justify-center border border-dashed border-zinc-200 dark:border-zinc-800 rounded text-zinc-400 text-xs">
-                  الرجاء اختيار شخصية من القائمة للبدء.
+                  {t('selectCharPlaceholder')}
                 </div>
               )}
             </div>
@@ -849,42 +846,28 @@ export const Workspace: React.FC<WorkspaceProps> = ({
   if (activeStep === 8) {
     return (
       <div className="max-w-3xl mx-auto p-8 space-y-6 fade-in font-cairo">
-        <header className="flex justify-between items-start border-b border-zinc-200 dark:border-zinc-800 pb-3">
-          <div>
-            <h1 className="text-lg font-bold text-zinc-900 dark:text-zinc-50">قائمة المشاهد والتخطيط</h1>
-            <p className="text-zinc-400 dark:text-zinc-500 text-xs mt-0.5">تخطيط مشاهد الرواية، وتحديد شخصيات وجهات النظر والمواقع.</p>
-          </div>
-          {!editingScene && (
-            <button
-              onClick={() => setEditingScene({ pov_character_id: null, setting: '', plot_thread: '', what_happens: '', expected_word_count: 500, actual_word_count: 0 })}
-              className="flex items-center gap-1 text-xs px-2.5 py-1.5 border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-[#1a1a1a] hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors font-semibold rounded"
-            >
-              <Plus className="w-3 h-3" />
-              <span>إضافة مشهد</span>
-            </button>
-          )}
-        </header>
+        {renderStepHeader()}
 
         {editingScene ? (
-          <div className="bg-white dark:bg-[#181818] p-5 border border-zinc-200 dark:border-zinc-800 rounded space-y-4">
+          <div className="bg-white dark:bg-[#181818] p-5 border border-zinc-200 dark:border-zinc-800 rounded space-y-4 text-start">
             <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider pb-1">
-              {editingScene.id ? 'تعديل المشهد' : 'إضافة مشهد جديد'}
+              {editingScene.id ? t('editSceneTitle') : t('addSceneTitle')}
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1">
-                <label className="text-[11px] font-bold text-zinc-500">شخصية الـ POV</label>
+                <label className="text-[11px] font-bold text-zinc-500">{t('scenePovLabel')}</label>
                 {characters.length === 0 ? (
                   <div className="text-[10px] text-rose-500 p-2 bg-rose-50 dark:bg-rose-950/20 rounded">
-                    يرجى إضافة شخصيات في الخطوة 3 أولاً.
+                    {t('pleaseAddCharsWarning')}
                   </div>
                 ) : (
                   <select
                     value={editingScene.pov_character_id || ''}
                     onChange={(e) => setEditingScene({ ...editingScene, pov_character_id: Number(e.target.value) || null })}
-                    className="w-full text-xs rounded border border-zinc-200 dark:border-zinc-800 bg-[#fbfbfa] dark:bg-[#121212] p-2 focus:outline-none focus:border-zinc-500 focus:ring-0"
+                    className="w-full text-xs rounded border border-zinc-200 dark:border-zinc-800 bg-[#fbfbfa] dark:bg-[#121212] p-2 focus:outline-none focus:border-zinc-500 focus:ring-0 cursor-pointer"
                   >
-                    <option value="">اختر الشخصية...</option>
+                    <option value="">{t('selectPovPlaceholder')}</option>
                     {characters.map(c => (
                       <option key={c.id} value={c.id!}>{c.name}</option>
                     ))}
@@ -893,29 +876,29 @@ export const Workspace: React.FC<WorkspaceProps> = ({
               </div>
 
               <div className="space-y-1">
-                <label className="text-[11px] font-bold text-zinc-500">الموقع والزمان</label>
+                <label className="text-[11px] font-bold text-zinc-500">{t('sceneSettingLabel')}</label>
                 <input
                   type="text"
                   value={editingScene.setting || ''}
                   onChange={(e) => setEditingScene({ ...editingScene, setting: e.target.value })}
                   className="w-full text-xs rounded border border-zinc-200 dark:border-zinc-800 bg-[#fbfbfa] dark:bg-[#121212] p-2 focus:outline-none focus:border-zinc-500 focus:ring-0"
-                  placeholder="مثال: الغرفة الرئيسية..."
+                  placeholder={t('sceneSettingCol')}
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-[11px] font-bold text-zinc-500">خط الحبكة</label>
+                <label className="text-[11px] font-bold text-zinc-500">{t('scenePlotLabel')}</label>
                 <input
                   type="text"
                   value={editingScene.plot_thread || ''}
                   onChange={(e) => setEditingScene({ ...editingScene, plot_thread: e.target.value })}
                   className="w-full text-xs rounded border border-zinc-200 dark:border-zinc-800 bg-[#fbfbfa] dark:bg-[#121212] p-2 focus:outline-none focus:border-zinc-500 focus:ring-0"
-                  placeholder="الحبكة الأساسية..."
+                  placeholder={t('scenePlotCol')}
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-[11px] font-bold text-zinc-500">عدد الكلمات المتوقع</label>
+                <label className="text-[11px] font-bold text-zinc-500">{t('sceneExpectedWordsLabel')}</label>
                 <input
                   type="number"
                   value={editingScene.expected_word_count || ''}
@@ -925,12 +908,12 @@ export const Workspace: React.FC<WorkspaceProps> = ({
               </div>
 
               <div className="space-y-1 md:col-span-2 relative">
-                <label className="text-[11px] font-bold text-zinc-500">سياق المشهد (ماذا يحدث)</label>
+                <label className="text-[11px] font-bold text-zinc-500">{t('sceneWhatHappensLabel')}</label>
                 <textarea
                   value={editingScene.what_happens || ''}
                   onChange={(e) => setEditingScene({ ...editingScene, what_happens: e.target.value })}
                   className="w-full min-h-[100px] text-xs rounded border border-zinc-200 dark:border-zinc-800 bg-[#fbfbfa] dark:bg-[#121212] p-2 focus:outline-none focus:border-zinc-500 focus:ring-0 resize-y"
-                  placeholder="صِف الحدث الأساسي..."
+                  placeholder={t('sceneWhatHappensLabel')}
                 />
                 <div className="flex justify-end mt-1">
                   <WordCounter text={editingScene.what_happens || ''} />
@@ -941,61 +924,61 @@ export const Workspace: React.FC<WorkspaceProps> = ({
             <div className="flex gap-2 justify-end pt-2">
               <button
                 onClick={() => setEditingScene(null)}
-                className="px-3 py-1.5 border border-zinc-200 dark:border-zinc-800 text-xs rounded hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
+                className="px-3 py-1.5 border border-zinc-200 dark:border-zinc-800 text-xs rounded hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors cursor-pointer"
               >
-                إلغاء
+                {t('cancel')}
               </button>
               <button
                 onClick={() => handleSaveScene(editingScene)}
-                className="flex items-center gap-1 px-3 py-1.5 bg-zinc-800 text-white dark:bg-zinc-200 dark:text-zinc-900 text-xs rounded transition-colors font-bold"
+                className="flex items-center gap-1 px-3 py-1.5 bg-zinc-800 text-white dark:bg-zinc-200 dark:text-zinc-900 text-xs rounded transition-colors font-bold cursor-pointer"
               >
                 <Save className="w-3.5 h-3.5" />
-                <span>حفظ المشهد</span>
+                <span>{t('save')}</span>
               </button>
             </div>
           </div>
         ) : (
           <div className="space-y-6">
             {scenes.length === 0 ? (
-              <div className="text-center py-10 bg-white dark:bg-[#181818] border border-zinc-200 dark:border-zinc-800 rounded text-zinc-400 text-xs">
-                لم يتم تخطيط مشاهد بعد.
+              <div className="text-center py-10 bg-white dark:bg-[#181818] border border-zinc-200 dark:border-zinc-800 rounded text-zinc-400 text-xs font-semibold">
+                {t('noScenesYet')}
               </div>
             ) : (
               <div className="bg-white dark:bg-[#181818] rounded border border-zinc-200 dark:border-zinc-800 overflow-hidden">
                 <div className="overflow-x-auto">
-                  <table className="w-full text-xs text-start" dir="rtl">
+                  <table className="w-full text-xs text-start" dir={language === 'ar' ? 'rtl' : 'ltr'}>
                     <thead className="text-zinc-400 uppercase bg-[#fbfbfa] dark:bg-[#151515] border-b border-zinc-200 dark:border-zinc-800">
                       <tr>
                         <th className="px-3 py-2 text-start font-bold">#</th>
-                        <th className="px-3 py-2 text-start font-bold">شخصية الـ POV</th>
-                        <th className="px-3 py-2 text-start font-bold">الموقع والزمان</th>
-                        <th className="px-3 py-2 text-start font-bold">خط الحبكة</th>
-                        <th className="px-3 py-2 text-start font-bold">المتوقع</th>
-                        <th className="px-3 py-2 text-start font-bold">العمليات</th>
+                        <th className="px-3 py-2 text-start font-bold">{t('scenePovCol')}</th>
+                        <th className="px-3 py-2 text-start font-bold">{t('sceneSettingCol')}</th>
+                        <th className="px-3 py-2 text-start font-bold">{t('scenePlotCol')}</th>
+                        <th className="px-3 py-2 text-start font-bold">{t('sceneWordsCol')}</th>
+                        <th className="px-3 py-2 text-start font-bold">{t('actions')}</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
+                    <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800 text-start">
                       {scenes.map((scn, idx) => {
-                        const povName = characters.find(c => c.id === scn.pov_character_id)?.name || 'غير محدد';
+                        const povName = characters.find(c => c.id === scn.pov_character_id)?.name || t('sceneNotPlanned');
                         return (
                           <tr key={scn.id} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-900/30 transition-colors">
                             <td className="px-3 py-2 font-bold text-zinc-900 dark:text-zinc-100">{idx + 1}</td>
                             <td className="px-3 py-2 text-zinc-600 dark:text-zinc-400">{povName}</td>
                             <td className="px-3 py-2 text-zinc-600 dark:text-zinc-400 truncate max-w-[120px]">{scn.setting || '_'}</td>
                             <td className="px-3 py-2 text-zinc-600 dark:text-zinc-400">{scn.plot_thread || '_'}</td>
-                            <td className="px-3 py-2 text-zinc-600 dark:text-zinc-400">{scn.expected_word_count} كلمة</td>
+                            <td className="px-3 py-2 text-zinc-600 dark:text-zinc-400">{scn.expected_word_count} / {scn.actual_word_count || 0}</td>
                             <td className="px-3 py-2 flex gap-3">
                               <button
                                 onClick={() => setEditingScene(scn)}
-                                className="text-[10px] text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 font-bold"
+                                className="text-[10px] text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 font-bold cursor-pointer"
                               >
-                                تعديل
+                                {t('edit')}
                               </button>
                               <button
                                 onClick={() => handleDeleteScene(scn.id!)}
-                                className="text-[10px] text-rose-500 hover:text-rose-600 font-bold"
+                                className="text-[10px] text-rose-500 hover:text-rose-600 font-bold cursor-pointer"
                               >
-                                حذف
+                                {t('delete')}
                               </button>
                             </td>
                           </tr>
@@ -1006,22 +989,6 @@ export const Workspace: React.FC<WorkspaceProps> = ({
                 </div>
               </div>
             )}
-
-            <div className="flex justify-between items-center border-t border-zinc-200 dark:border-zinc-800 pt-4">
-              <label className="flex items-center gap-1.5 cursor-pointer text-[11px] font-bold text-zinc-500">
-                <input
-                  type="checkbox"
-                  checked={stepCompleted}
-                  onChange={(e) => {
-                    const check = e.target.checked;
-                    setStepCompleted(check);
-                    triggerSaveStepProgress('', check);
-                  }}
-                  className="rounded border-zinc-300 dark:border-zinc-700 text-zinc-900 focus:ring-0"
-                />
-                <span>تحديد الخطوة 8 كـ مكتملة</span>
-              </label>
-            </div>
           </div>
         )}
       </div>
@@ -1058,47 +1025,27 @@ export const Workspace: React.FC<WorkspaceProps> = ({
 
     return (
       <div className="max-w-3xl mx-auto p-8 space-y-6 fade-in font-cairo">
-        <header className="flex justify-between items-start border-b border-zinc-200 dark:border-zinc-800 pb-3">
-          <div>
-            <h1 className="text-lg font-bold text-zinc-900 dark:text-zinc-50">سرد أحداث المشاهد والمسودة</h1>
-            <p className="text-zinc-400 dark:text-zinc-500 text-xs mt-0.5">اختر مشهداً واكتب السرد الكامل له بالتفصيل.</p>
-          </div>
-          <div>
-            <label className="flex items-center gap-1.5 cursor-pointer text-[11px] font-bold text-zinc-500">
-              <input
-                type="checkbox"
-                checked={stepCompleted}
-                onChange={(e) => {
-                  const check = e.target.checked;
-                  setStepCompleted(check);
-                  triggerSaveStepProgress('', check);
-                }}
-                className="rounded border-zinc-300 dark:border-zinc-700 text-zinc-900 focus:ring-0"
-              />
-              <span>تحديد كـ مكتملة</span>
-            </label>
-          </div>
-        </header>
+        {renderStepHeader()}
 
         {scenes.length === 0 ? (
           <div className="text-center py-10 bg-white dark:bg-[#181818] border border-zinc-200 dark:border-zinc-800 rounded text-zinc-400 text-xs">
-            يرجى إضافة وتخطيط مشاهدك في الخطوة 8 أولاً.
+            {t('pleaseAddScenesFirst')}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="md:col-span-1 space-y-1 border-l border-zinc-200/30 dark:border-zinc-800/30 pl-2">
-              <span className="text-[10px] font-bold text-zinc-400 block pb-1.5">قائمة المشاهد</span>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 text-start">
+            <div className={`md:col-span-1 space-y-1 ${language === 'ar' ? 'border-l pl-2' : 'border-r pr-2'} border-zinc-200/30 dark:border-zinc-800/30`}>
+              <span className="text-[10px] font-bold text-zinc-400 block pb-1.5">{t('scenesListLabel')}</span>
               {scenes.map((scn, idx) => (
                 <button
                   key={scn.id}
                   onClick={() => setSelectedSceneIdStep9(scn.id!)}
-                  className={`w-full text-start p-2 rounded text-xs transition-colors ${
+                  className={`w-full text-start p-2 rounded text-xs transition-colors cursor-pointer ${
                     selectedSceneIdStep9 === scn.id
                       ? 'bg-zinc-200 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-200 font-bold'
                       : 'hover:bg-zinc-100 dark:hover:bg-zinc-900 text-zinc-600 dark:text-zinc-400'
                   }`}
                 >
-                  مشهد {idx + 1}: {scn.setting || 'بدون اسم'}
+                  {t('sceneNumber')} {idx + 1}: {scn.setting || t('sceneNotPlanned')}
                 </button>
               ))}
             </div>
@@ -1108,21 +1055,21 @@ export const Workspace: React.FC<WorkspaceProps> = ({
                 <>
                   <div className="bg-[#fcfbfa] dark:bg-zinc-900/10 border border-zinc-200 dark:border-zinc-800 p-4 rounded text-xs leading-relaxed text-zinc-500">
                     <div className="grid grid-cols-2 gap-2">
-                      <div><span className="font-bold">POV:</span> {characters.find(c => c.id === selectedScene.pov_character_id)?.name || 'غير محدد'}</div>
-                      <div><span className="font-bold">الحبكة:</span> {selectedScene.plot_thread || 'غير محدد'}</div>
-                      <div className="col-span-2"><span className="font-bold">الموقع والزمان:</span> {selectedScene.setting || 'غير محدد'}</div>
+                      <div><span className="font-bold">{t('scenePovCol')}:</span> {characters.find(c => c.id === selectedScene.pov_character_id)?.name || t('sceneNotPlanned')}</div>
+                      <div><span className="font-bold">{t('scenePlotCol')}:</span> {selectedScene.plot_thread || t('sceneNotPlanned')}</div>
+                      <div className="col-span-2"><span className="font-bold">{t('sceneSettingCol')}:</span> {selectedScene.setting || t('sceneNotPlanned')}</div>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <span className="text-[10px] font-bold text-zinc-400">عدد الكلمات المتوقع</span>
+                      <span className="text-[10px] font-bold text-zinc-400">{t('sceneExpectedWordsLabel')}</span>
                       <div className="bg-zinc-100 dark:bg-zinc-900/50 text-zinc-700 dark:text-zinc-300 text-xs px-3 py-2 rounded">
-                        {selectedScene.expected_word_count} كلمة
+                        {selectedScene.expected_word_count} {t('words')}
                       </div>
                     </div>
                     <div className="space-y-1">
-                      <span className="text-[10px] font-bold text-zinc-400">عدد الكلمات الفعلي المنجز</span>
+                      <span className="text-[10px] font-bold text-zinc-400">{t('sceneActualWordsLabel')}</span>
                       <input
                         type="number"
                         value={selectedScene.actual_word_count || ''}
@@ -1137,7 +1084,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-zinc-400 block">كتابة سرد المشهد</label>
+                    <label className="text-[10px] font-bold text-zinc-400 block">{t('sceneNarrativeTextareaLabel')}</label>
                     <textarea
                       value={selectedScene.what_happens}
                       onChange={(e) => {
@@ -1146,7 +1093,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
                       }}
                       onBlur={(e) => handleSaveNarrative(e.target.value, selectedScene.actual_word_count)}
                       className="w-full min-h-[300px] text-xs leading-loose bg-white dark:bg-[#181818] border border-zinc-200 dark:border-zinc-800 p-3 rounded focus:outline-none focus:border-zinc-500 focus:ring-0 resize-y"
-                      placeholder="ابدأ بكتابة مسودة أحداث هذا المشهد بالتفصيل..."
+                      placeholder={t('sceneNarrativePlaceholder')}
                     />
                     <div className="flex justify-end">
                       <WordCounter text={selectedScene.what_happens} />
@@ -1155,7 +1102,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
                 </>
               ) : (
                 <div className="h-[200px] flex items-center justify-center border border-dashed border-zinc-200 dark:border-zinc-800 rounded text-zinc-400 text-xs">
-                  الرجاء اختيار مشهد من القائمة لبدء الكتابة.
+                  {t('selectScenePlaceholder')}
                 </div>
               )}
             </div>
@@ -1173,43 +1120,12 @@ export const Workspace: React.FC<WorkspaceProps> = ({
 
     return (
       <div className="max-w-3xl mx-auto p-8 space-y-6 fade-in font-cairo">
-        <header className="flex justify-between items-start border-b border-zinc-200 dark:border-zinc-800 pb-3">
-          <div>
-            <h1 className="text-lg font-bold text-zinc-900 dark:text-zinc-50">تجميع وتصدير المسودة</h1>
-            <p className="text-zinc-400 dark:text-zinc-500 text-xs mt-0.5">تم تجميع كافة الخطوات والمخططات والسيناريوهات المكتوبة في قالب تصدير موحد.</p>
-          </div>
-          <button
-            onClick={() => handleCopyMarkdown(mdContent)}
-            className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-[#1a1a1a] hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors font-semibold rounded"
-          >
-            {copied ? (
-              <span className="text-emerald-500">تم نسخ التصدير!</span>
-            ) : (
-              <span>نسخ كـ Markdown</span>
-            )}
-          </button>
-        </header>
+        {renderStepHeader()}
 
-        <div className="bg-[#fdfdfd] dark:bg-[#181818] p-5 border border-zinc-200 dark:border-zinc-800 rounded max-h-[500px] overflow-y-auto">
-          <pre className="text-xs font-mono whitespace-pre-wrap leading-relaxed text-zinc-800 dark:text-zinc-200 font-medium select-text">
+        <div className="bg-[#fdfdfd] dark:bg-[#181818] p-5 border border-zinc-200 dark:border-zinc-800 rounded max-h-[500px] overflow-y-auto text-start select-text">
+          <pre className="text-xs font-mono whitespace-pre-wrap leading-relaxed text-zinc-800 dark:text-zinc-200 font-medium">
             {mdContent}
           </pre>
-        </div>
-
-        <div className="flex justify-between items-center border-t border-zinc-200 dark:border-zinc-800 pt-4">
-          <label className="flex items-center gap-1.5 cursor-pointer text-[11px] font-bold text-zinc-500">
-            <input
-              type="checkbox"
-              checked={stepCompleted}
-              onChange={(e) => {
-                const check = e.target.checked;
-                setStepCompleted(check);
-                triggerSaveStepProgress('', check);
-              }}
-              className="rounded border-zinc-300 dark:border-zinc-700 text-zinc-900 focus:ring-0"
-            />
-            <span>تأكيد تجميع وتصدير مسودة الرواية</span>
-          </label>
         </div>
       </div>
     );

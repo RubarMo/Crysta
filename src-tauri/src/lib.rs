@@ -122,6 +122,7 @@ fn update_novel_word_count(conn: &Connection, novel_id: i64) -> Result<(), rusql
 #[tauri::command]
 fn select_project_file() -> Result<Option<String>, String> {
     let file = rfd::FileDialog::new()
+        .add_filter("Crysta Project (*.crysta)", &["crysta"])
         .add_filter("Snowflake Project (*.snowflake)", &["snowflake"])
         .add_filter("SQLite Database (*.db)", &["db"])
         .pick_file();
@@ -131,6 +132,7 @@ fn select_project_file() -> Result<Option<String>, String> {
 #[tauri::command]
 fn create_project_file(default_name: String) -> Result<Option<String>, String> {
     let file = rfd::FileDialog::new()
+        .add_filter("Crysta Project (*.crysta)", &["crysta"])
         .add_filter("Snowflake Project (*.snowflake)", &["snowflake"])
         .add_filter("SQLite Database (*.db)", &["db"])
         .set_file_name(&default_name)

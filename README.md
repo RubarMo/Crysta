@@ -1,10 +1,10 @@
 <p align="center">
-  <img src="src-tauri/icons/icon.png" alt="Snowflake Arabic Logo" width="128" height="128" />
+  <img src="src-tauri/icons/icon.png" alt="Crysta Logo" width="128" height="128" />
 </p>
 
-# Snowflake Arabic ❄️✍️
+# Crysta ❄️✍️
 
-**Snowflake Arabic** is a sleek, professional, and lightweight desktop application designed for writers and novelists to outline, structure, and write their stories using the famous **Snowflake Method (طريقة سنوفليك)**. 
+**Crysta** is a sleek, professional, and lightweight desktop application designed for writers and novelists to outline, structure, and write their stories using the famous **Snowflake Method (طريقة سنوفليك)**. 
 
 Built on top of **Tauri v2**, **React**, **TypeScript**, and **Rust**, this application provides a native desktop environment that is fast, secure, and fully offline-first.
 
@@ -12,7 +12,8 @@ Built on top of **Tauri v2**, **React**, **TypeScript**, and **Rust**, this appl
 
 ## 🚀 Key Features
 
-* 📁 **File-Based Project Database (.snowflake):** Each novel is saved as its own self-contained database file. Save your projects anywhere (Local Drive, USB, or cloud-sync folders like OneDrive) and move them easily.
+* 📁 **File-Based Project Database (.crysta / .snowflake):** Each novel is saved as its own self-contained database file. Save your projects anywhere (Local Drive, USB, or cloud-sync folders like OneDrive) and move them easily.
+* 🌐 **Bilingual (English & Arabic) RTL/LTR Support:** Dynamically toggle between Arabic and English with instant text direction and layout orientation switching.
 * 🛠️ **10-Step Snowflake Guidance:** Complete walkthrough of the Snowflake Method step-by-step—from a single-sentence summary to character sheets, scene listings, and your final first draft.
 * 📊 **Project Dashboard:** Track overall statistics across all your projects, check word counts vs goals, and manage your recent files history directly from the landing page.
 * 🌓 **Responsive Dual Theme:** Easily toggle between Dark and Light mode to suit your environment.
@@ -23,7 +24,7 @@ Built on top of **Tauri v2**, **React**, **TypeScript**, and **Rust**, this appl
 
 ## 🛠️ Technology Stack
 
-* **Frontend:** React 18, TypeScript, TailwindCSS / Custom HSL CSS variables for animations & micro-transitions, Lucide Icons.
+* **Frontend:** React 19, TypeScript, TailwindCSS / Custom HSL CSS variables for animations & micro-transitions, Lucide Icons.
 * **Backend wrapper:** Rust, Tauri v2.
 * **Database:** SQLite (embedded via `rusqlite` on Rust, avoiding client-side database bloat).
 * **Native Dialogs:** `rfd` (Rust File Dialogs).

@@ -13,9 +13,17 @@ body {
   color: #1c1917; /* Soft charcoal black */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+html[dir="rtl"] body {
   direction: rtl;
   text-align: right;
-  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+html[dir="ltr"] body {
+  direction: ltr;
+  text-align: left;
 }
 
 body.dark {
