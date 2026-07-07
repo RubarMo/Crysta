@@ -19,6 +19,9 @@ jobs:
           - platform: "ubuntu-22.04"
             # On Linux, build all packages (.deb, .rpm, .AppImage)
             args: ""
+          - platform: "windows-latest"
+            # On Windows, build MSI and NSIS installers (.exe)
+            args: ""
 
     runs-on: ${{ matrix.platform }}
     steps:
