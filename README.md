@@ -2,94 +2,97 @@
   <img src="src-tauri/icons/icon.png" alt="Crysta Logo" width="128" height="128" />
 </p>
 
-# Crysta ❄️✍️
+# Crysta
 
-**Crysta** is a sleek, professional, and lightweight desktop application designed for writers and novelists to outline, structure, and write their stories using the famous **Snowflake Method (طريقة سنوفليك)**. 
+Crysta is a local-first desktop and mobile application designed to guide novelists through structuring their stories using the Snowflake Method. It provides an offline-first writing workspace with built-in step tracking, character management, and scene outlines.
 
-Built on top of **Tauri v2**, **React**, **TypeScript**, and **Rust**, this application provides a native desktop environment that is fast, secure, and fully offline-first.
-
----
-
-## 🚀 Key Features
-
-* 📁 **File-Based Project Database (.crysta / .snowflake):** Each novel is saved as its own self-contained database file. Save your projects anywhere (Local Drive, USB, or cloud-sync folders like OneDrive) and move them easily.
-* 🌐 **Bilingual (English & Arabic) RTL/LTR Support:** Dynamically toggle between Arabic and English with instant text direction and layout orientation switching.
-* 🛠️ **10-Step Snowflake Guidance:** Complete walkthrough of the Snowflake Method step-by-step—from a single-sentence summary to character sheets, scene listings, and your final first draft.
-* 📊 **Project Dashboard:** Track overall statistics across all your projects, check word counts vs goals, and manage your recent files history directly from the landing page.
-* 🌓 **Responsive Dual Theme:** Easily toggle between Dark and Light mode to suit your environment.
-* 📝 **Built-in Tools:** Integrated word counter, Character sheet manager (defining motivations, goals, conflicts, and epiphanies), and Scene lists (setting point-of-view, setting, plot thread, and counts).
-* 💾 **Native OS Dialogs:** Native Windows File Picker and Saver interfaces for a seamless native desktop user experience.
+Built using **Tauri v2**, **React**, **TypeScript**, and **Rust (SQLite)**, Crysta compiles native binaries across desktop and mobile platforms.
 
 ---
 
-## 🛠️ Technology Stack
+## 💻 Platforms & Compilation Targets
 
-* **Frontend:** React 19, TypeScript, TailwindCSS / Custom HSL CSS variables for animations & micro-transitions, Lucide Icons.
-* **Backend wrapper:** Rust, Tauri v2.
-* **Database:** SQLite (embedded via `rusqlite` on Rust, avoiding client-side database bloat).
-* **Native Dialogs:** `rfd` (Rust File Dialogs).
+Crysta compiles native bundles for the following environments:
+*   **Desktop:** Windows (MSI, NSIS installer), macOS (DMG, App bundle), Linux (DEB, RPM, AppImage).
+*   **Mobile:** Android (unaligned release APK, Google Play AAB bundle).
 
 ---
 
-## 📦 Getting Started
+## 🛠️ Architecture & Core Features
+
+*   **Local-First Database (`.crysta`):** Projects are saved as standalone SQLite databases containing the entire writing draft, progress markers, characters, and scene metadata. Files can be copied, moved, or backed up manually or via cloud services (e.g., OneDrive, iCloud).
+*   **Fully Offline:** No accounts, remote servers, or internet connection required. All database queries execute locally through native JNI/FFI bindings to SQLite.
+*   **Bilingual Directionality:** Dynamic layout orientation (RTL for Arabic, LTR for English) toggled instantly inside the application.
+*   **10-Step Snowflake Walkthrough:** Interactive writing templates mapped directly onto the classical Snowflake outlining method.
+*   **Outlining Tools:** Included word counters, character bio planners (motivations, goals, conflicts, epiphanies), and detailed scene outline sheets (POV mapping, settings, word metrics).
+*   **Native System Access:** Relies on desktop file dialogs (`rfd` crate) and implements custom directory resolvers on mobile targets to interact with local app sandboxes.
+
+---
+
+## 🚀 Getting Started
 
 ### Prerequisites
 
-Make sure you have the following installed on your machine:
-* [Node.js](https://nodejs.org/) (v20+ recommended)
-* [Rust toolchain](https://www.rust-lang.org/tools/install)
-* [C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) (for Windows compilation)
+*   **Node.js** (v20+ recommended)
+*   **Rust Toolchain** (latest stable release)
+*   *For Windows compilation:* Visual Studio C++ Build Tools
+*   *For Android compilation:* Java JDK (17 or 21) and Android SDK/NDK tools
 
-### Development
+### Development Build
 
-1. Clone the repository:
+1. Clone and navigate to the project directory:
    ```bash
    git clone https://github.com/RubarMo/Crysta.git
    cd Crysta
    ```
-
 2. Install dependencies:
    ```bash
    npm install
    ```
-
-3. Run the development server and desktop preview:
-   ```bash
-   npm run tauri dev
-   ```
+3. Run the development server:
+   *   **Desktop Preview:**
+       ```bash
+       npm run tauri dev
+       ```
+   *   **Android Mobile Live Preview:** (with a physical device or emulator running)
+       ```bash
+       npx tauri android dev
+       ```
 
 ### Production Build
 
-To compile the optimized production executable and package them into installers (`.msi` and `.exe` setups):
-```bash
-npm run tauri build
-```
-The compiled bundles will be generated under `src-tauri/target/release/bundle/`.
+*   **Compile Desktop Installers:**
+    ```bash
+    npm run tauri build
+    ```
+*   **Compile Android APK & AAB:**
+    ```bash
+    npx tauri android build
+    ```
+
+Production outputs are located in:
+*   *Desktop:* `src-tauri/target/release/bundle/`
+*   *Android:* `src-tauri/gen/android/app/build/outputs/`
 
 ---
 
-## ❄️ What is the Snowflake Method?
+## 📖 The Snowflake Method Overview
 
-Developed by award-winning author Randy Ingermanson, the Snowflake Method is a top-down design process for writing novels:
-1. **One-Sentence Summary:** Summarize the whole story in less than 15 words.
-2. **One-Paragraph Summary:** Expand to a 5-sentence paragraph detailing the setup, 3 major disasters, and the resolution.
-3. **Character Bios:** Define motivations, goals, and epiphanies.
-4. **One-Page Synopsis:** Expand each sentence of the paragraph into a full page.
-5. **Character Narratives:** Write 1-page descriptions from each major character's POV.
-6. **Four-Page Synopsis:** Expand the summary into a comprehensive detailed overview.
-7. **Detailed Character Sheets:** Deepen descriptions, habits, and details.
-8. **Scene List:** Map out all scenes into a spreadsheet/list.
-9. **Scene Outlines:** Narrative description of what happens in each scene.
-10. **First Draft:** Write!
+The application follows the 10-step story design sequence developed by Randy Ingermanson:
 
----
-
-## 👤 Developer
-
-Built with ❤️ by **[Rubar](https://github.com/RubarMo)**. Feel free to open issues, submit pull requests, or reach out for collaboration!
+1.  **One-Sentence Summary:** Draft a 15-word story hook.
+2.  **One-Paragraph Summary:** Expand to a five-sentence narrative shape (setup, three disasters, resolution).
+3.  **Character Bios:** Plan core character characteristics, motivations, and epiphanies.
+4.  **One-Page Synopsis:** Develop each sentence of your one-paragraph summary into a full page.
+5.  **Character POV Synopses:** Describe the story arc from the perspective of each major character.
+6.  **Four-Page Synopsis:** Expand the outline to a comprehensive plot structure.
+7.  **Character Profile Sheets:** Complete detailed profiles, physical appearance, and growth charts.
+8.  **Scene List:** Map the synopsis into an ordered sequence of scenes.
+9.  **Scene Outlines:** Narrative description of the action occurring in each scene.
+10. **First Draft:** Author the final novel draft.
 
 ---
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+Distributed under the MIT License. See [LICENSE](LICENSE) for details.
