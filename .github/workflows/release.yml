@@ -14,8 +14,10 @@ jobs:
       matrix:
         include:
           - platform: "macos-latest"
-            args: ""
+            # On macOS, build ONLY the .app bundle to avoid the AppleScript Finder/DMG packaging error
+            args: "--bundles app"
           - platform: "ubuntu-22.04"
+            # On Linux, build all packages (.deb, .rpm, .AppImage)
             args: ""
 
     runs-on: ${{ matrix.platform }}
@@ -41,6 +43,7 @@ jobs:
         run: npm ci || npm install
 
       - name: Build and Publish Release
+        id: tauri_build
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -51,3 +54,18 @@ jobs:
           releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}
+
+      - name: Package DMG (macOS only)
+        if: matrix.platform == 'macos-latest'
+        run: |
+          hdiutil create -volname "Crysta" -srcfolder src-tauri/target/release/bundle/macos/Crysta.app -ov -format UDZO Crysta.dmg
+
+      - name: Upload DMG to Release (macOS only)
+        if: matrix.platform == 'macos-latest'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          files: Crysta.dmg
+          draft: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
