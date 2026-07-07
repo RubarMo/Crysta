@@ -272,97 +272,97 @@ export const Workspace: React.FC<WorkspaceProps> = ({
       : 0;
 
     return (
-      <div className="max-w-3xl mx-auto p-8 space-y-8 fade-in font-cairo">
-        <header className="border-b border-zinc-200 dark:border-zinc-800 pb-4">
-          <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-50">{t('novelDashboardTitle')}</h1>
-          <p className="text-zinc-400 dark:text-zinc-500 text-xs mt-1">{t('novelDashboardDesc')}</p>
+      <div className="flex-1 overflow-y-auto w-full p-8 max-w-3xl mx-auto space-y-8 fade-in font-cairo">
+        <header className="border-b border-m3-outline-variant pb-4">
+          <h1 className="text-xl font-bold text-m3-on-surface">{t('novelDashboardTitle')}</h1>
+          <p className="text-m3-on-surface-variant text-xs mt-1">{t('novelDashboardDesc')}</p>
         </header>
 
-        {/* Word Count Progress */}
-        <div className="bg-white dark:bg-[#181818] p-5 border border-zinc-200 dark:border-zinc-800 rounded space-y-2.5">
+        {/* Word Count Progress (M3 Elevated container) */}
+        <div className="bg-m3-surface p-5 border border-m3-outline-variant rounded-2xl space-y-2.5 shadow-sm">
           <div className="flex justify-between items-center text-xs font-semibold">
-            <span className="text-zinc-400">{t('writingProgress')}</span>
-            <span className="text-zinc-900 dark:text-zinc-100">{activeNovel.current_word_count} / {activeNovel.target_word_count} {t('words')} ({progressPercent}%)</span>
+            <span className="text-m3-on-surface-variant">{t('writingProgress')}</span>
+            <span className="text-m3-on-surface font-bold">{activeNovel.current_word_count} / {activeNovel.target_word_count} {t('words')} ({progressPercent})%</span>
           </div>
-          <div className="w-full bg-zinc-100 dark:bg-zinc-900 h-1.5 rounded overflow-hidden">
+          <div className="w-full bg-m3-surface-variant h-2 rounded-full overflow-hidden">
             <div 
-              className="bg-zinc-800 dark:bg-zinc-200 h-full transition-all duration-300"
+              className="bg-m3-primary h-full transition-all duration-300"
               style={{ width: `${progressPercent}%` }}
             />
           </div>
         </div>
 
-        {/* Form Fields */}
-        <div className="bg-white dark:bg-[#181818] p-5 border border-zinc-200 dark:border-zinc-800 rounded space-y-5">
-          <h2 className="text-xs font-bold text-zinc-400 uppercase tracking-wider pb-1">{t('novelInfoTitle')}</h2>
+        {/* Form Fields (M3 Surface card) */}
+        <div className="bg-m3-surface p-5 border border-m3-outline-variant rounded-2xl space-y-5 shadow-sm">
+          <h2 className="text-xs font-bold text-m3-on-surface-variant uppercase tracking-wider pb-1">{t('novelInfoTitle')}</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-zinc-400 dark:text-zinc-500">{t('novelTitleLabel')}</label>
+            <div className="space-y-1 font-cairo">
+              <label className="text-[11px] font-bold text-m3-on-surface-variant">{t('novelTitleLabel')}</label>
               <input
                 type="text"
                 value={novelTitle}
                 onChange={(e) => setNovelTitle(e.target.value)}
                 onBlur={triggerSaveNovel}
-                className="w-full text-xs rounded border border-zinc-200 dark:border-zinc-800 bg-[#fbfbfa] dark:bg-[#121212] p-2 focus:outline-none focus:border-zinc-500 focus:ring-0"
+                className="w-full text-xs rounded-xl border border-m3-outline bg-m3-background p-3 focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary text-m3-on-surface transition-all"
                 placeholder={t('novelTitlePlaceholder')}
               />
             </div>
 
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-zinc-400 dark:text-zinc-500">{t('novelGenreLabel')}</label>
+            <div className="space-y-1 font-cairo">
+              <label className="text-[11px] font-bold text-m3-on-surface-variant">{t('novelGenreLabel')}</label>
               <input
                 type="text"
                 value={novelGenre}
                 onChange={(e) => setNovelGenre(e.target.value)}
                 onBlur={triggerSaveNovel}
-                className="w-full text-xs rounded border border-zinc-200 dark:border-zinc-800 bg-[#fbfbfa] dark:bg-[#121212] p-2 focus:outline-none focus:border-zinc-500 focus:ring-0"
+                className="w-full text-xs rounded-xl border border-m3-outline bg-m3-background p-3 focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary text-m3-on-surface transition-all"
                 placeholder={t('novelGenrePlaceholder')}
               />
             </div>
 
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-zinc-400 dark:text-zinc-500">{t('novelAudienceLabel')}</label>
+            <div className="space-y-1 font-cairo">
+              <label className="text-[11px] font-bold text-m3-on-surface-variant">{t('novelAudienceLabel')}</label>
               <input
                 type="text"
                 value={novelAudience}
                 onChange={(e) => setNovelAudience(e.target.value)}
                 onBlur={triggerSaveNovel}
-                className="w-full text-xs rounded border border-zinc-200 dark:border-zinc-800 bg-[#fbfbfa] dark:bg-[#121212] p-2 focus:outline-none focus:border-zinc-500 focus:ring-0"
+                className="w-full text-xs rounded-xl border border-m3-outline bg-m3-background p-3 focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary text-m3-on-surface transition-all"
                 placeholder={t('novelAudiencePlaceholder')}
               />
             </div>
 
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-zinc-400 dark:text-zinc-500">{t('novelTargetWordsLabel')}</label>
+            <div className="space-y-1 font-cairo">
+              <label className="text-[11px] font-bold text-m3-on-surface-variant">{t('novelTargetWordsLabel')}</label>
               <input
                 type="number"
                 value={novelTargetWords || ''}
                 onChange={(e) => setNovelTargetWords(Number(e.target.value) || 0)}
                 onBlur={triggerSaveNovel}
-                className="w-full text-xs rounded border border-zinc-200 dark:border-zinc-800 bg-[#fbfbfa] dark:bg-[#121212] p-2 focus:outline-none focus:border-zinc-500 focus:ring-0"
+                className="w-full text-xs rounded-xl border border-m3-outline bg-m3-background p-3 focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary text-m3-on-surface transition-all"
               />
             </div>
           </div>
         </div>
 
-        {/* Aggregate Stats */}
+        {/* Aggregate Stats (M3 Stats containers) */}
         <div className="space-y-4">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400">{t('statsTitle')}</h3>
+          <h3 className="text-xs font-bold uppercase tracking-wider text-m3-on-surface-variant">{t('statsTitle')}</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-white dark:bg-[#181818] p-4 border border-zinc-200 dark:border-zinc-800 rounded">
-              <span className="text-[10px] font-bold text-zinc-400 block">{t('statsCharactersCount')}</span>
-              <p className="text-xl font-bold text-zinc-900 dark:text-zinc-50 mt-1">{characters.length}</p>
+            <div className="bg-m3-surface p-4 border border-m3-outline-variant rounded-2xl shadow-sm">
+              <span className="text-[10px] font-bold text-m3-on-surface-variant block">{t('statsCharactersCount')}</span>
+              <p className="text-2xl font-black text-m3-on-surface mt-1">{characters.length}</p>
             </div>
 
-            <div className="bg-white dark:bg-[#181818] p-4 border border-zinc-200 dark:border-zinc-800 rounded">
-              <span className="text-[10px] font-bold text-zinc-400 block">{t('statsScenesPlanned')}</span>
-              <p className="text-xl font-bold text-zinc-900 dark:text-zinc-50 mt-1">{scenes.length}</p>
+            <div className="bg-m3-surface p-4 border border-m3-outline-variant rounded-2xl shadow-sm">
+              <span className="text-[10px] font-bold text-m3-on-surface-variant block">{t('statsScenesPlanned')}</span>
+              <p className="text-2xl font-black text-m3-on-surface mt-1">{scenes.length}</p>
             </div>
 
-            <div className="bg-white dark:bg-[#181818] p-4 border border-zinc-200 dark:border-zinc-800 rounded">
-              <span className="text-[10px] font-bold text-zinc-400 block">{t('statsScenesDone')}</span>
-              <p className="text-xl font-bold text-zinc-900 dark:text-zinc-50 mt-1">
+            <div className="bg-m3-surface p-4 border border-m3-outline-variant rounded-2xl shadow-sm">
+              <span className="text-[10px] font-bold text-m3-on-surface-variant block">{t('statsScenesDone')}</span>
+              <p className="text-2xl font-black text-m3-on-surface mt-1">
                 {scenes.filter(s => s.actual_word_count > 0).length} / {scenes.length}
               </p>
             </div>
@@ -394,7 +394,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
     return (
       <div className="flex flex-wrap items-center gap-4">
         {/* Unified Checkbox */}
-        <label className="flex items-center gap-1.5 cursor-pointer text-[11px] font-bold text-zinc-500 select-none">
+        <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-m3-on-surface-variant select-none">
           <input
             type="checkbox"
             checked={stepCompleted}
@@ -404,18 +404,18 @@ export const Workspace: React.FC<WorkspaceProps> = ({
               const isWritingStep = activeStep === 1 || activeStep === 2 || activeStep === 4 || activeStep === 6;
               triggerSaveStepProgress(isWritingStep ? stepText : '', check);
             }}
-            className="rounded border-zinc-300 dark:border-zinc-700 text-zinc-900 focus:ring-0"
+            className="rounded border-m3-outline text-m3-primary focus:ring-0 cursor-pointer w-4 h-4"
           />
           <span>{t('markAsCompleted')}</span>
         </label>
 
-        {/* Step-specific buttons */}
+        {/* Step-specific buttons (M3 Outlined/Filled Buttons: rounded-full) */}
         {activeStep === 3 && !editingCharacter && (
           <button
             onClick={() => setEditingCharacter({ name: '', motivation: '', goal: '', conflict: '', epiphany: '', one_paragraph_summary: '', full_synopsis: '' })}
-            className="flex items-center gap-1 text-xs px-2.5 py-1.5 border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-[#1a1a1a] hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors font-semibold rounded cursor-pointer"
+            className="flex items-center gap-1.5 text-xs px-4 py-1.5 border border-m3-outline text-m3-primary hover:bg-m3-primary/10 transition-colors font-bold rounded-full cursor-pointer font-cairo"
           >
-            <Plus className="w-3 h-3" />
+            <Plus className="w-3.5 h-3.5" />
             <span>{t('addCharacterBtn')}</span>
           </button>
         )}
@@ -423,9 +423,9 @@ export const Workspace: React.FC<WorkspaceProps> = ({
         {activeStep === 8 && !editingScene && (
           <button
             onClick={() => setEditingScene({ pov_character_id: null, setting: '', plot_thread: '', what_happens: '', expected_word_count: 500, actual_word_count: 0 })}
-            className="flex items-center gap-1 text-xs px-2.5 py-1.5 border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-[#1a1a1a] hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors font-semibold rounded cursor-pointer"
+            className="flex items-center gap-1.5 text-xs px-4 py-1.5 border border-m3-outline text-m3-primary hover:bg-m3-primary/10 transition-colors font-bold rounded-full cursor-pointer font-cairo"
           >
-            <Plus className="w-3 h-3" />
+            <Plus className="w-3.5 h-3.5" />
             <span>{t('addSceneBtn')}</span>
           </button>
         )}
@@ -433,7 +433,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
         {activeStep === 10 && (
           <button
             onClick={() => handleCopyMarkdown(getExportMarkdown())}
-            className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-[#1a1a1a] hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors font-semibold rounded cursor-pointer"
+            className="flex items-center gap-1.5 text-xs px-4 py-1.5 border border-m3-outline text-m3-primary hover:bg-m3-primary/10 transition-colors font-bold rounded-full cursor-pointer font-cairo"
           >
             {copied ? (
               <span className="text-emerald-500">{t('copied')}</span>
@@ -449,10 +449,10 @@ export const Workspace: React.FC<WorkspaceProps> = ({
   const renderStepHeader = () => {
     if (!meta) return null;
     return (
-      <header className="flex justify-between items-start border-b border-zinc-200 dark:border-zinc-800 pb-3">
+      <header className="flex justify-between items-start border-b border-m3-outline-variant pb-3">
         <div>
-          <h1 className="text-lg font-bold text-zinc-900 dark:text-zinc-50">{t(meta.titleKey)}</h1>
-          <p className="text-zinc-400 dark:text-zinc-500 text-xs mt-0.5">{t(meta.descKey)}</p>
+          <h1 className="text-lg font-black text-m3-on-surface">{t(meta.titleKey)}</h1>
+          <p className="text-m3-on-surface-variant text-xs mt-0.5">{t(meta.descKey)}</p>
         </div>
         {renderHeaderActions()}
       </header>
@@ -464,12 +464,12 @@ export const Workspace: React.FC<WorkspaceProps> = ({
   // ----------------------------------------------------
   if (activeStep === 1 || activeStep === 2 || activeStep === 4 || activeStep === 6) {
     return (
-      <div className="max-w-3xl mx-auto p-8 space-y-6 fade-in font-cairo">
+      <div className="flex-1 overflow-y-auto w-full p-8 max-w-3xl mx-auto space-y-6 fade-in font-cairo">
         {renderStepHeader()}
 
         {meta.hasRef && (
-          <div className="bg-[#fcfbfa] dark:bg-zinc-900/10 border border-zinc-200 dark:border-zinc-800 p-4 rounded text-xs leading-relaxed text-zinc-500 whitespace-pre-line text-start">
-            <span className="font-bold text-zinc-400 block mb-1">{t('referenceToStep')} {meta.hasRef}:</span>
+          <div className="bg-m3-primary-container/20 border border-m3-outline-variant p-4 rounded-2xl text-xs leading-relaxed text-m3-on-surface-variant whitespace-pre-line text-start shadow-sm">
+            <span className="font-bold text-m3-on-surface block mb-1">{t('referenceToStep')} {meta.hasRef}:</span>
             {getStepText(meta.hasRef) || t('noReferenceYet')}
           </div>
         )}
@@ -480,7 +480,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
             value={stepText}
             onChange={(e) => setStepText(e.target.value)}
             onBlur={() => triggerSaveStepProgress(stepText, stepCompleted)}
-            className="w-full min-h-[350px] text-sm leading-loose bg-white dark:bg-[#181818] border border-zinc-200 dark:border-zinc-800 p-4 rounded focus:outline-none focus:border-zinc-500 focus:ring-0 resize-y placeholder:text-zinc-300 text-start"
+            className="w-full min-h-[350px] text-sm leading-loose bg-m3-surface border border-m3-outline p-4 rounded-2xl focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary resize-y placeholder:text-m3-on-surface-variant/50 text-start text-m3-on-surface transition-all shadow-sm"
             placeholder={t('writeHerePlaceholder')}
           />
           <div className="flex justify-end">
@@ -496,72 +496,72 @@ export const Workspace: React.FC<WorkspaceProps> = ({
   // ----------------------------------------------------
   if (activeStep === 3) {
     return (
-      <div className="max-w-3xl mx-auto p-8 space-y-6 fade-in font-cairo">
+      <div className="flex-1 overflow-y-auto w-full p-8 max-w-3xl mx-auto space-y-6 fade-in font-cairo">
         {renderStepHeader()}
 
         {editingCharacter ? (
-          <div className="bg-white dark:bg-[#181818] p-5 border border-zinc-200 dark:border-zinc-800 rounded space-y-4 text-start">
-            <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
+          <div className="bg-m3-surface p-5 border border-m3-outline-variant rounded-2xl space-y-4 text-start shadow-sm">
+            <h3 className="text-xs font-bold text-m3-on-surface-variant uppercase tracking-wider">
               {editingCharacter.id ? t('editCharacterTitle') : t('addCharacterTitle')}
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-[11px] text-zinc-500 font-bold">{t('charNameLabel')}</label>
+              <div className="space-y-1 font-cairo">
+                <label className="text-[11px] text-m3-on-surface-variant font-bold">{t('charNameLabel')}</label>
                 <input
                   type="text"
                   value={editingCharacter.name || ''}
                   onChange={(e) => setEditingCharacter({ ...editingCharacter, name: e.target.value })}
-                  className="w-full text-xs rounded border border-zinc-200 dark:border-zinc-800 bg-[#fbfbfa] dark:bg-[#121212] p-2 focus:outline-none focus:border-zinc-500 focus:ring-0"
+                  className="w-full text-xs rounded-xl border border-m3-outline bg-m3-background p-3 focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary text-m3-on-surface transition-all"
                 />
               </div>
 
-              <div className="space-y-1">
-                <label className="text-[11px] text-zinc-500 font-bold">{t('charMotivationLabel')}</label>
+              <div className="space-y-1 font-cairo">
+                <label className="text-[11px] text-m3-on-surface-variant font-bold">{t('charMotivationLabel')}</label>
                 <input
                   type="text"
                   value={editingCharacter.motivation || ''}
                   onChange={(e) => setEditingCharacter({ ...editingCharacter, motivation: e.target.value })}
-                  className="w-full text-xs rounded border border-zinc-200 dark:border-zinc-800 bg-[#fbfbfa] dark:bg-[#121212] p-2 focus:outline-none focus:border-zinc-500 focus:ring-0"
+                  className="w-full text-xs rounded-xl border border-m3-outline bg-m3-background p-3 focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary text-m3-on-surface transition-all"
                 />
               </div>
 
-              <div className="space-y-1">
-                <label className="text-[11px] text-zinc-500 font-bold">{t('charGoalLabel')}</label>
+              <div className="space-y-1 font-cairo">
+                <label className="text-[11px] text-m3-on-surface-variant font-bold">{t('charGoalLabel')}</label>
                 <input
                   type="text"
                   value={editingCharacter.goal || ''}
                   onChange={(e) => setEditingCharacter({ ...editingCharacter, goal: e.target.value })}
-                  className="w-full text-xs rounded border border-zinc-200 dark:border-zinc-800 bg-[#fbfbfa] dark:bg-[#121212] p-2 focus:outline-none focus:border-zinc-500 focus:ring-0"
+                  className="w-full text-xs rounded-xl border border-m3-outline bg-m3-background p-3 focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary text-m3-on-surface transition-all"
                 />
               </div>
 
-              <div className="space-y-1">
-                <label className="text-[11px] text-zinc-500 font-bold">{t('charConflictLabel')}</label>
+              <div className="space-y-1 font-cairo">
+                <label className="text-[11px] text-m3-on-surface-variant font-bold">{t('charConflictLabel')}</label>
                 <input
                   type="text"
                   value={editingCharacter.conflict || ''}
                   onChange={(e) => setEditingCharacter({ ...editingCharacter, conflict: e.target.value })}
-                  className="w-full text-xs rounded border border-zinc-200 dark:border-zinc-800 bg-[#fbfbfa] dark:bg-[#121212] p-2 focus:outline-none focus:border-zinc-500 focus:ring-0"
+                  className="w-full text-xs rounded-xl border border-m3-outline bg-m3-background p-3 focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary text-m3-on-surface transition-all"
                 />
               </div>
 
-              <div className="space-y-1 md:col-span-2">
-                <label className="text-[11px] text-zinc-500 font-bold">{t('charEpiphanyLabel')}</label>
+              <div className="space-y-1 md:col-span-2 font-cairo">
+                <label className="text-[11px] text-m3-on-surface-variant font-bold">{t('charEpiphanyLabel')}</label>
                 <input
                   type="text"
                   value={editingCharacter.epiphany || ''}
                   onChange={(e) => setEditingCharacter({ ...editingCharacter, epiphany: e.target.value })}
-                  className="w-full text-xs rounded border border-zinc-200 dark:border-zinc-800 bg-[#fbfbfa] dark:bg-[#121212] p-2 focus:outline-none focus:border-zinc-500 focus:ring-0"
+                  className="w-full text-xs rounded-xl border border-m3-outline bg-m3-background p-3 focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary text-m3-on-surface transition-all"
                 />
               </div>
 
-              <div className="space-y-1 md:col-span-2 relative">
-                <label className="text-[11px] text-zinc-500 font-bold">{t('charSummaryLabel')}</label>
+              <div className="space-y-1 md:col-span-2 relative font-cairo">
+                <label className="text-[11px] text-m3-on-surface-variant font-bold">{t('charSummaryLabel')}</label>
                 <textarea
                   value={editingCharacter.one_paragraph_summary || ''}
                   onChange={(e) => setEditingCharacter({ ...editingCharacter, one_paragraph_summary: e.target.value })}
-                  className="w-full min-h-[100px] text-xs rounded border border-zinc-200 dark:border-zinc-800 bg-[#fbfbfa] dark:bg-[#121212] p-2 focus:outline-none focus:border-zinc-500 focus:ring-0 resize-y"
+                  className="w-full min-h-[100px] text-xs rounded-xl border border-m3-outline bg-m3-background p-3 focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary resize-y text-m3-on-surface transition-all"
                   placeholder={t('charSummaryPlaceholder')}
                 />
                 <div className="flex justify-end mt-1">
@@ -573,13 +573,13 @@ export const Workspace: React.FC<WorkspaceProps> = ({
             <div className="flex gap-2 justify-end pt-2">
               <button
                 onClick={() => setEditingCharacter(null)}
-                className="px-3 py-1.5 border border-zinc-200 dark:border-zinc-800 text-xs rounded hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors cursor-pointer"
+                className="px-4 py-1.5 border border-m3-outline text-m3-primary hover:bg-m3-primary/10 text-xs rounded-full transition-colors cursor-pointer font-cairo font-bold"
               >
                 {t('cancel')}
               </button>
               <button
                 onClick={() => handleSaveCharacter(editingCharacter)}
-                className="flex items-center gap-1 px-3 py-1.5 bg-zinc-800 text-white dark:bg-zinc-200 dark:text-zinc-900 text-xs rounded transition-colors font-bold cursor-pointer"
+                className="flex items-center gap-1.5 px-4 py-1.5 bg-m3-primary hover:opacity-90 text-m3-on-primary text-xs rounded-full transition-all font-bold cursor-pointer font-cairo shadow-sm"
               >
                 <Save className="w-3.5 h-3.5" />
                 <span>{t('save')}</span>
@@ -587,34 +587,34 @@ export const Workspace: React.FC<WorkspaceProps> = ({
             </div>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-4 font-cairo">
             {characters.length === 0 ? (
-              <div className="text-center py-10 bg-white dark:bg-[#181818] border border-zinc-200 dark:border-zinc-800 rounded text-zinc-400 text-xs leading-relaxed font-semibold">
+              <div className="text-center py-10 bg-m3-surface border border-m3-outline-variant rounded-2xl text-m3-on-surface-variant text-xs leading-relaxed font-semibold">
                 {t('noCharactersYet')}
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-start">
                 {characters.map((char) => (
-                  <div key={char.id} className="bg-white dark:bg-[#181818] p-4 border border-zinc-200 dark:border-zinc-800 rounded flex flex-col justify-between group">
+                  <div key={char.id} className="bg-m3-surface p-4 border border-m3-outline-variant rounded-2xl flex flex-col justify-between group shadow-sm">
                     <div className="space-y-2">
                       <div className="flex justify-between items-start">
-                        <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-200">{char.name}</h3>
-                        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <h3 className="text-sm font-bold text-m3-on-surface">{char.name}</h3>
+                        <div className="flex gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button
                             onClick={() => setEditingCharacter(char)}
-                            className="text-[10px] text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 font-bold cursor-pointer"
+                            className="text-[10px] text-m3-on-surface-variant hover:text-m3-primary font-bold cursor-pointer font-cairo"
                           >
                             {t('edit')}
                           </button>
                           <button
                             onClick={() => handleDeleteCharacter(char.id!)}
-                            className="text-[10px] text-rose-500 hover:text-rose-600 font-bold cursor-pointer"
+                            className="text-[10px] text-rose-500 hover:text-rose-600 font-bold cursor-pointer font-cairo"
                           >
                             {t('delete')}
                           </button>
                         </div>
                       </div>
-                      <p className="text-[11px] leading-relaxed text-zinc-500 line-clamp-3">
+                      <p className="text-[11px] leading-relaxed text-m3-on-surface-variant line-clamp-3 font-medium">
                         {char.one_paragraph_summary || t('noCharSummary')}
                       </p>
                     </div>
@@ -648,42 +648,45 @@ export const Workspace: React.FC<WorkspaceProps> = ({
     };
 
     return (
-      <div className="max-w-3xl mx-auto p-8 space-y-6 fade-in font-cairo">
+      <div className="flex-1 h-full flex flex-col overflow-hidden w-full p-8 max-w-4xl mx-auto space-y-6 fade-in font-cairo">
         {renderStepHeader()}
 
         {characters.length === 0 ? (
-          <div className="text-center py-10 bg-white dark:bg-[#181818] border border-zinc-200 dark:border-zinc-800 rounded text-zinc-400 text-xs">
+          <div className="text-center py-10 bg-m3-surface border border-m3-outline-variant rounded-2xl text-m3-on-surface-variant text-xs">
             {t('pleaseAddCharsFirst')}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 text-start">
-            <div className={`md:col-span-1 space-y-1 ${language === 'ar' ? 'border-l pl-2' : 'border-r pr-2'} border-zinc-200/30 dark:border-zinc-800/30`}>
-              <span className="text-[10px] font-bold text-zinc-400 block pb-1.5">{t('charsSelectorLabel')}</span>
-              {characters.map((char) => (
-                <button
-                  key={char.id}
-                  onClick={() => setSelectedCharIdStep5(char.id!)}
-                  className={`w-full text-start p-2 rounded text-xs transition-colors cursor-pointer ${
-                    selectedCharIdStep5 === char.id
-                      ? 'bg-zinc-200 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-200 font-bold'
-                      : 'hover:bg-zinc-100 dark:hover:bg-zinc-900 text-zinc-600 dark:text-zinc-400'
-                  }`}
-                >
-                  {char.name}
-                </button>
-              ))}
+          <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-6 text-start overflow-hidden min-h-0">
+            <div className={`md:col-span-1 flex flex-col overflow-hidden h-full ${language === 'ar' ? 'border-l pl-2' : 'border-r pr-2'} border-m3-outline-variant/35`}>
+              <span className="text-[10px] font-bold text-m3-on-surface-variant block pb-2 shrink-0">{t('charsSelectorLabel')}</span>
+              <div className="flex-1 overflow-y-auto space-y-1 pr-1">
+                {characters.map((char) => (
+                  <button
+                    key={char.id}
+                    onClick={() => setSelectedCharIdStep5(char.id!)}
+                    className={`w-full text-start p-2.5 rounded-xl text-xs transition-all cursor-pointer font-cairo ${
+                      selectedCharIdStep5 === char.id
+                        ? 'bg-m3-primary-container text-m3-on-primary-container font-bold shadow-sm'
+                        : 'hover:bg-m3-surface-variant/45 text-m3-on-surface-variant'
+                    }`}
+                    title={char.name}
+                  >
+                    <span className="block truncate">{char.name}</span>
+                  </button>
+                ))}
+              </div>
             </div>
 
-            <div className="md:col-span-3 space-y-4">
+            <div className="md:col-span-3 overflow-y-auto h-full space-y-4 pr-1 min-h-0">
               {selectedChar ? (
                 <>
-                  <div className="bg-[#fcfbfa] dark:bg-zinc-900/10 border border-zinc-200 dark:border-zinc-800 p-4 rounded text-xs leading-relaxed text-zinc-500 whitespace-pre-line">
-                    <span className="font-bold text-zinc-400 block mb-1">{t('charRefBioLabel')} {selectedChar.name}:</span>
+                  <div className="bg-m3-primary-container/20 border border-m3-outline-variant p-4 rounded-2xl text-xs leading-relaxed text-m3-on-surface-variant shadow-sm">
+                    <span className="font-bold text-m3-on-surface block mb-1">{t('charRefBioLabel')} {selectedChar.name}:</span>
                     {selectedChar.one_paragraph_summary || t('charNoRefBio')}
                   </div>
 
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-zinc-400 block">{t('charExtendedSynopsisLabel')}</label>
+                  <div className="space-y-1 font-cairo">
+                    <label className="text-[10px] font-bold text-m3-on-surface-variant block">{t('charExtendedSynopsisLabel')}</label>
                     <textarea
                       value={selectedChar.full_synopsis || ''}
                       onChange={(e) => {
@@ -691,7 +694,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
                         setCharacters(updated);
                       }}
                       onBlur={(e) => handleSaveSynopsis(e.target.value)}
-                      className="w-full min-h-[300px] text-xs leading-loose bg-white dark:bg-[#181818] border border-zinc-200 dark:border-zinc-800 p-3 rounded focus:outline-none focus:border-zinc-500 focus:ring-0 resize-y"
+                      className="w-full min-h-[300px] text-xs leading-loose bg-m3-surface border border-m3-outline p-3 rounded-2xl focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary resize-y text-m3-on-surface transition-all shadow-sm"
                       placeholder={t('charExtendedSynopsisPlaceholder', { name: selectedChar.name })}
                     />
                     <div className="flex justify-end">
@@ -700,7 +703,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
                   </div>
                 </>
               ) : (
-                <div className="h-[200px] flex items-center justify-center border border-dashed border-zinc-200 dark:border-zinc-800 rounded text-zinc-400 text-xs">
+                <div className="h-[200px] flex items-center justify-center border border-dashed border-m3-outline-variant rounded-2xl text-m3-on-surface-variant text-xs bg-m3-surface/30">
                   {t('selectCharPlaceholder')}
                 </div>
               )}
@@ -727,40 +730,43 @@ export const Workspace: React.FC<WorkspaceProps> = ({
     };
 
     return (
-      <div className="max-w-3xl mx-auto p-8 space-y-6 fade-in font-cairo">
+      <div className="flex-1 h-full flex flex-col overflow-hidden w-full p-8 max-w-4xl mx-auto space-y-6 fade-in font-cairo">
         {renderStepHeader()}
 
         {characters.length === 0 ? (
-          <div className="text-center py-10 bg-white dark:bg-[#181818] border border-zinc-200 dark:border-zinc-800 rounded text-zinc-400 text-xs">
+          <div className="text-center py-10 bg-m3-surface border border-m3-outline-variant rounded-2xl text-m3-on-surface-variant text-xs">
             {t('pleaseAddCharsFirst')}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 text-start">
-            <div className={`md:col-span-1 space-y-1 ${language === 'ar' ? 'border-l pl-2' : 'border-r pr-2'} border-zinc-200/30 dark:border-zinc-800/30`}>
-              <span className="text-[10px] font-bold text-zinc-400 block pb-1.5">{t('charsSelectorLabel')}</span>
-              {characters.map((char) => (
-                <button
-                  key={char.id}
-                  onClick={() => setSelectedCharIdStep7(char.id!)}
-                  className={`w-full text-start p-2 rounded text-xs transition-colors cursor-pointer ${
-                    selectedCharIdStep7 === char.id
-                      ? 'bg-zinc-200 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-200 font-bold'
-                      : 'hover:bg-zinc-100 dark:hover:bg-zinc-900 text-zinc-600 dark:text-zinc-400'
-                  }`}
-                >
-                  {char.name}
-                </button>
-              ))}
+          <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-6 text-start overflow-hidden min-h-0">
+            <div className={`md:col-span-1 flex flex-col overflow-hidden h-full ${language === 'ar' ? 'border-l pl-2' : 'border-r pr-2'} border-m3-outline-variant/35`}>
+              <span className="text-[10px] font-bold text-m3-on-surface-variant block pb-2 shrink-0">{t('charsSelectorLabel')}</span>
+              <div className="flex-1 overflow-y-auto space-y-1 pr-1">
+                {characters.map((char) => (
+                  <button
+                    key={char.id}
+                    onClick={() => setSelectedCharIdStep7(char.id!)}
+                    className={`w-full text-start p-2.5 rounded-xl text-xs transition-all cursor-pointer font-cairo ${
+                      selectedCharIdStep7 === char.id
+                        ? 'bg-m3-primary-container text-m3-on-primary-container font-bold shadow-sm'
+                        : 'hover:bg-m3-surface-variant/45 text-m3-on-surface-variant'
+                    }`}
+                    title={char.name}
+                  >
+                    <span className="block truncate">{char.name}</span>
+                  </button>
+                ))}
+              </div>
             </div>
 
-            <div className="md:col-span-3">
+            <div className="md:col-span-3 overflow-y-auto h-full pr-1 min-h-0">
               {selectedChar ? (
-                <div className="bg-white dark:bg-[#181818] p-5 border border-zinc-200 dark:border-zinc-800 rounded space-y-4">
-                  <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider pb-1">{t('editCharacterTitle')}: {selectedChar.name}</h3>
+                <div className="bg-m3-surface p-5 border border-m3-outline-variant rounded-2xl space-y-4 shadow-sm">
+                  <h3 className="text-xs font-bold text-m3-on-surface-variant uppercase tracking-wider pb-1">{t('editCharacterTitle')}: {selectedChar.name}</h3>
 
                   <div className="space-y-4">
-                    <div className="space-y-1">
-                      <label className="text-[11px] font-bold text-zinc-500">{t('charNameLabel')}</label>
+                    <div className="space-y-1 font-cairo">
+                      <label className="text-[11px] font-bold text-m3-on-surface-variant">{t('charNameLabel')}</label>
                       <input
                         type="text"
                         value={selectedChar.name}
@@ -769,13 +775,13 @@ export const Workspace: React.FC<WorkspaceProps> = ({
                           setCharacters(updated);
                         }}
                         onBlur={() => handleSaveChart(selectedChar)}
-                        className="w-full text-xs rounded border border-zinc-200 dark:border-zinc-800 bg-[#fbfbfa] dark:bg-[#121212] p-2 focus:outline-none focus:border-zinc-500 focus:ring-0"
+                        className="w-full text-xs rounded-xl border border-m3-outline bg-m3-background p-3 focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary text-m3-on-surface transition-all"
                       />
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-1">
-                        <label className="text-[11px] font-bold text-zinc-500">{t('charMotivationLabel')}</label>
+                      <div className="space-y-1 font-cairo">
+                        <label className="text-[11px] font-bold text-m3-on-surface-variant">{t('charMotivationLabel')}</label>
                         <textarea
                           value={selectedChar.motivation}
                           onChange={(e) => {
@@ -783,12 +789,12 @@ export const Workspace: React.FC<WorkspaceProps> = ({
                             setCharacters(updated);
                           }}
                           onBlur={() => handleSaveChart(selectedChar)}
-                          className="w-full text-xs min-h-[70px] rounded border border-zinc-200 dark:border-zinc-800 bg-[#fbfbfa] dark:bg-[#121212] p-2 focus:outline-none focus:border-zinc-500 focus:ring-0"
+                          className="w-full text-xs min-h-[70px] rounded-xl border border-m3-outline bg-m3-background p-3 focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary text-m3-on-surface transition-all"
                         />
                       </div>
 
-                      <div className="space-y-1">
-                        <label className="text-[11px] font-bold text-zinc-500">{t('charGoalLabel')}</label>
+                      <div className="space-y-1 font-cairo">
+                        <label className="text-[11px] font-bold text-m3-on-surface-variant">{t('charGoalLabel')}</label>
                         <textarea
                           value={selectedChar.goal}
                           onChange={(e) => {
@@ -796,12 +802,12 @@ export const Workspace: React.FC<WorkspaceProps> = ({
                             setCharacters(updated);
                           }}
                           onBlur={() => handleSaveChart(selectedChar)}
-                          className="w-full text-xs min-h-[70px] rounded border border-zinc-200 dark:border-zinc-800 bg-[#fbfbfa] dark:bg-[#121212] p-2 focus:outline-none focus:border-zinc-500 focus:ring-0"
+                          className="w-full text-xs min-h-[70px] rounded-xl border border-m3-outline bg-m3-background p-3 focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary text-m3-on-surface transition-all"
                         />
                       </div>
 
-                      <div className="space-y-1">
-                        <label className="text-[11px] font-bold text-zinc-500">{t('charConflictLabel')}</label>
+                      <div className="space-y-1 font-cairo">
+                        <label className="text-[11px] font-bold text-m3-on-surface-variant">{t('charConflictLabel')}</label>
                         <textarea
                           value={selectedChar.conflict}
                           onChange={(e) => {
@@ -809,12 +815,12 @@ export const Workspace: React.FC<WorkspaceProps> = ({
                             setCharacters(updated);
                           }}
                           onBlur={() => handleSaveChart(selectedChar)}
-                          className="w-full text-xs min-h-[70px] rounded border border-zinc-200 dark:border-zinc-800 bg-[#fbfbfa] dark:bg-[#121212] p-2 focus:outline-none focus:border-zinc-500 focus:ring-0"
+                          className="w-full text-xs min-h-[70px] rounded-xl border border-m3-outline bg-m3-background p-3 focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary text-m3-on-surface transition-all"
                         />
                       </div>
 
-                      <div className="space-y-1">
-                        <label className="text-[11px] font-bold text-zinc-500">{t('charEpiphanyLabel')}</label>
+                      <div className="space-y-1 font-cairo">
+                        <label className="text-[11px] font-bold text-m3-on-surface-variant">{t('charEpiphanyLabel')}</label>
                         <textarea
                           value={selectedChar.epiphany}
                           onChange={(e) => {
@@ -822,14 +828,14 @@ export const Workspace: React.FC<WorkspaceProps> = ({
                             setCharacters(updated);
                           }}
                           onBlur={() => handleSaveChart(selectedChar)}
-                          className="w-full text-xs min-h-[70px] rounded border border-zinc-200 dark:border-zinc-800 bg-[#fbfbfa] dark:bg-[#121212] p-2 focus:outline-none focus:border-zinc-500 focus:ring-0"
+                          className="w-full text-xs min-h-[70px] rounded-xl border border-m3-outline bg-m3-background p-3 focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary text-m3-on-surface transition-all"
                         />
                       </div>
                     </div>
                   </div>
                 </div>
               ) : (
-                <div className="h-[200px] flex items-center justify-center border border-dashed border-zinc-200 dark:border-zinc-800 rounded text-zinc-400 text-xs">
+                <div className="h-[200px] flex items-center justify-center border border-dashed border-m3-outline-variant rounded-2xl text-m3-on-surface-variant text-xs bg-m3-surface/30">
                   {t('selectCharPlaceholder')}
                 </div>
               )}
@@ -845,27 +851,27 @@ export const Workspace: React.FC<WorkspaceProps> = ({
   // ----------------------------------------------------
   if (activeStep === 8) {
     return (
-      <div className="max-w-3xl mx-auto p-8 space-y-6 fade-in font-cairo">
+      <div className="flex-1 overflow-y-auto w-full p-8 max-w-3xl mx-auto space-y-6 fade-in font-cairo">
         {renderStepHeader()}
 
         {editingScene ? (
-          <div className="bg-white dark:bg-[#181818] p-5 border border-zinc-200 dark:border-zinc-800 rounded space-y-4 text-start">
-            <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider pb-1">
+          <div className="bg-m3-surface p-5 border border-m3-outline-variant rounded-2xl space-y-4 text-start shadow-sm">
+            <h3 className="text-xs font-bold text-m3-on-surface-variant uppercase tracking-wider pb-1">
               {editingScene.id ? t('editSceneTitle') : t('addSceneTitle')}
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-[11px] font-bold text-zinc-500">{t('scenePovLabel')}</label>
+              <div className="space-y-1 font-cairo">
+                <label className="text-[11px] font-bold text-m3-on-surface-variant">{t('scenePovLabel')}</label>
                 {characters.length === 0 ? (
-                  <div className="text-[10px] text-rose-500 p-2 bg-rose-50 dark:bg-rose-950/20 rounded">
+                  <div className="text-[10px] text-rose-500 p-2 bg-rose-50 dark:bg-rose-950/10 rounded-xl">
                     {t('pleaseAddCharsWarning')}
                   </div>
                 ) : (
                   <select
                     value={editingScene.pov_character_id || ''}
                     onChange={(e) => setEditingScene({ ...editingScene, pov_character_id: Number(e.target.value) || null })}
-                    className="w-full text-xs rounded border border-zinc-200 dark:border-zinc-800 bg-[#fbfbfa] dark:bg-[#121212] p-2 focus:outline-none focus:border-zinc-500 focus:ring-0 cursor-pointer"
+                    className="w-full text-xs rounded-xl border border-m3-outline bg-m3-background p-3 focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary cursor-pointer text-m3-on-surface transition-all"
                   >
                     <option value="">{t('selectPovPlaceholder')}</option>
                     {characters.map(c => (
@@ -875,44 +881,44 @@ export const Workspace: React.FC<WorkspaceProps> = ({
                 )}
               </div>
 
-              <div className="space-y-1">
-                <label className="text-[11px] font-bold text-zinc-500">{t('sceneSettingLabel')}</label>
+              <div className="space-y-1 font-cairo">
+                <label className="text-[11px] font-bold text-m3-on-surface-variant">{t('sceneSettingLabel')}</label>
                 <input
                   type="text"
                   value={editingScene.setting || ''}
                   onChange={(e) => setEditingScene({ ...editingScene, setting: e.target.value })}
-                  className="w-full text-xs rounded border border-zinc-200 dark:border-zinc-800 bg-[#fbfbfa] dark:bg-[#121212] p-2 focus:outline-none focus:border-zinc-500 focus:ring-0"
+                  className="w-full text-xs rounded-xl border border-m3-outline bg-m3-background p-3 focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary text-m3-on-surface transition-all"
                   placeholder={t('sceneSettingCol')}
                 />
               </div>
 
-              <div className="space-y-1">
-                <label className="text-[11px] font-bold text-zinc-500">{t('scenePlotLabel')}</label>
+              <div className="space-y-1 font-cairo">
+                <label className="text-[11px] font-bold text-m3-on-surface-variant">{t('scenePlotLabel')}</label>
                 <input
                   type="text"
                   value={editingScene.plot_thread || ''}
                   onChange={(e) => setEditingScene({ ...editingScene, plot_thread: e.target.value })}
-                  className="w-full text-xs rounded border border-zinc-200 dark:border-zinc-800 bg-[#fbfbfa] dark:bg-[#121212] p-2 focus:outline-none focus:border-zinc-500 focus:ring-0"
+                  className="w-full text-xs rounded-xl border border-m3-outline bg-m3-background p-3 focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary text-m3-on-surface transition-all"
                   placeholder={t('scenePlotCol')}
                 />
               </div>
 
-              <div className="space-y-1">
-                <label className="text-[11px] font-bold text-zinc-500">{t('sceneExpectedWordsLabel')}</label>
+              <div className="space-y-1 font-cairo">
+                <label className="text-[11px] font-bold text-m3-on-surface-variant">{t('sceneExpectedWordsLabel')}</label>
                 <input
                   type="number"
                   value={editingScene.expected_word_count || ''}
                   onChange={(e) => setEditingScene({ ...editingScene, expected_word_count: Number(e.target.value) || 0 })}
-                  className="w-full text-xs rounded border border-zinc-200 dark:border-zinc-800 bg-[#fbfbfa] dark:bg-[#121212] p-2 focus:outline-none focus:border-zinc-500 focus:ring-0"
+                  className="w-full text-xs rounded-xl border border-m3-outline bg-m3-background p-3 focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary text-m3-on-surface transition-all"
                 />
               </div>
 
-              <div className="space-y-1 md:col-span-2 relative">
-                <label className="text-[11px] font-bold text-zinc-500">{t('sceneWhatHappensLabel')}</label>
+              <div className="space-y-1 md:col-span-2 relative font-cairo">
+                <label className="text-[11px] font-bold text-m3-on-surface-variant">{t('sceneWhatHappensLabel')}</label>
                 <textarea
                   value={editingScene.what_happens || ''}
                   onChange={(e) => setEditingScene({ ...editingScene, what_happens: e.target.value })}
-                  className="w-full min-h-[100px] text-xs rounded border border-zinc-200 dark:border-zinc-800 bg-[#fbfbfa] dark:bg-[#121212] p-2 focus:outline-none focus:border-zinc-500 focus:ring-0 resize-y"
+                  className="w-full min-h-[100px] text-xs rounded-xl border border-m3-outline bg-m3-background p-3 focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary resize-y text-m3-on-surface transition-all"
                   placeholder={t('sceneWhatHappensLabel')}
                 />
                 <div className="flex justify-end mt-1">
@@ -924,13 +930,13 @@ export const Workspace: React.FC<WorkspaceProps> = ({
             <div className="flex gap-2 justify-end pt-2">
               <button
                 onClick={() => setEditingScene(null)}
-                className="px-3 py-1.5 border border-zinc-200 dark:border-zinc-800 text-xs rounded hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors cursor-pointer"
+                className="px-4 py-1.5 border border-m3-outline text-m3-primary hover:bg-m3-primary/10 text-xs rounded-full transition-colors cursor-pointer font-cairo font-bold"
               >
                 {t('cancel')}
               </button>
               <button
                 onClick={() => handleSaveScene(editingScene)}
-                className="flex items-center gap-1 px-3 py-1.5 bg-zinc-800 text-white dark:bg-zinc-200 dark:text-zinc-900 text-xs rounded transition-colors font-bold cursor-pointer"
+                className="flex items-center gap-1.5 px-4 py-1.5 bg-m3-primary hover:opacity-90 text-m3-on-primary text-xs rounded-full transition-all font-bold cursor-pointer font-cairo shadow-sm"
               >
                 <Save className="w-3.5 h-3.5" />
                 <span>{t('save')}</span>
@@ -940,37 +946,37 @@ export const Workspace: React.FC<WorkspaceProps> = ({
         ) : (
           <div className="space-y-6">
             {scenes.length === 0 ? (
-              <div className="text-center py-10 bg-white dark:bg-[#181818] border border-zinc-200 dark:border-zinc-800 rounded text-zinc-400 text-xs font-semibold">
+              <div className="text-center py-10 bg-m3-surface border border-m3-outline-variant rounded-2xl text-m3-on-surface-variant text-xs font-semibold">
                 {t('noScenesYet')}
               </div>
             ) : (
-              <div className="bg-white dark:bg-[#181818] rounded border border-zinc-200 dark:border-zinc-800 overflow-hidden">
+              <div className="bg-m3-surface rounded-2xl border border-m3-outline-variant overflow-hidden shadow-sm">
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs text-start" dir={language === 'ar' ? 'rtl' : 'ltr'}>
-                    <thead className="text-zinc-400 uppercase bg-[#fbfbfa] dark:bg-[#151515] border-b border-zinc-200 dark:border-zinc-800">
+                    <thead className="text-m3-on-surface-variant uppercase bg-m3-surface-variant/40 border-b border-m3-outline-variant">
                       <tr>
-                        <th className="px-3 py-2 text-start font-bold">#</th>
-                        <th className="px-3 py-2 text-start font-bold">{t('scenePovCol')}</th>
-                        <th className="px-3 py-2 text-start font-bold">{t('sceneSettingCol')}</th>
-                        <th className="px-3 py-2 text-start font-bold">{t('scenePlotCol')}</th>
-                        <th className="px-3 py-2 text-start font-bold">{t('sceneWordsCol')}</th>
-                        <th className="px-3 py-2 text-start font-bold">{t('actions')}</th>
+                        <th className="px-4 py-3 text-start font-bold">#</th>
+                        <th className="px-4 py-3 text-start font-bold">{t('scenePovCol')}</th>
+                        <th className="px-4 py-3 text-start font-bold">{t('sceneSettingCol')}</th>
+                        <th className="px-4 py-3 text-start font-bold">{t('scenePlotCol')}</th>
+                        <th className="px-4 py-3 text-start font-bold">{t('sceneWordsCol')}</th>
+                        <th className="px-4 py-3 text-start font-bold">{t('actions')}</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800 text-start">
+                    <tbody className="divide-y divide-m3-outline-variant text-start">
                       {scenes.map((scn, idx) => {
                         const povName = characters.find(c => c.id === scn.pov_character_id)?.name || t('sceneNotPlanned');
                         return (
-                          <tr key={scn.id} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-900/30 transition-colors">
-                            <td className="px-3 py-2 font-bold text-zinc-900 dark:text-zinc-100">{idx + 1}</td>
-                            <td className="px-3 py-2 text-zinc-600 dark:text-zinc-400">{povName}</td>
-                            <td className="px-3 py-2 text-zinc-600 dark:text-zinc-400 truncate max-w-[120px]">{scn.setting || '_'}</td>
-                            <td className="px-3 py-2 text-zinc-600 dark:text-zinc-400">{scn.plot_thread || '_'}</td>
-                            <td className="px-3 py-2 text-zinc-600 dark:text-zinc-400">{scn.expected_word_count} / {scn.actual_word_count || 0}</td>
-                            <td className="px-3 py-2 flex gap-3">
+                          <tr key={scn.id} className="hover:bg-m3-surface-variant/20 transition-all">
+                            <td className="px-4 py-3.5 font-bold text-m3-on-surface">{idx + 1}</td>
+                            <td className="px-4 py-3.5 text-m3-on-surface-variant font-medium">{povName}</td>
+                            <td className="px-4 py-3.5 text-m3-on-surface-variant font-medium truncate max-w-[120px]">{scn.setting || '_'}</td>
+                            <td className="px-4 py-3.5 text-m3-on-surface-variant font-medium">{scn.plot_thread || '_'}</td>
+                            <td className="px-4 py-3.5 text-m3-on-surface-variant font-medium font-mono">{scn.expected_word_count} / {scn.actual_word_count || 0}</td>
+                            <td className="px-4 py-3.5 flex gap-3 font-cairo">
                               <button
                                 onClick={() => setEditingScene(scn)}
-                                className="text-[10px] text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 font-bold cursor-pointer"
+                                className="text-[10px] text-m3-on-surface-variant hover:text-m3-primary font-bold cursor-pointer"
                               >
                                 {t('edit')}
                               </button>
@@ -1024,37 +1030,40 @@ export const Workspace: React.FC<WorkspaceProps> = ({
     };
 
     return (
-      <div className="max-w-3xl mx-auto p-8 space-y-6 fade-in font-cairo">
+      <div className="flex-1 h-full flex flex-col overflow-hidden w-full p-8 max-w-4xl mx-auto space-y-6 fade-in font-cairo">
         {renderStepHeader()}
 
         {scenes.length === 0 ? (
-          <div className="text-center py-10 bg-white dark:bg-[#181818] border border-zinc-200 dark:border-zinc-800 rounded text-zinc-400 text-xs">
+          <div className="text-center py-10 bg-m3-surface border border-m3-outline-variant rounded-2xl text-m3-on-surface-variant text-xs">
             {t('pleaseAddScenesFirst')}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 text-start">
-            <div className={`md:col-span-1 space-y-1 ${language === 'ar' ? 'border-l pl-2' : 'border-r pr-2'} border-zinc-200/30 dark:border-zinc-800/30`}>
-              <span className="text-[10px] font-bold text-zinc-400 block pb-1.5">{t('scenesListLabel')}</span>
-              {scenes.map((scn, idx) => (
-                <button
-                  key={scn.id}
-                  onClick={() => setSelectedSceneIdStep9(scn.id!)}
-                  className={`w-full text-start p-2 rounded text-xs transition-colors cursor-pointer ${
-                    selectedSceneIdStep9 === scn.id
-                      ? 'bg-zinc-200 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-200 font-bold'
-                      : 'hover:bg-zinc-100 dark:hover:bg-zinc-900 text-zinc-600 dark:text-zinc-400'
-                  }`}
-                >
-                  {t('sceneNumber')} {idx + 1}: {scn.setting || t('sceneNotPlanned')}
-                </button>
-              ))}
+          <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-6 text-start overflow-hidden min-h-0">
+            <div className={`md:col-span-1 flex flex-col overflow-hidden h-full ${language === 'ar' ? 'border-l pl-2' : 'border-r pr-2'} border-m3-outline-variant/35`}>
+              <span className="text-[10px] font-bold text-m3-on-surface-variant block pb-2 shrink-0">{t('scenesListLabel')}</span>
+              <div className="flex-1 overflow-y-auto space-y-1 pr-1">
+                {scenes.map((scn, idx) => (
+                  <button
+                    key={scn.id}
+                    onClick={() => setSelectedSceneIdStep9(scn.id!)}
+                    className={`w-full text-start p-2.5 rounded-xl text-xs transition-all cursor-pointer font-cairo ${
+                      selectedSceneIdStep9 === scn.id
+                        ? 'bg-m3-primary-container text-m3-on-primary-container font-bold shadow-sm'
+                        : 'hover:bg-m3-surface-variant/45 text-m3-on-surface-variant'
+                    }`}
+                    title={`${t('sceneNumber')} ${idx + 1}: ${scn.setting || t('sceneNotPlanned')}`}
+                  >
+                    <span className="block truncate">{t('sceneNumber')} {idx + 1}: {scn.setting || t('sceneNotPlanned')}</span>
+                  </button>
+                ))}
+              </div>
             </div>
 
-            <div className="md:col-span-3 space-y-4">
+            <div className="md:col-span-3 overflow-y-auto h-full space-y-4 pr-1 min-h-0">
               {selectedScene ? (
                 <>
-                  <div className="bg-[#fcfbfa] dark:bg-zinc-900/10 border border-zinc-200 dark:border-zinc-800 p-4 rounded text-xs leading-relaxed text-zinc-500">
-                    <div className="grid grid-cols-2 gap-2">
+                  <div className="bg-m3-primary-container/20 border border-m3-outline-variant p-4 rounded-2xl text-xs leading-relaxed text-m3-on-surface-variant shadow-sm">
+                    <div className="grid grid-cols-2 gap-2 font-medium">
                       <div><span className="font-bold">{t('scenePovCol')}:</span> {characters.find(c => c.id === selectedScene.pov_character_id)?.name || t('sceneNotPlanned')}</div>
                       <div><span className="font-bold">{t('scenePlotCol')}:</span> {selectedScene.plot_thread || t('sceneNotPlanned')}</div>
                       <div className="col-span-2"><span className="font-bold">{t('sceneSettingCol')}:</span> {selectedScene.setting || t('sceneNotPlanned')}</div>
@@ -1062,14 +1071,14 @@ export const Workspace: React.FC<WorkspaceProps> = ({
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <span className="text-[10px] font-bold text-zinc-400">{t('sceneExpectedWordsLabel')}</span>
-                      <div className="bg-zinc-100 dark:bg-zinc-900/50 text-zinc-700 dark:text-zinc-300 text-xs px-3 py-2 rounded">
+                    <div className="space-y-1 font-cairo">
+                      <span className="text-[10px] font-bold text-m3-on-surface-variant">{t('sceneExpectedWordsLabel')}</span>
+                      <div className="bg-m3-surface-variant text-m3-on-surface text-xs px-3 py-2.5 rounded-xl font-bold">
                         {selectedScene.expected_word_count} {t('words')}
                       </div>
                     </div>
-                    <div className="space-y-1">
-                      <span className="text-[10px] font-bold text-zinc-400">{t('sceneActualWordsLabel')}</span>
+                    <div className="space-y-1 font-cairo">
+                      <span className="text-[10px] font-bold text-m3-on-surface-variant">{t('sceneActualWordsLabel')}</span>
                       <input
                         type="number"
                         value={selectedScene.actual_word_count || ''}
@@ -1078,13 +1087,13 @@ export const Workspace: React.FC<WorkspaceProps> = ({
                           setScenes(updated);
                         }}
                         onBlur={(e) => handleSaveNarrative(selectedScene.what_happens, Number(e.target.value) || 0)}
-                        className="w-full text-xs font-bold rounded border border-zinc-200 dark:border-zinc-800 bg-[#fbfbfa] dark:bg-[#121212] p-2 focus:outline-none focus:border-zinc-500 focus:ring-0"
+                        className="w-full text-xs font-bold rounded-xl border border-m3-outline bg-m3-background p-2.5 focus:outline-none focus:border-m3-primary focus:ring-0 text-m3-on-surface"
                       />
                     </div>
                   </div>
 
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-zinc-400 block">{t('sceneNarrativeTextareaLabel')}</label>
+                  <div className="space-y-1.5 font-cairo">
+                    <label className="text-[10px] font-bold text-m3-on-surface-variant block">{t('sceneNarrativeTextareaLabel')}</label>
                     <textarea
                       value={selectedScene.what_happens}
                       onChange={(e) => {
@@ -1092,7 +1101,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
                         setScenes(updated);
                       }}
                       onBlur={(e) => handleSaveNarrative(e.target.value, selectedScene.actual_word_count)}
-                      className="w-full min-h-[300px] text-xs leading-loose bg-white dark:bg-[#181818] border border-zinc-200 dark:border-zinc-800 p-3 rounded focus:outline-none focus:border-zinc-500 focus:ring-0 resize-y"
+                      className="w-full min-h-[300px] text-xs leading-loose bg-m3-surface border border-m3-outline p-3 rounded-2xl focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary resize-y text-m3-on-surface transition-all shadow-sm"
                       placeholder={t('sceneNarrativePlaceholder')}
                     />
                     <div className="flex justify-end">
@@ -1101,7 +1110,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
                   </div>
                 </>
               ) : (
-                <div className="h-[200px] flex items-center justify-center border border-dashed border-zinc-200 dark:border-zinc-800 rounded text-zinc-400 text-xs">
+                <div className="h-[200px] flex items-center justify-center border border-dashed border-m3-outline-variant rounded-2xl text-m3-on-surface-variant text-xs bg-m3-surface/30">
                   {t('selectScenePlaceholder')}
                 </div>
               )}
@@ -1119,11 +1128,11 @@ export const Workspace: React.FC<WorkspaceProps> = ({
     const mdContent = getExportMarkdown();
 
     return (
-      <div className="max-w-3xl mx-auto p-8 space-y-6 fade-in font-cairo">
+      <div className="flex-1 overflow-y-auto w-full p-8 max-w-3xl mx-auto space-y-6 fade-in font-cairo">
         {renderStepHeader()}
 
-        <div className="bg-[#fdfdfd] dark:bg-[#181818] p-5 border border-zinc-200 dark:border-zinc-800 rounded max-h-[500px] overflow-y-auto text-start select-text">
-          <pre className="text-xs font-mono whitespace-pre-wrap leading-relaxed text-zinc-800 dark:text-zinc-200 font-medium">
+        <div className="bg-m3-surface p-5 border border-m3-outline-variant rounded-2xl max-h-[500px] overflow-y-auto text-start select-text shadow-sm">
+          <pre className="text-xs font-mono whitespace-pre-wrap leading-relaxed text-m3-on-surface font-semibold">
             {mdContent}
           </pre>
         </div>

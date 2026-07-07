@@ -2,18 +2,57 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+:root {
+  --m3-background: #f8fafd;           /* Soft ice-blue tinted light background */
+  --m3-surface: #f1f4f9;              /* Surface Container Low */
+  --m3-surface-variant: #e1e9ed;      /* Surface Container Normal */
+  --m3-primary: #006684;              /* Deep sapphire primary */
+  --m3-on-primary: #ffffff;           /* On primary text */
+  --m3-primary-container: #bfe9ff;    /* Soft active selection container background */
+  --m3-on-primary-container: #001f2a; /* Text on active container */
+  --m3-on-surface: #191c1e;           /* High contrast dark text */
+  --m3-on-surface-variant: #40484c;   /* Medium contrast secondary text */
+  --m3-outline: #70787d;              /* M3 Outline */
+  --m3-outline-variant: #c0c8cc;      /* Soft outlines / dividers */
+}
+
+.dark {
+  --m3-background: #0f1416;           /* Deep midnight slate dark background */
+  --m3-surface: #1a1f22;              /* Dark surface container */
+  --m3-surface-variant: #283135;      /* Dark surface container variant */
+  --m3-primary: #6cd1ff;              /* Light sapphire primary */
+  --m3-on-primary: #003546;           /* On primary dark text */
+  --m3-primary-container: #004d64;    /* Deep active selection container background */
+  --m3-on-primary-container: #bfe9ff; /* Text on active container */
+  --m3-on-surface: #e1e2e5;           /* High contrast off-white text */
+  --m3-on-surface-variant: #c0c8cc;   /* Medium contrast light gray text */
+  --m3-outline: #8a9296;              /* M3 Outline */
+  --m3-outline-variant: #40484c;      /* Soft dark outlines / dividers */
+}
+
 @theme {
   --font-cairo: "Cairo", "Segoe UI", Roboto, sans-serif;
+  --color-m3-background: var(--m3-background);
+  --color-m3-surface: var(--m3-surface);
+  --color-m3-surface-variant: var(--m3-surface-variant);
+  --color-m3-primary: var(--m3-primary);
+  --color-m3-on-primary: var(--m3-on-primary);
+  --color-m3-primary-container: var(--m3-primary-container);
+  --color-m3-on-primary-container: var(--m3-on-primary-container);
+  --color-m3-on-surface: var(--m3-on-surface);
+  --color-m3-on-surface-variant: var(--m3-on-surface-variant);
+  --color-m3-outline: var(--m3-outline);
+  --color-m3-outline-variant: var(--m3-outline-variant);
 }
 
 /* Minimalist, Book-like Base Styles */
 body {
   font-family: var(--font-cairo);
-  background-color: #fcfbfa; /* Warm paper color */
-  color: #1c1917; /* Soft charcoal black */
+  background-color: var(--m3-background);
+  color: var(--m3-on-surface);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition: background-color 0.2s cubic-bezier(0.2, 0, 0, 1), color 0.2s cubic-bezier(0.2, 0, 0, 1);
 }
 
 html[dir="rtl"] body {
@@ -26,50 +65,42 @@ html[dir="ltr"] body {
   text-align: left;
 }
 
-body.dark {
-  background-color: #121212; /* Matte dark */
-  color: #e7e5e4; /* Soft paper white */
-}
-
 /* Clean Custom Selections */
 ::selection {
-  background-color: #e7e5e4;
-  color: #1c1917;
-}
-
-.dark ::selection {
-  background-color: #2e2a24;
-  color: #e7e5e4;
+  background-color: var(--m3-primary-container);
+  color: var(--m3-on-primary-container);
 }
 
 /* Elegant Scrollbars */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
   background: transparent;
+  margin: 12px 0; /* Shift scrollbar thumb vertically so it doesn't break rounded corners */
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #d6d3d1;
-  border-radius: 2px;
+  background-color: var(--m3-outline-variant);
+  border: 3px solid transparent; /* Add transparent padding to offset from outer edge */
+  background-clip: padding-box;  /* Clip color to padding-box to show transparent borders */
+  border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #a8a29e;
+  background-color: var(--m3-outline);
+  border: 3px solid transparent;
+  background-clip: padding-box;
 }
 
-.dark ::-webkit-scrollbar-thumb {
-  background: #2e2a24;
-}
-
-.dark ::-webkit-scrollbar-thumb:hover {
-  background: #44403c;
-}
-
-/* Form inputs - clean, no AI glow */
+/* Form inputs - clean transition */
 input, textarea, select {
-  transition: border-color 0.1s ease;
+  transition: border-color 0.15s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.15s cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* Disable ugly resize handle globally to prevent layout distortion */
+textarea {
+  resize: none;
 }

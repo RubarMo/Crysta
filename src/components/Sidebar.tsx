@@ -42,17 +42,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const projectFileName = activeProjectPath ? activeProjectPath.split(/[/\\]/).pop() : "";
 
   return (
-    <aside className="w-72 border-e border-zinc-200 dark:border-zinc-800 bg-[#f8f6f4] dark:bg-[#161616] flex flex-col h-screen select-none font-cairo shrink-0">
-      {/* Header */}
-      <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 space-y-2 bg-white/30 dark:bg-black/10">
+    <aside className="w-72 border-e border-m3-outline-variant bg-m3-surface flex flex-col h-screen select-none font-cairo shrink-0">
+      {/* Header (M3 Drawer Header aligned to top bar height) */}
+      <div className="h-16 border-b border-m3-outline-variant bg-m3-surface-variant/30 flex items-center px-4 shrink-0">
         {novel ? (
-          <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center justify-between gap-2 w-full min-w-0">
             <div className="min-w-0 flex-1">
-              <h2 className="text-xs font-bold text-zinc-800 dark:text-zinc-200 truncate" title={novel.title}>
+              <h2 className="text-xs font-bold text-m3-on-surface truncate" title={novel.title}>
                 {novel.title}
               </h2>
               <p 
-                className="text-[9px] font-mono text-zinc-400 dark:text-zinc-500 truncate" 
+                className="text-[9px] font-mono text-m3-on-surface-variant truncate" 
                 title={activeProjectPath || ""}
                 dir="ltr"
               >
@@ -61,49 +61,49 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
             <button
               onClick={onCloseProject}
-              className="text-[10px] px-2 py-1 shrink-0 border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-[#1a1a1a] hover:bg-rose-50 dark:hover:bg-rose-950/20 hover:text-rose-600 dark:hover:text-rose-450 hover:border-rose-200 dark:hover:border-rose-800 transition-colors font-semibold rounded cursor-pointer"
+              className="text-[10px] px-3 py-1 shrink-0 border border-m3-outline text-m3-primary hover:bg-m3-primary/10 transition-colors font-bold rounded-full cursor-pointer font-cairo"
               title={t('closeProjectTitle')}
             >
               {t('close')}
             </button>
           </div>
         ) : (
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-zinc-400 dark:text-zinc-500">{t('platformName')}</span>
+          <div className="flex items-center justify-between w-full">
+            <span className="text-xs font-bold text-m3-on-surface-variant">{t('platformName')}</span>
           </div>
         )}
       </div>
 
       {novel ? (
         <>
-          {/* Progress */}
-          <div className="px-4 py-3 border-b border-zinc-200 dark:border-zinc-800 bg-white/40 dark:bg-black/5">
-            <div className="flex justify-between items-center text-[10px] font-bold text-zinc-400 dark:text-zinc-500 mb-1">
+          {/* Progress (M3 Progress Indicator) */}
+          <div className="px-4 py-3 border-b border-m3-outline-variant bg-m3-surface-variant/20">
+            <div className="flex justify-between items-center text-[10px] font-bold text-m3-on-surface-variant mb-1.5">
               <span>{t('completedSteps')}</span>
               <span>{completedSteps} / 10</span>
             </div>
-            <div className="w-full bg-zinc-200 dark:bg-zinc-800 h-1.5 rounded overflow-hidden">
+            <div className="w-full bg-m3-surface-variant h-2 rounded-full overflow-hidden">
               <div 
-                className="bg-zinc-800 dark:bg-zinc-200 h-full transition-all duration-300 ease-out"
+                className="bg-m3-primary h-full transition-all duration-300 ease-out"
                 style={{ width: `${(completedSteps / 10) * 100}%` }}
               />
             </div>
           </div>
 
-          {/* Navigation */}
-          <nav className="flex-1 overflow-y-auto p-2 space-y-0.5">
+          {/* Navigation (M3 Pill Navigation Items) */}
+          <nav className="flex-1 overflow-y-auto p-3 space-y-1">
             <button
               onClick={() => onSelectStep(0)}
-              className={`w-full text-start text-xs p-2 rounded transition-colors ${
+              className={`w-full text-start text-xs py-2.5 px-4 rounded-full transition-all cursor-pointer font-cairo ${
                 activeStep === 0
-                  ? 'bg-zinc-800 text-white font-bold dark:bg-zinc-200 dark:text-zinc-900'
-                  : 'hover:bg-zinc-200/50 dark:hover:bg-zinc-900/50 text-zinc-600 dark:text-zinc-400'
+                  ? 'bg-m3-primary-container text-m3-on-primary-container font-black shadow-sm'
+                  : 'hover:bg-m3-surface-variant/45 text-m3-on-surface-variant hover:text-m3-on-surface'
               }`}
             >
               {t('dashboard')}
             </button>
 
-            <div className="my-1 border-t border-zinc-200 dark:border-zinc-800/80 mx-1" />
+            <div className="my-2 border-t border-m3-outline-variant/60 mx-2" />
 
             {steps.map((step) => {
               const isStepCompleted = stepsProgress.some(p => p.step_number === step.num && p.is_completed);
@@ -111,21 +111,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <button
                   key={step.num}
                   onClick={() => onSelectStep(step.num)}
-                  className={`w-full flex items-center justify-between text-xs p-2 rounded transition-colors ${
+                  className={`w-full flex items-center justify-between text-xs py-2.5 px-4 rounded-full transition-all cursor-pointer font-cairo ${
                     activeStep === step.num
-                      ? 'bg-zinc-800 text-white font-bold dark:bg-zinc-200 dark:text-zinc-900'
-                      : 'hover:bg-zinc-200/50 dark:hover:bg-zinc-900/50 text-zinc-600 dark:text-zinc-400'
+                      ? 'bg-m3-primary-container text-m3-on-primary-container font-black shadow-sm'
+                      : 'hover:bg-m3-surface-variant/45 text-m3-on-surface-variant hover:text-m3-on-surface'
                   }`}
                 >
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] w-4 h-4 rounded bg-zinc-200 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 flex items-center justify-center font-bold">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <span className={`text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold transition-colors ${
+                      activeStep === step.num
+                        ? 'bg-m3-primary text-m3-on-primary'
+                        : 'bg-m3-surface-variant text-m3-on-surface-variant'
+                    }`}>
                       {step.num}
                     </span>
-                    <span className="truncate max-w-[170px]">{step.title}</span>
+                    <span className="truncate max-w-[150px]">{step.title}</span>
                   </div>
 
                   {isStepCompleted && (
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" title={t('markAsCompleted')} />
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" title={t('markAsCompleted')} />
                   )}
                 </button>
               );
@@ -133,20 +137,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </nav>
         </>
       ) : (
-        <div className="flex-1 flex flex-col items-center justify-center p-6 text-center text-zinc-400 dark:text-zinc-650 font-semibold">
+        <div className="flex-1 flex flex-col items-center justify-center p-6 text-center text-m3-on-surface-variant font-semibold">
           <p className="text-[11px] leading-relaxed">{t('openProjectHelp')}</p>
         </div>
       )}
 
-      {/* Footer */}
-      <footer className="p-3 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-between text-[10px] text-zinc-400 dark:text-zinc-600 shrink-0 select-text">
-        <div className="flex items-center gap-1.5">
+      {/* Footer (M3 Sidebar Footer) */}
+      <footer className="p-3 border-t border-m3-outline-variant flex items-center justify-between text-[10px] text-m3-on-surface-variant shrink-0 select-text">
+        <div className="flex items-center gap-1.5 font-cairo">
           <span>{t('builtBy')} Rubar</span>
           <a 
             href="https://github.com/RubarMo" 
             target="_blank" 
             rel="noopener noreferrer"
-            className="hover:text-zinc-600 dark:hover:text-zinc-350 transition-colors flex items-center gap-1 font-semibold"
+            className="hover:text-m3-primary transition-colors flex items-center gap-1 font-semibold"
             title="GitHub Profile"
           >
             <svg className="w-3 h-3 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -158,7 +162,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Language Switcher */}
         <button
           onClick={() => setLanguage(language === 'ar' ? 'en' : 'ar')}
-          className="px-2 py-0.5 rounded border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-[#1a1a1a] hover:bg-zinc-50 hover:dark:bg-zinc-900 transition-colors text-[9px] font-bold tracking-wider"
+          className="px-3 py-1 rounded-full border border-m3-outline text-m3-primary hover:bg-m3-primary/10 transition-colors text-[9px] font-bold tracking-wider cursor-pointer font-cairo"
           title={language === 'ar' ? 'Switch to English' : 'التحويل للعربية'}
         >
           {language === 'ar' ? 'English' : 'العربية'}
@@ -167,4 +171,3 @@ export const Sidebar: React.FC<SidebarProps> = ({
     </aside>
   );
 };
-

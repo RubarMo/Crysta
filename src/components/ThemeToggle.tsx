@@ -21,22 +21,26 @@ export const ThemeToggle: React.FC = () => {
   }, [isDark]);
 
   return (
-    <div className="flex items-center gap-1.5 select-none">
-      <Sun className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-650 transition-colors" />
+    <div className="flex items-center gap-1.5 select-none font-cairo">
+      <Sun className="w-3.5 h-3.5 text-m3-on-surface-variant transition-colors" />
       <button
         onClick={() => setIsDark(!isDark)}
-        className="w-8 h-4.5 rounded-full bg-zinc-200 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 relative transition-colors cursor-pointer focus:outline-none"
+        className={`w-9 h-5 rounded-full border flex items-center p-0.5 transition-colors cursor-pointer focus:outline-none ${
+          isDark 
+            ? 'bg-m3-primary border-transparent justify-end' 
+            : 'bg-m3-surface-variant border-m3-outline justify-start'
+        }`}
         role="switch"
         aria-checked={isDark}
         title={isDark ? "تفعيل الوضع المضيء" : "تفعيل الوضع المظلم"}
       >
         <span
-          className={`absolute top-0.5 bottom-0.5 w-3 h-3 rounded-full bg-zinc-500 dark:bg-zinc-350 transition-all duration-200 ${
-            isDark ? 'right-4' : 'right-0.5'
+          className={`w-3.5 h-3.5 rounded-full transition-all duration-200 ${
+            isDark ? 'bg-m3-on-primary' : 'bg-m3-outline'
           }`}
         />
       </button>
-      <Moon className="w-3 h-3 text-zinc-650 dark:text-zinc-400 transition-colors" />
+      <Moon className="w-3.5 h-3.5 text-m3-on-surface-variant transition-colors" />
     </div>
   );
 };
