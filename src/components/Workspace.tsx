@@ -449,12 +449,14 @@ export const Workspace: React.FC<WorkspaceProps> = ({
   const renderStepHeader = () => {
     if (!meta) return null;
     return (
-      <header className="flex justify-between items-start border-b border-m3-outline-variant pb-3">
+      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-m3-outline-variant pb-3 shrink-0">
         <div>
           <h1 className="text-lg font-black text-m3-on-surface">{t(meta.titleKey)}</h1>
           <p className="text-m3-on-surface-variant text-xs mt-0.5">{t(meta.descKey)}</p>
         </div>
-        {renderHeaderActions()}
+        <div className="shrink-0">
+          {renderHeaderActions()}
+        </div>
       </header>
     );
   };
@@ -656,10 +658,10 @@ export const Workspace: React.FC<WorkspaceProps> = ({
             {t('pleaseAddCharsFirst')}
           </div>
         ) : (
-          <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-6 text-start overflow-hidden min-h-0">
-            <div className={`md:col-span-1 flex flex-col overflow-hidden h-full ${language === 'ar' ? 'border-l pl-2' : 'border-r pr-2'} border-m3-outline-variant/35`}>
+          <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-6 text-start overflow-y-auto md:overflow-hidden min-h-0">
+            <div className={`md:col-span-1 flex flex-col md:overflow-hidden h-auto md:h-full ${language === 'ar' ? 'border-l pl-2' : 'border-r pr-2'} border-m3-outline-variant/35`}>
               <span className="text-[10px] font-bold text-m3-on-surface-variant block pb-2 shrink-0">{t('charsSelectorLabel')}</span>
-              <div className="flex-1 overflow-y-auto space-y-1 pr-1">
+              <div className="flex-1 overflow-y-auto space-y-1 pr-1 min-h-[150px] md:min-h-0">
                 {characters.map((char) => (
                   <button
                     key={char.id}
@@ -677,7 +679,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
               </div>
             </div>
 
-            <div className="md:col-span-3 overflow-y-auto h-full space-y-4 pr-1 min-h-0">
+            <div className="md:col-span-3 md:overflow-y-auto h-auto md:h-full space-y-4 pr-1 min-h-0">
               {selectedChar ? (
                 <>
                   <div className="bg-m3-primary-container/20 border border-m3-outline-variant p-4 rounded-2xl text-xs leading-relaxed text-m3-on-surface-variant shadow-sm">
@@ -738,10 +740,10 @@ export const Workspace: React.FC<WorkspaceProps> = ({
             {t('pleaseAddCharsFirst')}
           </div>
         ) : (
-          <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-6 text-start overflow-hidden min-h-0">
-            <div className={`md:col-span-1 flex flex-col overflow-hidden h-full ${language === 'ar' ? 'border-l pl-2' : 'border-r pr-2'} border-m3-outline-variant/35`}>
+          <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-6 text-start overflow-y-auto md:overflow-hidden min-h-0">
+            <div className={`md:col-span-1 flex flex-col md:overflow-hidden h-auto md:h-full ${language === 'ar' ? 'border-l pl-2' : 'border-r pr-2'} border-m3-outline-variant/35`}>
               <span className="text-[10px] font-bold text-m3-on-surface-variant block pb-2 shrink-0">{t('charsSelectorLabel')}</span>
-              <div className="flex-1 overflow-y-auto space-y-1 pr-1">
+              <div className="flex-1 overflow-y-auto space-y-1 pr-1 min-h-[150px] md:min-h-0">
                 {characters.map((char) => (
                   <button
                     key={char.id}
@@ -759,7 +761,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
               </div>
             </div>
 
-            <div className="md:col-span-3 overflow-y-auto h-full pr-1 min-h-0">
+            <div className="md:col-span-3 md:overflow-y-auto h-auto md:h-full pr-1 min-h-0">
               {selectedChar ? (
                 <div className="bg-m3-surface p-5 border border-m3-outline-variant rounded-2xl space-y-4 shadow-sm">
                   <h3 className="text-xs font-bold text-m3-on-surface-variant uppercase tracking-wider pb-1">{t('editCharacterTitle')}: {selectedChar.name}</h3>
@@ -1038,10 +1040,10 @@ export const Workspace: React.FC<WorkspaceProps> = ({
             {t('pleaseAddScenesFirst')}
           </div>
         ) : (
-          <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-6 text-start overflow-hidden min-h-0">
-            <div className={`md:col-span-1 flex flex-col overflow-hidden h-full ${language === 'ar' ? 'border-l pl-2' : 'border-r pr-2'} border-m3-outline-variant/35`}>
+          <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-6 text-start overflow-y-auto md:overflow-hidden min-h-0">
+            <div className={`md:col-span-1 flex flex-col md:overflow-hidden h-auto md:h-full ${language === 'ar' ? 'border-l pl-2' : 'border-r pr-2'} border-m3-outline-variant/35`}>
               <span className="text-[10px] font-bold text-m3-on-surface-variant block pb-2 shrink-0">{t('scenesListLabel')}</span>
-              <div className="flex-1 overflow-y-auto space-y-1 pr-1">
+              <div className="flex-1 overflow-y-auto space-y-1 pr-1 min-h-[150px] md:min-h-0">
                 {scenes.map((scn, idx) => (
                   <button
                     key={scn.id}
@@ -1059,7 +1061,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
               </div>
             </div>
 
-            <div className="md:col-span-3 overflow-y-auto h-full space-y-4 pr-1 min-h-0">
+            <div className="md:col-span-3 md:overflow-y-auto h-auto md:h-full space-y-4 pr-1 min-h-0">
               {selectedScene ? (
                 <>
                   <div className="bg-m3-primary-container/20 border border-m3-outline-variant p-4 rounded-2xl text-xs leading-relaxed text-m3-on-surface-variant shadow-sm">

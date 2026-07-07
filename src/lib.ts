@@ -133,6 +133,10 @@ export async function createProjectFile(defaultName: string): Promise<string | n
   return invoke<string | null>("create_project_file", { defaultName });
 }
 
+export async function listProjectFiles(): Promise<string[]> {
+  return invoke<string[]>("list_project_files");
+}
+
 export async function openProject(path: string): Promise<Novel> {
   return invoke<Novel>("open_project", { path });
 }

@@ -20,6 +20,8 @@ export const translations = {
     success: "تم بنجاح",
     copyMarkdown: "نسخ كـ Markdown",
     copied: "تم نسخ التصدير!",
+    openSidebar: "فتح القائمة الجانبية",
+    closeSidebar: "إغلاق القائمة الجانبية",
 
     // Sidebar
     platformName: "منصة Crysta",
@@ -228,6 +230,8 @@ export const translations = {
     success: "Success",
     copyMarkdown: "Copy as Markdown",
     copied: "Export copied!",
+    openSidebar: "Open Sidebar",
+    closeSidebar: "Close Sidebar",
 
     // Sidebar
     platformName: "Crysta Platform",

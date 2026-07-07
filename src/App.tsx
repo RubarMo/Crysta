@@ -9,10 +9,11 @@ import {
   getStepsProgress,
   selectProjectFile,
   createProjectFile,
+  listProjectFiles,
   openProject,
   closeProject
 } from "./lib";
-import { BookOpen, Plus } from "lucide-react";
+import { BookOpen, Plus, Menu } from "lucide-react";
 
 interface RecentProject {
   path: string;
@@ -30,6 +31,9 @@ function App() {
   const [loading, setLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showHelpModal, setShowHelpModal] = useState<boolean>(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
+  const [mobileProjects, setMobileProjects] = useState<string[]>([]);
+  const [showPickerModal, setShowPickerModal] = useState<boolean>(false);
 
   // Load recent projects from local storage
   const [recentProjects, setRecentProjects] = useState<RecentProject[]>(() => {
@@ -99,6 +103,17 @@ function App() {
       const path = await selectProjectFile();
       if (path) {
         await handleOpenProjectPath(path);
+      } else {
+        const files = await listProjectFiles();
+        if (files && files.length > 0) {
+          setMobileProjects(files);
+          setShowPickerModal(true);
+        } else {
+          const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+          if (isMobile) {
+            alert(language === 'ar' ? 'لم يتم العثور على ملفات مشاريع محفوظة محلياً.' : 'No saved project files found.');
+          }
+        }
       }
     } catch (err: any) {
       console.error("File open error", err);
@@ -149,22 +164,42 @@ function App() {
   const activeNovel = novels.find(n => n.id === activeNovelId) || null;
 
   return (
-    <div className="flex h-screen bg-m3-background text-m3-on-surface overflow-hidden font-cairo select-none">
+    <div className="flex h-screen app-container bg-m3-background text-m3-on-surface overflow-hidden font-cairo select-none">
       {/* Sidebar (Navigation) */}
       <Sidebar
         novel={activeNovel}
         activeProjectPath={activeProjectPath}
         onCloseProject={handleCloseProject}
         activeStep={activeStep}
-        onSelectStep={setActiveStep}
+        onSelectStep={(step) => {
+          setActiveStep(step);
+          setIsSidebarOpen(false); // Close drawer on step select on mobile
+        }}
         stepsProgress={stepsProgress}
+        isSidebarOpen={isSidebarOpen}
+        onCloseSidebar={() => setIsSidebarOpen(false)}
       />
 
+      {/* Backdrop dimming overlay on mobile */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 z-30 md:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       {/* Main workspace */}
-      <div className="flex-1 flex flex-col h-screen overflow-hidden">
+      <div className="flex-1 flex flex-col h-full overflow-hidden">
         {/* Top bar with Toggle / Logo (M3 Top App Bar: subtle elevation / outline variant) */}
         <header className="h-16 border-b border-m3-outline-variant bg-m3-background px-6 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsSidebarOpen(true)}
+              className="md:hidden p-1.5 text-m3-on-surface-variant hover:text-m3-on-surface hover:bg-m3-surface-variant/40 rounded-full cursor-pointer transition-colors"
+              title={t("openSidebar")}
+            >
+              <Menu className="w-5 h-5" />
+            </button>
             <span 
               onClick={handleCloseProject}
               className="font-bold text-base tracking-wide text-m3-on-surface cursor-pointer hover:opacity-80 transition-opacity font-cairo"
@@ -212,9 +247,9 @@ function App() {
               activeStep={activeStep}
             />
           ) : (
-            <div className="max-w-4xl mx-auto p-8 space-y-8 fade-in font-cairo select-text">
+            <div className="flex-1 overflow-y-auto w-full max-w-4xl mx-auto p-8 space-y-8 fade-in font-cairo select-text">
               {/* Header */}
-              <div className="border-b border-m3-outline-variant pb-6 flex justify-between items-center">
+              <div className="border-b border-m3-outline-variant pb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div className="min-w-0 pr-4">
                   <h1 className="text-2xl font-black text-m3-on-surface font-cairo">{t("appName")}</h1>
                   <p className="text-m3-on-surface-variant text-xs mt-1 font-cairo font-medium truncate" title={t("appTagline")}>{t("appTagline")}</p>
@@ -253,7 +288,7 @@ function App() {
                       <div 
                         key={project.path}
                         onClick={() => handleOpenProjectPath(project.path)}
-                        className="bg-m3-surface p-4 border border-m3-outline-variant hover:border-m3-primary rounded-2xl cursor-pointer transition-all flex justify-between items-center group relative select-text"
+                        className="bg-m3-surface p-4 border border-m3-outline-variant hover:border-m3-primary rounded-2xl cursor-pointer transition-all flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 group relative select-text"
                       >
                         <div className="space-y-1">
                           <h4 className="text-sm font-bold text-m3-on-surface group-hover:text-m3-primary transition-colors font-cairo">
@@ -373,6 +408,47 @@ function App() {
                 className="px-5 py-2 bg-m3-primary hover:opacity-90 text-m3-on-primary font-bold rounded-full text-xs transition-colors cursor-pointer font-cairo shadow-sm"
               >
                 {t("helpModalCloseBtn")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Project Picker Modal for Mobile */}
+      {showPickerModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-m3-surface border border-m3-outline-variant w-full max-w-sm rounded-3xl p-6 space-y-4 shadow-xl text-start font-cairo">
+            <div>
+              <h3 className="text-sm font-bold text-m3-on-surface">
+                {language === 'ar' ? 'اختر ملف المشروع' : 'Select Project File'}
+              </h3>
+              <p className="text-[10px] text-m3-on-surface-variant mt-1">
+                {language === 'ar' ? 'اختر أحد الملفات المخزنة محلياً لفتحه:' : 'Select a locally stored file to open:'}
+              </p>
+            </div>
+
+            <div className="max-h-60 overflow-y-auto divide-y divide-m3-outline-variant/30 border border-m3-outline-variant/40 rounded-2xl bg-m3-background">
+              {mobileProjects.map((file) => (
+                <button
+                  key={file}
+                  onClick={async () => {
+                    setShowPickerModal(false);
+                    await handleOpenProjectPath(file);
+                  }}
+                  className="w-full text-start px-4 py-3 text-xs text-m3-on-surface hover:bg-m3-surface-variant/40 font-semibold cursor-pointer truncate transition-colors"
+                  title={file}
+                >
+                  {file}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <button
+                onClick={() => setShowPickerModal(false)}
+                className="px-5 py-2 text-xs font-bold border border-m3-outline text-m3-primary hover:bg-m3-primary/10 rounded-full cursor-pointer transition-colors"
+              >
+                {t("cancel")}
               </button>
             </div>
           </div>

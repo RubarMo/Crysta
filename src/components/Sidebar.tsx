@@ -1,6 +1,7 @@
 import React from 'react';
 import { Novel, StepProgress } from '../lib';
 import { useLanguage } from '../LanguageContext';
+import { X } from 'lucide-react';
 
 interface SidebarProps {
   novel: Novel | null;
@@ -9,6 +10,8 @@ interface SidebarProps {
   activeStep: number;
   onSelectStep: (step: number) => void;
   stepsProgress: StepProgress[];
+  isSidebarOpen?: boolean;
+  onCloseSidebar?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -18,6 +21,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   activeStep,
   onSelectStep,
   stepsProgress,
+  isSidebarOpen = false,
+  onCloseSidebar,
 }) => {
   const { language, setLanguage, t } = useLanguage();
 
@@ -40,9 +45,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
   ];
 
   const projectFileName = activeProjectPath ? activeProjectPath.split(/[/\\]/).pop() : "";
+  const isRtl = language === 'ar';
+  const translateClass = isSidebarOpen ? 'translate-x-0' : (isRtl ? 'translate-x-full' : '-translate-x-full');
 
   return (
-    <aside className="w-72 border-e border-m3-outline-variant bg-m3-surface flex flex-col h-screen select-none font-cairo shrink-0">
+    <aside className={`w-72 border-e border-m3-outline-variant bg-m3-surface flex flex-col h-full select-none font-cairo shrink-0 transition-transform duration-300 ease-in-out fixed inset-y-0 start-0 z-40 pt-[env(safe-area-inset-top,0px)] md:pt-0 pb-[env(safe-area-inset-bottom,0px)] md:pb-0 md:relative md:translate-x-0 ${translateClass}`}>
       {/* Header (M3 Drawer Header aligned to top bar height) */}
       <div className="h-16 border-b border-m3-outline-variant bg-m3-surface-variant/30 flex items-center px-4 shrink-0">
         {novel ? (
@@ -66,10 +73,28 @@ export const Sidebar: React.FC<SidebarProps> = ({
             >
               {t('close')}
             </button>
+            {onCloseSidebar && (
+              <button
+                onClick={onCloseSidebar}
+                className="md:hidden p-1 text-m3-on-surface-variant hover:text-m3-on-surface hover:bg-m3-surface-variant/40 rounded-full cursor-pointer transition-colors shrink-0"
+                title={t('closeSidebar')}
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
           </div>
         ) : (
           <div className="flex items-center justify-between w-full">
             <span className="text-xs font-bold text-m3-on-surface-variant">{t('platformName')}</span>
+            {onCloseSidebar && (
+              <button
+                onClick={onCloseSidebar}
+                className="md:hidden p-1 text-m3-on-surface-variant hover:text-m3-on-surface hover:bg-m3-surface-variant/40 rounded-full cursor-pointer transition-colors shrink-0"
+                title={t('closeSidebar')}
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
           </div>
         )}
       </div>

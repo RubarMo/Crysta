@@ -2,6 +2,8 @@ use serde::{Deserialize, Serialize};
 use rusqlite::{params, Connection};
 use std::sync::Mutex;
 use std::path::PathBuf;
+#[cfg(any(target_os = "android", target_os = "ios"))]
+use tauri::Manager;
 
 pub struct DbState {
     pub current_db_path: Mutex<Option<PathBuf>>,
@@ -121,28 +123,84 @@ fn update_novel_word_count(conn: &Connection, novel_id: i64) -> Result<(), rusql
 // Native Dialog and Project Lifecycle Commands
 #[tauri::command]
 fn select_project_file() -> Result<Option<String>, String> {
-    let file = rfd::FileDialog::new()
-        .add_filter("Crysta Project (*.crysta)", &["crysta"])
-        .add_filter("Snowflake Project (*.snowflake)", &["snowflake"])
-        .add_filter("SQLite Database (*.db)", &["db"])
-        .pick_file();
-    Ok(file.map(|p| p.to_string_lossy().to_string()))
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    {
+        let file = rfd::FileDialog::new()
+            .add_filter("Crysta Project (*.crysta)", &["crysta"])
+            .add_filter("Snowflake Project (*.snowflake)", &["snowflake"])
+            .add_filter("SQLite Database (*.db)", &["db"])
+            .pick_file();
+        Ok(file.map(|p| p.to_string_lossy().to_string()))
+    }
+    #[cfg(any(target_os = "android", target_os = "ios"))]
+    {
+        Ok(None)
+    }
 }
 
 #[tauri::command]
 fn create_project_file(default_name: String) -> Result<Option<String>, String> {
-    let file = rfd::FileDialog::new()
-        .add_filter("Crysta Project (*.crysta)", &["crysta"])
-        .add_filter("Snowflake Project (*.snowflake)", &["snowflake"])
-        .add_filter("SQLite Database (*.db)", &["db"])
-        .set_file_name(&default_name)
-        .save_file();
-    Ok(file.map(|p| p.to_string_lossy().to_string()))
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    {
+        let file = rfd::FileDialog::new()
+            .add_filter("Crysta Project (*.crysta)", &["crysta"])
+            .add_filter("Snowflake Project (*.snowflake)", &["snowflake"])
+            .add_filter("SQLite Database (*.db)", &["db"])
+            .set_file_name(&default_name)
+            .save_file();
+        Ok(file.map(|p| p.to_string_lossy().to_string()))
+    }
+    #[cfg(any(target_os = "android", target_os = "ios"))]
+    {
+        Ok(Some(default_name))
+    }
 }
 
 #[tauri::command]
-fn open_project(state: tauri::State<'_, DbState>, path: String) -> Result<Novel, String> {
-    let path_buf = std::path::PathBuf::from(path);
+fn list_project_files(app: tauri::AppHandle) -> Result<Vec<String>, String> {
+    #[cfg(any(target_os = "android", target_os = "ios"))]
+    {
+        let app_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
+        if !app_dir.exists() {
+            return Ok(vec![]);
+        }
+        let mut files = vec![];
+        for entry in std::fs::read_dir(app_dir).map_err(|e| e.to_string())? {
+            let entry = entry.map_err(|e| e.to_string())?;
+            let path = entry.path();
+            if path.is_file() {
+                if let Some(ext) = path.extension() {
+                    let ext_str = ext.to_string_lossy().to_lowercase();
+                    if ext_str == "crysta" || ext_str == "snowflake" || ext_str == "db" {
+                        if let Some(name) = path.file_name() {
+                            files.push(name.to_string_lossy().to_string());
+                        }
+                    }
+                }
+            }
+        }
+        Ok(files)
+    }
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    {
+        let _app = app;
+        Ok(vec![])
+    }
+}
+
+#[tauri::command]
+#[allow(unused_variables, unused_mut)]
+fn open_project(app: tauri::AppHandle, state: tauri::State<'_, DbState>, path: String) -> Result<Novel, String> {
+    let mut path_buf = std::path::PathBuf::from(&path);
+    
+    #[cfg(any(target_os = "android", target_os = "ios"))]
+    {
+        if !path_buf.is_absolute() {
+            let app_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
+            std::fs::create_dir_all(&app_dir).map_err(|e| e.to_string())?;
+            path_buf = app_dir.join(path_buf);
+        }
+    }
     
     // Set the path in state
     {
@@ -477,6 +535,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             select_project_file,
             create_project_file,
+            list_project_files,
             open_project,
             close_project,
             get_novels,
