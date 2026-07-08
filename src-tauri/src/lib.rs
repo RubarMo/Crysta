@@ -529,6 +529,8 @@ fn delete_scene(state: tauri::State<'_, DbState>, id: i64, novel_id: i64) -> Res
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_process::init())
         .manage(DbState {
             current_db_path: Mutex::new(None),
         })

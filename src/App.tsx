@@ -3,6 +3,8 @@ import { Sidebar } from "./components/Sidebar";
 import { Workspace } from "./components/Workspace";
 import { ThemeToggle } from "./components/ThemeToggle";
 import { useLanguage } from "./LanguageContext";
+import { check } from "@tauri-apps/plugin-updater";
+import { relaunch } from "@tauri-apps/plugin-process";
 import { 
   Novel, 
   StepProgress, 
@@ -34,6 +36,70 @@ function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
   const [mobileProjects, setMobileProjects] = useState<string[]>([]);
   const [showPickerModal, setShowPickerModal] = useState<boolean>(false);
+  const [updateInfo, setUpdateInfo] = useState<{
+    available: boolean;
+    version: string;
+    body: string;
+    downloading: boolean;
+    progress: number;
+    error: string | null;
+  } | null>(null);
+
+  // Check for updates on startup
+  useEffect(() => {
+    const checkForUpdates = async () => {
+      try {
+        const update = await check();
+        if (update && update.available) {
+          setUpdateInfo({
+            available: true,
+            version: update.version,
+            body: update.body || '',
+            downloading: false,
+            progress: 0,
+            error: null
+          });
+        }
+      } catch (err) {
+        console.warn("Failed checking for updates:", err);
+      }
+    };
+    
+    const timer = setTimeout(checkForUpdates, 3000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handlePerformUpdate = async () => {
+    try {
+      const update = await check();
+      if (!update) return;
+      
+      setUpdateInfo(prev => prev ? { ...prev, downloading: true, progress: 0 } : null);
+      
+      let downloaded = 0;
+      let contentLength = 0;
+
+      await update.downloadAndInstall((event) => {
+        switch (event.event) {
+          case 'Started':
+            contentLength = event.data.contentLength || 0;
+            break;
+          case 'Progress':
+            downloaded += event.data.chunkLength;
+            const pct = contentLength ? Math.round((downloaded / contentLength) * 100) : 0;
+            setUpdateInfo(prev => prev ? { ...prev, progress: pct } : null);
+            break;
+          case 'Finished':
+            break;
+        }
+      });
+
+      await relaunch();
+    } catch (err: any) {
+      console.error("Update failed:", err);
+      setUpdateInfo(prev => prev ? { ...prev, downloading: false, error: err?.message || String(err) } : null);
+    }
+  };
 
   // Load recent projects from local storage
   const [recentProjects, setRecentProjects] = useState<RecentProject[]>(() => {
@@ -442,7 +508,6 @@ function App() {
                 </button>
               ))}
             </div>
-
             <div className="flex justify-end pt-2">
               <button
                 onClick={() => setShowPickerModal(false)}
@@ -454,7 +519,67 @@ function App() {
           </div>
         </div>
       )}
-    </div>
+
+        {/* Updater Modal */}
+        {updateInfo && updateInfo.available && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-m3-surface border border-m3-outline-variant max-w-sm w-full rounded-3xl p-6 shadow-2xl animate-fade-in flex flex-col gap-4 text-m3-on-surface">
+              <div>
+                <h3 className="text-sm font-bold font-cairo flex items-center gap-2">
+                  🚀 {language === 'ar' ? 'تحديث جديد متوفر' : 'Update Available'}
+                </h3>
+                <p className="text-[10px] text-m3-on-surface-variant mt-1 font-cairo">
+                  {language === 'ar' 
+                    ? `إصدار جديد متوفر للتطبيق: v${updateInfo.version}`
+                    : `A new version of Crysta is available: v${updateInfo.version}`}
+                </p>
+              </div>
+
+              {updateInfo.body && (
+                <div className="bg-m3-surface-variant/40 rounded-xl p-3 text-[10px] font-mono max-h-32 overflow-y-auto border border-m3-outline-variant/30 select-text">
+                  {updateInfo.body}
+                </div>
+              )}
+
+              {updateInfo.error && (
+                <div className="text-[10px] text-red-500 bg-red-500/10 border border-red-500/20 p-2 rounded-lg font-mono">
+                  {updateInfo.error}
+                </div>
+              )}
+
+              {updateInfo.downloading ? (
+                <div className="flex flex-col gap-2 mt-2 font-cairo">
+                  <div className="flex justify-between text-[10px] text-m3-on-surface-variant select-none">
+                    <span>{language === 'ar' ? 'جاري التحميل والتثبيت...' : 'Downloading & installing...'}</span>
+                    <span>{updateInfo.progress}%</span>
+                  </div>
+                  <div className="w-full bg-m3-surface-variant rounded-full h-2 overflow-hidden">
+                    <div 
+                      className="bg-m3-primary h-full transition-all duration-300 rounded-full" 
+                      style={{ width: `${updateInfo.progress}%` }}
+                    ></div>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex gap-3 justify-end mt-4 select-none font-cairo">
+                  <button
+                    onClick={() => setUpdateInfo(null)}
+                    className="px-4 py-2 text-xs font-bold text-m3-on-surface-variant hover:bg-m3-surface-variant/40 rounded-full transition-colors cursor-pointer"
+                  >
+                    {language === 'ar' ? 'تخطي' : 'Remind Me Later'}
+                  </button>
+                  <button
+                    onClick={handlePerformUpdate}
+                    className="px-5 py-2 text-xs font-bold text-white bg-m3-primary hover:bg-m3-primary/95 shadow rounded-full transition-colors cursor-pointer"
+                  >
+                    {language === 'ar' ? 'تحديث وإعادة تشغيل' : 'Update & Restart'}
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
   );
 }
 
