@@ -766,6 +766,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "crysta"
+version = "2.2.0"
+dependencies = [
+ "rfd",
+ "rusqlite",
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-opener",
+ "tauri-plugin-sql",
+]
+
+[[package]]
 name = "cssparser"
 version = "0.36.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4299,20 +4313,6 @@ dependencies = [
  "webview2-com",
  "window-vibrancy",
  "windows",
-]
-
-[[package]]
-name = "tauri-app"
-version = "2.0.0"
-dependencies = [
- "rfd",
- "rusqlite",
- "serde",
- "serde_json",
- "tauri",
- "tauri-build",
- "tauri-plugin-opener",
- "tauri-plugin-sql",
 ]
 
 [[package]]

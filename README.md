@@ -18,6 +18,47 @@ Crysta compiles native bundles for the following environments:
 
 ---
 
+## 📥 Installation
+
+You can download pre-compiled packages directly from the [Releases](https://github.com/RubarMo/Crysta/releases) section, or build the binaries yourself.
+
+### Pre-compiled Releases
+
+Choose the binary that matches your operating system:
+*   **Windows:** Download the `.msi` or `.exe` installer.
+*   **macOS:** Download the `.dmg` or `.app.tar.gz` package.
+*   **Linux:** Download the `.deb`, `.rpm`, or `.AppImage` package.
+*   **Android:** Download the `.apk` package.
+
+---
+
+### ⚠️ OS Security Warnings (Unsigned Binaries)
+
+Because Crysta is a local-first, open-source utility, the compiled binaries are not signed with paid commercial developer certificates (such as Microsoft Authenticode or Apple Developer ID). Depending on your OS, you may see a warning when installing:
+
+#### Windows (SmartScreen)
+1. Double-click the installer.
+2. On the blue "Windows protected your PC" pop-up, click **More info**.
+3. Click **Run anyway** to launch the installer.
+
+#### macOS (Gatekeeper)
+1. Mount the `.dmg` (or extract the `.app.tar.gz` archive) and drag Crysta to your Applications folder.
+2. Double-click the app. If blocked by Gatekeeper, click **OK**.
+3. Right-click (or `Control`-click) the Crysta app icon and select **Open**.
+4. Click **Open** on the confirmation dialog. This permanently saves a security exception for the app.
+
+#### Linux
+1. Right-click the `.AppImage` file and open **Properties**.
+2. Go to the **Permissions** tab and check **Allow executing file as program**.
+3. Alternatively, run `chmod +x <filename>` in your terminal, then run the package.
+
+#### Android
+1. Download the **signed debug APK** (`app-universal-debug.apk`) directly to your phone.
+2. Open the APK. If prompted by your browser or files app, toggle **Allow installation from this source**.
+3. If blocked by Play Protect, tap **Install anyway**.
+
+---
+
 ## 🛠️ Architecture & Core Features
 
 *   **Local-First Database (`.crysta`):** Projects are saved as standalone SQLite databases containing the entire writing draft, progress markers, characters, and scene metadata. Files can be copied, moved, or backed up manually or via cloud services (e.g., OneDrive, iCloud).

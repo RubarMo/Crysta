@@ -105,16 +105,29 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci || npm install
 
-      - name: Build Android App (Release APK and AAB)
-        run: npx tauri android build
+      - name: Setup Android signing
+        if: ${{ secrets.ANDROID_KEY_BASE64 != '' }}
+        run: |
+          cd src-tauri/gen/android
+          echo "keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}" > keystore.properties
+          echo "keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}" >> keystore.properties
+          echo "storePassword=${{ secrets.ANDROID_STORE_PASSWORD }}" >> keystore.properties
+          echo "${{ secrets.ANDROID_KEY_BASE64 }}" | base64 -d > keystore.jks
+          echo "storeFile=$(pwd)/keystore.jks" >> keystore.properties
+
+      - name: Build Android App (Release and Debug APKs)
+        run: |
+          npx tauri android build
+          npx tauri android build --debug
 
       - name: Upload Android Release Assets
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
           files: |
-            src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release-unsigned.apk
-            src-tauri/gen/android/app/build/outputs/bundle/universalRelease/app-universal-release.aab
+            src-tauri/gen/android/app/build/outputs/apk/universal/release/*.apk
+            src-tauri/gen/android/app/build/outputs/apk/universal/debug/*.apk
+            src-tauri/gen/android/app/build/outputs/bundle/universalRelease/*.aab
           draft: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
