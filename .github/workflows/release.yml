@@ -119,10 +119,8 @@ jobs:
           echo "${{ secrets.ANDROID_KEY_BASE64 }}" | base64 -d > keystore.jks
           echo "storeFile=$(pwd)/keystore.jks" >> keystore.properties
 
-      - name: Build Android App (Release and Debug APKs)
-        run: |
-          npx tauri android build
-          npx tauri android build --debug
+      - name: Build Android App (Release APK and AAB)
+        run: npx tauri android build
 
       - name: Upload Android Release Assets
         uses: softprops/action-gh-release@v2
@@ -130,7 +128,6 @@ jobs:
           tag_name: ${{ github.ref_name }}
           files: |
             src-tauri/gen/android/app/build/outputs/apk/universal/release/*.apk
-            src-tauri/gen/android/app/build/outputs/apk/universal/debug/*.apk
             src-tauri/gen/android/app/build/outputs/bundle/universalRelease/*.aab
           draft: true
         env:
