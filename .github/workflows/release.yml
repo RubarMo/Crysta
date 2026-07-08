@@ -108,7 +108,9 @@ jobs:
         run: npm ci || npm install
 
       - name: Setup Android signing
-        if: ${{ secrets.ANDROID_KEY_BASE64 != '' }}
+        env:
+          ANDROID_KEY_BASE64: ${{ secrets.ANDROID_KEY_BASE64 }}
+        if: ${{ env.ANDROID_KEY_BASE64 != '' }}
         run: |
           cd src-tauri/gen/android
           echo "keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}" > keystore.properties
