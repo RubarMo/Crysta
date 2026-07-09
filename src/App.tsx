@@ -374,7 +374,7 @@ function App() {
                               e.stopPropagation();
                               removeRecentProject(project.path);
                             }}
-                            className="p-1.5 text-m3-on-surface-variant hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity rounded-full cursor-pointer"
+                            className="p-1.5 text-m3-on-surface-variant hover:text-rose-500 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity rounded-full cursor-pointer"
                             title={t("removeFromList")}
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

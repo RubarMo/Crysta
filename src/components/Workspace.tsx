@@ -601,7 +601,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
                     <div className="space-y-2">
                       <div className="flex justify-between items-start">
                         <h3 className="text-sm font-bold text-m3-on-surface">{char.name}</h3>
-                        <div className="flex gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="flex gap-3 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                           <button
                             onClick={() => setEditingCharacter(char)}
                             className="text-[10px] text-m3-on-surface-variant hover:text-m3-primary font-bold cursor-pointer font-cairo"
