@@ -1,23 +1,23 @@
 {
-  "version": "2.3.0",
-  "notes": "Release version 2.3.0.",
+  "version": "2.3.1",
+  "notes": "Release version 2.3.1.",
   "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEY1MzY3QkNEREREQzZBRUEKUldUcWF0emR6WHMyOWFqNUhMbzlvRHhGUTJQcTJrK2RUS2IrTDVkOEV1RFBUaXZXNzF0NnlEYmQK",
   "platforms": {
     "windows-x86_64": {
       "signature": "PASTE_THE_CONTENTS_OF_THE_GENERATED_MSI_SIG_FILE_HERE",
-      "url": "https://github.com/RubarMo/Crysta/releases/download/v2.3.0/Crysta_2.3.0_x64_en-US.msi"
+      "url": "https://github.com/RubarMo/Crysta/releases/download/v2.3.1/Crysta_2.3.1_x64_en-US.msi"
     },
     "darwin-x86_64": {
       "signature": "PASTE_THE_CONTENTS_OF_THE_TAR_GZ_SIG_FILE_HERE",
-      "url": "https://github.com/RubarMo/Crysta/releases/download/v2.3.0/Crysta.app.tar.gz"
+      "url": "https://github.com/RubarMo/Crysta/releases/download/v2.3.1/Crysta.app.tar.gz"
     },
     "darwin-aarch64": {
       "signature": "PASTE_THE_CONTENTS_OF_THE_TAR_GZ_SIG_FILE_HERE",
-      "url": "https://github.com/RubarMo/Crysta/releases/download/v2.3.0/Crysta.app.tar.gz"
+      "url": "https://github.com/RubarMo/Crysta/releases/download/v2.3.1/Crysta.app.tar.gz"
     },
     "linux-x86_64": {
       "signature": "PASTE_THE_CONTENTS_OF_THE_DEB_SIG_FILE_HERE",
-      "url": "https://github.com/RubarMo/Crysta/releases/download/v2.3.0/crysta_2.3.0_amd64.deb"
+      "url": "https://github.com/RubarMo/Crysta/releases/download/v2.3.1/crysta_2.3.1_amd64.deb"
     }
   }
 }

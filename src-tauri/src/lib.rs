@@ -527,6 +527,7 @@ fn delete_scene(state: tauri::State<'_, DbState>, id: i64, novel_id: i64) -> Res
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    let _ = rustls::crypto::ring::default_provider().install_default();
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
