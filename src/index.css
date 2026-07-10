@@ -14,6 +14,33 @@
   --m3-on-surface-variant: #40484c;   /* Medium contrast secondary text */
   --m3-outline: #70787d;              /* M3 Outline */
   --m3-outline-variant: #c0c8cc;      /* Soft outlines / dividers */
+
+  /* @material/web system mappings */
+  --md-sys-color-primary: var(--m3-primary);
+  --md-sys-color-on-primary: var(--m3-on-primary);
+  --md-sys-color-primary-container: var(--m3-primary-container);
+  --md-sys-color-on-primary-container: var(--m3-on-primary-container);
+  --md-sys-color-surface: var(--m3-surface);
+  --md-sys-color-surface-container: var(--m3-surface);
+  --md-sys-color-surface-container-low: var(--m3-surface);
+  --md-sys-color-surface-container-normal: var(--m3-surface-variant);
+  --md-sys-color-surface-container-high: var(--m3-surface-variant);
+  --md-sys-color-on-surface: var(--m3-on-surface);
+  --md-sys-color-on-surface-variant: var(--m3-on-surface-variant);
+  --md-sys-color-outline: var(--m3-outline);
+  --md-sys-color-outline-variant: var(--m3-outline-variant);
+  --md-sys-color-background: var(--m3-background);
+
+  /* @material/web System Typography Mappings */
+  --md-sys-typescale-body-large-font-family: var(--font-cairo);
+  --md-sys-typescale-body-medium-font-family: var(--font-cairo);
+  --md-sys-typescale-body-small-font-family: var(--font-cairo);
+  --md-sys-typescale-label-large-font-family: var(--font-cairo);
+  --md-sys-typescale-label-medium-font-family: var(--font-cairo);
+  --md-sys-typescale-label-small-font-family: var(--font-cairo);
+  --md-sys-typescale-title-large-font-family: var(--font-cairo);
+  --md-sys-typescale-title-medium-font-family: var(--font-cairo);
+  --md-sys-typescale-title-small-font-family: var(--font-cairo);
 }
 
 .dark {
@@ -28,10 +55,26 @@
   --m3-on-surface-variant: #c0c8cc;   /* Medium contrast light gray text */
   --m3-outline: #8a9296;              /* M3 Outline */
   --m3-outline-variant: #40484c;      /* Soft dark outlines / dividers */
+
+  /* @material/web system mappings (dark) */
+  --md-sys-color-primary: var(--m3-primary);
+  --md-sys-color-on-primary: var(--m3-on-primary);
+  --md-sys-color-primary-container: var(--m3-primary-container);
+  --md-sys-color-on-primary-container: var(--m3-on-primary-container);
+  --md-sys-color-surface: var(--m3-surface);
+  --md-sys-color-surface-container: var(--m3-surface);
+  --md-sys-color-surface-container-low: var(--m3-surface);
+  --md-sys-color-surface-container-normal: var(--m3-surface-variant);
+  --md-sys-color-surface-container-high: var(--m3-surface-variant);
+  --md-sys-color-on-surface: var(--m3-on-surface);
+  --md-sys-color-on-surface-variant: var(--m3-on-surface-variant);
+  --md-sys-color-outline: var(--m3-outline);
+  --md-sys-color-outline-variant: var(--m3-outline-variant);
+  --md-sys-color-background: var(--m3-background);
 }
 
 @theme {
-  --font-cairo: "Cairo", "Segoe UI", Roboto, sans-serif;
+  --font-cairo: "IBM Plex Sans Arabic", "IBM Plex Sans", "Segoe UI", Roboto, sans-serif;
   --color-m3-background: var(--m3-background);
   --color-m3-surface: var(--m3-surface);
   --color-m3-surface-variant: var(--m3-surface-variant);
@@ -112,4 +155,106 @@ textarea {
   padding-left: env(safe-area-inset-left, 0px);
   padding-right: env(safe-area-inset-right, 0px);
 }
+
+/* Google Material Symbols Font Styling */
+.material-symbols-rounded {
+  font-family: 'Material Symbols Rounded';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 20px; /* default size */
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: 'liga';
+}
+
+/* Force Cairo font family on Material custom components */
+md-filled-button,
+md-outlined-button,
+md-outlined-text-field,
+md-checkbox,
+md-switch {
+  font-family: var(--font-cairo) !important;
+}
+
+md-outlined-text-field {
+  --md-outlined-text-field-input-text-font-family: var(--font-cairo) !important;
+  --md-outlined-text-field-input-text-font: 400 0.875rem var(--font-cairo) !important;
+  --md-outlined-text-field-label-text-font-family: var(--font-cairo) !important;
+  --md-outlined-text-field-label-text-font: 400 0.75rem var(--font-cairo) !important;
+  --md-outlined-text-field-supporting-text-font-family: var(--font-cairo) !important;
+  --md-outlined-text-field-supporting-text-font: 400 0.75rem var(--font-cairo) !important;
+}
+
+/* Fix text direction of textfield placeholders and texts in RTL */
+html[dir="rtl"] md-outlined-text-field {
+  --md-outlined-text-field-label-text-left: auto;
+  --md-outlined-text-field-label-text-right: 16px;
+  text-align: right !important;
+}
+
+/* Ensure Material Web buttons calculate width based on text content and never shrink */
+md-filled-button,
+md-outlined-button {
+  display: inline-flex !important;
+  min-width: max-content !important;
+  flex-shrink: 0 !important;
+}
+
+md-filled-button {
+  --md-filled-button-leading-space: 24px !important;
+  --md-filled-button-trailing-space: 24px !important;
+  --md-filled-button-with-icon-leading-space: 20px !important;
+  --md-filled-button-with-icon-trailing-space: 24px !important;
+}
+
+md-outlined-button {
+  --md-outlined-button-leading-space: 24px !important;
+  --md-outlined-button-trailing-space: 24px !important;
+  --md-outlined-button-with-icon-leading-space: 20px !important;
+  --md-outlined-button-with-icon-trailing-space: 24px !important;
+}
+
+/* Custom Switch Styling for Theme Toggle to make both states look active */
+md-switch {
+  cursor: pointer;
+  
+  /* Selected / Dark State (White Handle + Dark Surface Track) */
+  --md-switch-selected-handle-color: #ffffff !important;
+  --md-switch-selected-track-color: var(--m3-surface-variant) !important;
+  --md-switch-selected-icon-color: var(--m3-surface-variant) !important;
+  --md-switch-selected-focus-handle-color: #ffffff !important;
+  --md-switch-selected-hover-handle-color: #ffffff !important;
+  --md-switch-selected-outline-color: var(--m3-outline) !important;
+  
+  /* Unselected / Light State (Amber/Orange theme representing the Sun) */
+  --md-switch-unselected-handle-color: #ff9100 !important;
+  --md-switch-unselected-track-color: #ffe0b2 !important;
+  --md-switch-unselected-icon-color: #ffffff !important;
+  --md-switch-unselected-focus-handle-color: #ff9100 !important;
+  --md-switch-unselected-hover-handle-color: #ffab40 !important;
+  --md-switch-unselected-focus-track-color: #ffe0b2 !important;
+  --md-switch-unselected-hover-track-color: #ffd180 !important;
+  --md-switch-unselected-outline-color: #ffb74d !important;
+}
+
+/* Premium Keyboard Navigation Focus Outline Indicator */
+button:focus-visible,
+md-filled-button:focus-visible,
+md-outlined-button:focus-visible,
+md-switch:focus-visible,
+md-checkbox:focus-visible,
+md-outlined-text-field:focus-visible {
+  outline: 2px solid var(--m3-primary) !important;
+  outline-offset: 2px !important;
+}
+
+
 

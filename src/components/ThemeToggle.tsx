@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { Sun, Moon } from 'lucide-react';
 
 export const ThemeToggle: React.FC = () => {
   const [isDark, setIsDark] = useState(() => {
@@ -21,26 +20,16 @@ export const ThemeToggle: React.FC = () => {
   }, [isDark]);
 
   return (
-    <div className="flex items-center gap-1.5 select-none font-cairo">
-      <Sun className="w-3.5 h-3.5 text-m3-on-surface-variant transition-colors" />
-      <button
-        onClick={() => setIsDark(!isDark)}
-        className={`w-9 h-5 rounded-full border flex items-center p-0.5 transition-colors cursor-pointer focus:outline-none ${
-          isDark 
-            ? 'bg-m3-primary border-transparent justify-end' 
-            : 'bg-m3-surface-variant border-m3-outline justify-start'
-        }`}
-        role="switch"
-        aria-checked={isDark}
+    <div className="flex items-center gap-2 select-none font-cairo">
+      <span className="material-symbols-rounded text-xs text-m3-on-surface-variant">light_mode</span>
+      <md-switch
+        selected={isDark}
+        checked={isDark}
+        onChange={() => setIsDark(!isDark)}
         title={isDark ? "تفعيل الوضع المضيء" : "تفعيل الوضع المظلم"}
-      >
-        <span
-          className={`w-3.5 h-3.5 rounded-full transition-all duration-200 ${
-            isDark ? 'bg-m3-on-primary' : 'bg-m3-outline'
-          }`}
-        />
-      </button>
-      <Moon className="w-3.5 h-3.5 text-m3-on-surface-variant transition-colors" />
+        className="cursor-pointer scale-75"
+      />
+      <span className="material-symbols-rounded text-xs text-m3-on-surface-variant">dark_mode</span>
     </div>
   );
 };

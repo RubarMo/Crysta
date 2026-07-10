@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Novel, StepProgress } from '../lib';
 import { useLanguage } from '../LanguageContext';
-import { X } from 'lucide-react';
 import { getVersion } from '@tauri-apps/api/app';
 
 interface SidebarProps {
@@ -80,18 +79,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
             <button
               onClick={onCloseProject}
-              className="text-[10px] px-3 py-1 shrink-0 border border-m3-outline text-m3-primary hover:bg-m3-primary/10 transition-colors font-bold rounded-full cursor-pointer font-cairo"
+              className="relative overflow-hidden text-[10px] px-3 py-1 shrink-0 border border-m3-outline text-m3-primary hover:bg-m3-primary/10 transition-colors font-bold rounded-full cursor-pointer font-cairo"
               title={t('closeProjectTitle')}
             >
               {t('close')}
+              <md-ripple></md-ripple>
             </button>
             {onCloseSidebar && (
               <button
                 onClick={onCloseSidebar}
-                className="md:hidden p-1 text-m3-on-surface-variant hover:text-m3-on-surface hover:bg-m3-surface-variant/40 rounded-full cursor-pointer transition-colors shrink-0"
+                className="relative overflow-hidden md:hidden p-1 text-m3-on-surface-variant hover:text-m3-on-surface hover:bg-m3-surface-variant/40 rounded-full cursor-pointer transition-colors shrink-0 flex items-center justify-center"
                 title={t('closeSidebar')}
               >
-                <X className="w-4 h-4" />
+                <span className="material-symbols-rounded text-sm block">close</span>
+                <md-ripple></md-ripple>
               </button>
             )}
           </div>
@@ -101,10 +102,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
             {onCloseSidebar && (
               <button
                 onClick={onCloseSidebar}
-                className="md:hidden p-1 text-m3-on-surface-variant hover:text-m3-on-surface hover:bg-m3-surface-variant/40 rounded-full cursor-pointer transition-colors shrink-0"
+                className="relative overflow-hidden md:hidden p-1 text-m3-on-surface-variant hover:text-m3-on-surface hover:bg-m3-surface-variant/40 rounded-full cursor-pointer transition-colors shrink-0 flex items-center justify-center"
                 title={t('closeSidebar')}
               >
-                <X className="w-4 h-4" />
+                <span className="material-symbols-rounded text-sm block">close</span>
+                <md-ripple></md-ripple>
               </button>
             )}
           </div>
@@ -131,13 +133,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <nav className="flex-1 overflow-y-auto p-3 space-y-1">
             <button
               onClick={() => onSelectStep(0)}
-              className={`w-full text-start text-xs py-2.5 px-4 rounded-full transition-all cursor-pointer font-cairo ${
+              className={`relative overflow-hidden w-full text-start text-xs py-2.5 px-4 rounded-full transition-all cursor-pointer font-cairo ${
                 activeStep === 0
-                  ? 'bg-m3-primary-container text-m3-on-primary-container font-black shadow-sm'
+                  ? 'bg-m3-primary-container text-m3-on-primary-container font-bold shadow-sm'
                   : 'hover:bg-m3-surface-variant/45 text-m3-on-surface-variant hover:text-m3-on-surface'
               }`}
             >
               {t('dashboard')}
+              <md-ripple></md-ripple>
             </button>
 
             <div className="my-2 border-t border-m3-outline-variant/60 mx-2" />
@@ -148,9 +151,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <button
                   key={step.num}
                   onClick={() => onSelectStep(step.num)}
-                  className={`w-full flex items-center justify-between text-xs py-2.5 px-4 rounded-full transition-all cursor-pointer font-cairo ${
+                  className={`relative overflow-hidden w-full flex items-center justify-between text-xs py-2.5 px-4 rounded-full transition-all cursor-pointer font-cairo ${
                     activeStep === step.num
-                      ? 'bg-m3-primary-container text-m3-on-primary-container font-black shadow-sm'
+                      ? 'bg-m3-primary-container text-m3-on-primary-container font-bold shadow-sm'
                       : 'hover:bg-m3-surface-variant/45 text-m3-on-surface-variant hover:text-m3-on-surface'
                   }`}
                 >
@@ -168,6 +171,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   {isStepCompleted && (
                     <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" title={t('markAsCompleted')} />
                   )}
+                  <md-ripple></md-ripple>
                 </button>
               );
             })}
@@ -204,10 +208,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Language Switcher */}
         <button
           onClick={() => setLanguage(language === 'ar' ? 'en' : 'ar')}
-          className="px-3 py-1 rounded-full border border-m3-outline text-m3-primary hover:bg-m3-primary/10 transition-colors text-[9px] font-bold tracking-wider cursor-pointer font-cairo"
+          className="relative overflow-hidden px-3 py-1 rounded-full border border-m3-outline text-m3-primary hover:bg-m3-primary/10 transition-colors text-[9px] font-bold tracking-wider cursor-pointer font-cairo"
           title={language === 'ar' ? 'Switch to English' : 'التحويل للعربية'}
         >
           {language === 'ar' ? 'English' : 'العربية'}
+          <md-ripple></md-ripple>
         </button>
       </footer>
     </aside>

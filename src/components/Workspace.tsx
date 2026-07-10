@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Novel, StepProgress, Character, Scene, saveStepProgress, saveCharacter, deleteCharacter, saveScene, deleteScene } from '../lib';
 import { WordCounter } from './WordCounter';
-import { Save, Plus } from 'lucide-react';
 import { useLanguage } from '../LanguageContext';
 import { LocaleKeys } from '../locales';
 
@@ -297,50 +296,47 @@ export const Workspace: React.FC<WorkspaceProps> = ({
           <h2 className="text-xs font-bold text-m3-on-surface-variant uppercase tracking-wider pb-1">{t('novelInfoTitle')}</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-1 font-cairo">
-              <label className="text-[11px] font-bold text-m3-on-surface-variant">{t('novelTitleLabel')}</label>
-              <input
-                type="text"
+            <div className="font-cairo">
+              <md-outlined-text-field
+                label={t('novelTitleLabel')}
                 value={novelTitle}
-                onChange={(e) => setNovelTitle(e.target.value)}
+                onChange={(e: any) => setNovelTitle(e.target.value)}
                 onBlur={triggerSaveNovel}
-                className="w-full text-xs rounded-xl border border-m3-outline bg-m3-background p-3 focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary text-m3-on-surface transition-all"
                 placeholder={t('novelTitlePlaceholder')}
+                className="w-full"
               />
             </div>
 
-            <div className="space-y-1 font-cairo">
-              <label className="text-[11px] font-bold text-m3-on-surface-variant">{t('novelGenreLabel')}</label>
-              <input
-                type="text"
+            <div className="font-cairo">
+              <md-outlined-text-field
+                label={t('novelGenreLabel')}
                 value={novelGenre}
-                onChange={(e) => setNovelGenre(e.target.value)}
+                onChange={(e: any) => setNovelGenre(e.target.value)}
                 onBlur={triggerSaveNovel}
-                className="w-full text-xs rounded-xl border border-m3-outline bg-m3-background p-3 focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary text-m3-on-surface transition-all"
                 placeholder={t('novelGenrePlaceholder')}
+                className="w-full"
               />
             </div>
 
-            <div className="space-y-1 font-cairo">
-              <label className="text-[11px] font-bold text-m3-on-surface-variant">{t('novelAudienceLabel')}</label>
-              <input
-                type="text"
+            <div className="font-cairo">
+              <md-outlined-text-field
+                label={t('novelAudienceLabel')}
                 value={novelAudience}
-                onChange={(e) => setNovelAudience(e.target.value)}
+                onChange={(e: any) => setNovelAudience(e.target.value)}
                 onBlur={triggerSaveNovel}
-                className="w-full text-xs rounded-xl border border-m3-outline bg-m3-background p-3 focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary text-m3-on-surface transition-all"
                 placeholder={t('novelAudiencePlaceholder')}
+                className="w-full"
               />
             </div>
 
-            <div className="space-y-1 font-cairo">
-              <label className="text-[11px] font-bold text-m3-on-surface-variant">{t('novelTargetWordsLabel')}</label>
-              <input
+            <div className="font-cairo">
+              <md-outlined-text-field
+                label={t('novelTargetWordsLabel')}
                 type="number"
-                value={novelTargetWords || ''}
-                onChange={(e) => setNovelTargetWords(Number(e.target.value) || 0)}
+                value={String(novelTargetWords || '')}
+                onChange={(e: any) => setNovelTargetWords(Number(e.target.value) || 0)}
                 onBlur={triggerSaveNovel}
-                className="w-full text-xs rounded-xl border border-m3-outline bg-m3-background p-3 focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary text-m3-on-surface transition-all"
+                className="w-full"
               />
             </div>
           </div>
@@ -395,16 +391,15 @@ export const Workspace: React.FC<WorkspaceProps> = ({
       <div className="flex flex-wrap items-center gap-4">
         {/* Unified Checkbox */}
         <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-m3-on-surface-variant select-none">
-          <input
-            type="checkbox"
+          <md-checkbox
             checked={stepCompleted}
-            onChange={(e) => {
+            onChange={(e: any) => {
               const check = e.target.checked;
               setStepCompleted(check);
               const isWritingStep = activeStep === 1 || activeStep === 2 || activeStep === 4 || activeStep === 6;
               triggerSaveStepProgress(isWritingStep ? stepText : '', check);
             }}
-            className="rounded border-m3-outline text-m3-primary focus:ring-0 cursor-pointer w-4 h-4"
+            className="cursor-pointer"
           />
           <span>{t('markAsCompleted')}</span>
         </label>
@@ -413,33 +408,36 @@ export const Workspace: React.FC<WorkspaceProps> = ({
         {activeStep === 3 && !editingCharacter && (
           <button
             onClick={() => setEditingCharacter({ name: '', motivation: '', goal: '', conflict: '', epiphany: '', one_paragraph_summary: '', full_synopsis: '' })}
-            className="flex items-center gap-1.5 text-xs px-4 py-1.5 border border-m3-outline text-m3-primary hover:bg-m3-primary/10 transition-colors font-bold rounded-full cursor-pointer font-cairo"
+            className="relative overflow-hidden flex items-center gap-1.5 text-xs px-4 py-1.5 border border-m3-outline text-m3-primary hover:bg-m3-primary/10 transition-colors font-bold rounded-full cursor-pointer font-cairo"
           >
-            <Plus className="w-3.5 h-3.5" />
+            <span className="material-symbols-rounded text-sm">add</span>
             <span>{t('addCharacterBtn')}</span>
+            <md-ripple></md-ripple>
           </button>
         )}
 
         {activeStep === 8 && !editingScene && (
           <button
             onClick={() => setEditingScene({ pov_character_id: null, setting: '', plot_thread: '', what_happens: '', expected_word_count: 500, actual_word_count: 0 })}
-            className="flex items-center gap-1.5 text-xs px-4 py-1.5 border border-m3-outline text-m3-primary hover:bg-m3-primary/10 transition-colors font-bold rounded-full cursor-pointer font-cairo"
+            className="relative overflow-hidden flex items-center gap-1.5 text-xs px-4 py-1.5 border border-m3-outline text-m3-primary hover:bg-m3-primary/10 transition-colors font-bold rounded-full cursor-pointer font-cairo"
           >
-            <Plus className="w-3.5 h-3.5" />
+            <span className="material-symbols-rounded text-sm">add</span>
             <span>{t('addSceneBtn')}</span>
+            <md-ripple></md-ripple>
           </button>
         )}
 
         {activeStep === 10 && (
           <button
             onClick={() => handleCopyMarkdown(getExportMarkdown())}
-            className="flex items-center gap-1.5 text-xs px-4 py-1.5 border border-m3-outline text-m3-primary hover:bg-m3-primary/10 transition-colors font-bold rounded-full cursor-pointer font-cairo"
+            className="relative overflow-hidden flex items-center gap-1.5 text-xs px-4 py-1.5 border border-m3-outline text-m3-primary hover:bg-m3-primary/10 transition-colors font-bold rounded-full cursor-pointer font-cairo"
           >
             {copied ? (
               <span className="text-emerald-500">{t('copied')}</span>
             ) : (
               <span>{t('copyMarkdown')}</span>
             )}
+            <md-ripple></md-ripple>
           </button>
         )}
       </div>
@@ -478,12 +476,14 @@ export const Workspace: React.FC<WorkspaceProps> = ({
 
         {/* Paper Sheet look-alike writing space */}
         <div className="space-y-2">
-          <textarea
+          <md-outlined-text-field
+            type="textarea"
+            rows={12}
             value={stepText}
-            onChange={(e) => setStepText(e.target.value)}
+            onChange={(e: any) => setStepText(e.target.value)}
             onBlur={() => triggerSaveStepProgress(stepText, stepCompleted)}
-            className="w-full min-h-[350px] text-sm leading-loose bg-m3-surface border border-m3-outline p-4 rounded-2xl focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary resize-y placeholder:text-m3-on-surface-variant/50 text-start text-m3-on-surface transition-all shadow-sm"
             placeholder={t('writeHerePlaceholder')}
+            className="w-full min-h-[350px]"
           />
           <div className="flex justify-end">
             <WordCounter text={stepText} maxWords={meta.limit} />
@@ -508,62 +508,59 @@ export const Workspace: React.FC<WorkspaceProps> = ({
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1 font-cairo">
-                <label className="text-[11px] text-m3-on-surface-variant font-bold">{t('charNameLabel')}</label>
-                <input
-                  type="text"
+              <div className="font-cairo">
+                <md-outlined-text-field
+                  label={t('charNameLabel')}
                   value={editingCharacter.name || ''}
-                  onChange={(e) => setEditingCharacter({ ...editingCharacter, name: e.target.value })}
-                  className="w-full text-xs rounded-xl border border-m3-outline bg-m3-background p-3 focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary text-m3-on-surface transition-all"
+                  onChange={(e: any) => setEditingCharacter({ ...editingCharacter, name: e.target.value })}
+                  className="w-full"
                 />
               </div>
 
-              <div className="space-y-1 font-cairo">
-                <label className="text-[11px] text-m3-on-surface-variant font-bold">{t('charMotivationLabel')}</label>
-                <input
-                  type="text"
+              <div className="font-cairo">
+                <md-outlined-text-field
+                  label={t('charMotivationLabel')}
                   value={editingCharacter.motivation || ''}
-                  onChange={(e) => setEditingCharacter({ ...editingCharacter, motivation: e.target.value })}
-                  className="w-full text-xs rounded-xl border border-m3-outline bg-m3-background p-3 focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary text-m3-on-surface transition-all"
+                  onChange={(e: any) => setEditingCharacter({ ...editingCharacter, motivation: e.target.value })}
+                  className="w-full"
                 />
               </div>
 
-              <div className="space-y-1 font-cairo">
-                <label className="text-[11px] text-m3-on-surface-variant font-bold">{t('charGoalLabel')}</label>
-                <input
-                  type="text"
+              <div className="font-cairo">
+                <md-outlined-text-field
+                  label={t('charGoalLabel')}
                   value={editingCharacter.goal || ''}
-                  onChange={(e) => setEditingCharacter({ ...editingCharacter, goal: e.target.value })}
-                  className="w-full text-xs rounded-xl border border-m3-outline bg-m3-background p-3 focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary text-m3-on-surface transition-all"
+                  onChange={(e: any) => setEditingCharacter({ ...editingCharacter, goal: e.target.value })}
+                  className="w-full"
                 />
               </div>
 
-              <div className="space-y-1 font-cairo">
-                <label className="text-[11px] text-m3-on-surface-variant font-bold">{t('charConflictLabel')}</label>
-                <input
-                  type="text"
+              <div className="font-cairo">
+                <md-outlined-text-field
+                  label={t('charConflictLabel')}
                   value={editingCharacter.conflict || ''}
-                  onChange={(e) => setEditingCharacter({ ...editingCharacter, conflict: e.target.value })}
-                  className="w-full text-xs rounded-xl border border-m3-outline bg-m3-background p-3 focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary text-m3-on-surface transition-all"
+                  onChange={(e: any) => setEditingCharacter({ ...editingCharacter, conflict: e.target.value })}
+                  className="w-full"
                 />
               </div>
 
-              <div className="space-y-1 md:col-span-2 font-cairo">
-                <label className="text-[11px] text-m3-on-surface-variant font-bold">{t('charEpiphanyLabel')}</label>
-                <input
-                  type="text"
+              <div className="md:col-span-2 font-cairo">
+                <md-outlined-text-field
+                  label={t('charEpiphanyLabel')}
                   value={editingCharacter.epiphany || ''}
-                  onChange={(e) => setEditingCharacter({ ...editingCharacter, epiphany: e.target.value })}
-                  className="w-full text-xs rounded-xl border border-m3-outline bg-m3-background p-3 focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary text-m3-on-surface transition-all"
+                  onChange={(e: any) => setEditingCharacter({ ...editingCharacter, epiphany: e.target.value })}
+                  className="w-full"
                 />
               </div>
 
-              <div className="space-y-1 md:col-span-2 relative font-cairo">
-                <label className="text-[11px] text-m3-on-surface-variant font-bold">{t('charSummaryLabel')}</label>
-                <textarea
+              <div className="md:col-span-2 font-cairo">
+                <md-outlined-text-field
+                  type="textarea"
+                  rows={4}
+                  label={t('charSummaryLabel')}
                   value={editingCharacter.one_paragraph_summary || ''}
-                  onChange={(e) => setEditingCharacter({ ...editingCharacter, one_paragraph_summary: e.target.value })}
-                  className="w-full min-h-[100px] text-xs rounded-xl border border-m3-outline bg-m3-background p-3 focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary resize-y text-m3-on-surface transition-all"
+                  onChange={(e: any) => setEditingCharacter({ ...editingCharacter, one_paragraph_summary: e.target.value })}
+                  className="w-full"
                   placeholder={t('charSummaryPlaceholder')}
                 />
                 <div className="flex justify-end mt-1">
@@ -575,16 +572,18 @@ export const Workspace: React.FC<WorkspaceProps> = ({
             <div className="flex gap-2 justify-end pt-2">
               <button
                 onClick={() => setEditingCharacter(null)}
-                className="px-4 py-1.5 border border-m3-outline text-m3-primary hover:bg-m3-primary/10 text-xs rounded-full transition-colors cursor-pointer font-cairo font-bold"
+                className="relative overflow-hidden px-4 py-1.5 border border-m3-outline text-m3-primary hover:bg-m3-primary/10 text-xs rounded-full transition-colors cursor-pointer font-cairo font-bold"
               >
                 {t('cancel')}
+                <md-ripple></md-ripple>
               </button>
               <button
                 onClick={() => handleSaveCharacter(editingCharacter)}
-                className="flex items-center gap-1.5 px-4 py-1.5 bg-m3-primary hover:opacity-90 text-m3-on-primary text-xs rounded-full transition-all font-bold cursor-pointer font-cairo shadow-sm"
+                className="relative overflow-hidden flex items-center gap-1.5 px-4 py-1.5 bg-m3-primary hover:opacity-90 text-m3-on-primary text-xs rounded-full transition-all font-bold cursor-pointer font-cairo shadow-sm"
               >
-                <Save className="w-3.5 h-3.5" />
+                <span className="material-symbols-rounded text-sm">save</span>
                 <span>{t('save')}</span>
+                <md-ripple></md-ripple>
               </button>
             </div>
           </div>
@@ -597,22 +596,26 @@ export const Workspace: React.FC<WorkspaceProps> = ({
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-start">
                 {characters.map((char) => (
-                  <div key={char.id} className="bg-m3-surface p-4 border border-m3-outline-variant rounded-2xl flex flex-col justify-between group shadow-sm">
+                  <div key={char.id} className="relative overflow-hidden bg-m3-surface p-4 border border-m3-outline-variant rounded-2xl flex flex-col justify-between group shadow-sm">
                     <div className="space-y-2">
                       <div className="flex justify-between items-start">
                         <h3 className="text-sm font-bold text-m3-on-surface">{char.name}</h3>
-                        <div className="flex gap-3 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                        <div className="flex gap-2.5 opacity-100">
                           <button
                             onClick={() => setEditingCharacter(char)}
-                            className="text-[10px] text-m3-on-surface-variant hover:text-m3-primary font-bold cursor-pointer font-cairo"
+                            className="relative overflow-hidden p-1.5 text-m3-on-surface-variant hover:text-m3-primary rounded-full cursor-pointer flex items-center justify-center"
+                            title={t('edit')}
                           >
-                            {t('edit')}
+                            <span className="material-symbols-rounded text-sm">edit</span>
+                            <md-ripple></md-ripple>
                           </button>
                           <button
                             onClick={() => handleDeleteCharacter(char.id!)}
-                            className="text-[10px] text-rose-500 hover:text-rose-600 font-bold cursor-pointer font-cairo"
+                            className="relative overflow-hidden p-1.5 text-rose-500 hover:text-rose-600 rounded-full cursor-pointer flex items-center justify-center"
+                            title={t('delete')}
                           >
-                            {t('delete')}
+                            <span className="material-symbols-rounded text-sm">delete</span>
+                            <md-ripple></md-ripple>
                           </button>
                         </div>
                       </div>
@@ -666,7 +669,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
                   <button
                     key={char.id}
                     onClick={() => setSelectedCharIdStep5(char.id!)}
-                    className={`w-full text-start p-2.5 rounded-xl text-xs transition-all cursor-pointer font-cairo ${
+                    className={`relative overflow-hidden w-full text-start p-2.5 rounded-xl text-xs transition-all cursor-pointer font-cairo ${
                       selectedCharIdStep5 === char.id
                         ? 'bg-m3-primary-container text-m3-on-primary-container font-bold shadow-sm'
                         : 'hover:bg-m3-surface-variant/45 text-m3-on-surface-variant'
@@ -674,6 +677,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
                     title={char.name}
                   >
                     <span className="block truncate">{char.name}</span>
+                    <md-ripple></md-ripple>
                   </button>
                 ))}
               </div>
@@ -687,19 +691,21 @@ export const Workspace: React.FC<WorkspaceProps> = ({
                     {selectedChar.one_paragraph_summary || t('charNoRefBio')}
                   </div>
 
-                  <div className="space-y-1 font-cairo">
-                    <label className="text-[10px] font-bold text-m3-on-surface-variant block">{t('charExtendedSynopsisLabel')}</label>
-                    <textarea
+                  <div className="font-cairo">
+                    <md-outlined-text-field
+                      type="textarea"
+                      rows={10}
+                      label={t('charExtendedSynopsisLabel')}
                       value={selectedChar.full_synopsis || ''}
-                      onChange={(e) => {
+                      onChange={(e: any) => {
                         const updated = characters.map(c => c.id === selectedChar.id ? { ...c, full_synopsis: e.target.value } : c);
                         setCharacters(updated);
                       }}
-                      onBlur={(e) => handleSaveSynopsis(e.target.value)}
-                      className="w-full min-h-[300px] text-xs leading-loose bg-m3-surface border border-m3-outline p-3 rounded-2xl focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary resize-y text-m3-on-surface transition-all shadow-sm"
+                      onBlur={(e: any) => handleSaveSynopsis(e.target.value)}
+                      className="w-full min-h-[300px]"
                       placeholder={t('charExtendedSynopsisPlaceholder', { name: selectedChar.name })}
                     />
-                    <div className="flex justify-end">
+                    <div className="flex justify-end mt-1">
                       <WordCounter text={selectedChar.full_synopsis || ''} />
                     </div>
                   </div>
@@ -748,7 +754,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
                   <button
                     key={char.id}
                     onClick={() => setSelectedCharIdStep7(char.id!)}
-                    className={`w-full text-start p-2.5 rounded-xl text-xs transition-all cursor-pointer font-cairo ${
+                    className={`relative overflow-hidden w-full text-start p-2.5 rounded-xl text-xs transition-all cursor-pointer font-cairo ${
                       selectedCharIdStep7 === char.id
                         ? 'bg-m3-primary-container text-m3-on-primary-container font-bold shadow-sm'
                         : 'hover:bg-m3-surface-variant/45 text-m3-on-surface-variant'
@@ -756,6 +762,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
                     title={char.name}
                   >
                     <span className="block truncate">{char.name}</span>
+                    <md-ripple></md-ripple>
                   </button>
                 ))}
               </div>
@@ -767,70 +774,77 @@ export const Workspace: React.FC<WorkspaceProps> = ({
                   <h3 className="text-xs font-bold text-m3-on-surface-variant uppercase tracking-wider pb-1">{t('editCharacterTitle')}: {selectedChar.name}</h3>
 
                   <div className="space-y-4">
-                    <div className="space-y-1 font-cairo">
-                      <label className="text-[11px] font-bold text-m3-on-surface-variant">{t('charNameLabel')}</label>
-                      <input
-                        type="text"
+                    <div className="font-cairo">
+                      <md-outlined-text-field
+                        label={t('charNameLabel')}
                         value={selectedChar.name}
-                        onChange={(e) => {
+                        onChange={(e: any) => {
                           const updated = characters.map(c => c.id === selectedChar.id ? { ...c, name: e.target.value } : c);
                           setCharacters(updated);
                         }}
                         onBlur={() => handleSaveChart(selectedChar)}
-                        className="w-full text-xs rounded-xl border border-m3-outline bg-m3-background p-3 focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary text-m3-on-surface transition-all"
+                        className="w-full"
                       />
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-1 font-cairo">
-                        <label className="text-[11px] font-bold text-m3-on-surface-variant">{t('charMotivationLabel')}</label>
-                        <textarea
+                      <div className="font-cairo">
+                        <md-outlined-text-field
+                          type="textarea"
+                          rows={3}
+                          label={t('charMotivationLabel')}
                           value={selectedChar.motivation}
-                          onChange={(e) => {
+                          onChange={(e: any) => {
                             const updated = characters.map(c => c.id === selectedChar.id ? { ...c, motivation: e.target.value } : c);
                             setCharacters(updated);
                           }}
                           onBlur={() => handleSaveChart(selectedChar)}
-                          className="w-full text-xs min-h-[70px] rounded-xl border border-m3-outline bg-m3-background p-3 focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary text-m3-on-surface transition-all"
+                          className="w-full"
                         />
                       </div>
 
-                      <div className="space-y-1 font-cairo">
-                        <label className="text-[11px] font-bold text-m3-on-surface-variant">{t('charGoalLabel')}</label>
-                        <textarea
+                      <div className="font-cairo">
+                        <md-outlined-text-field
+                          type="textarea"
+                          rows={3}
+                          label={t('charGoalLabel')}
                           value={selectedChar.goal}
-                          onChange={(e) => {
+                          onChange={(e: any) => {
                             const updated = characters.map(c => c.id === selectedChar.id ? { ...c, goal: e.target.value } : c);
                             setCharacters(updated);
                           }}
                           onBlur={() => handleSaveChart(selectedChar)}
-                          className="w-full text-xs min-h-[70px] rounded-xl border border-m3-outline bg-m3-background p-3 focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary text-m3-on-surface transition-all"
+                          className="w-full"
                         />
                       </div>
 
-                      <div className="space-y-1 font-cairo">
-                        <label className="text-[11px] font-bold text-m3-on-surface-variant">{t('charConflictLabel')}</label>
-                        <textarea
+                      <div className="font-cairo">
+                        <md-outlined-text-field
+                          type="textarea"
+                          rows={3}
+                          label={t('charConflictLabel')}
                           value={selectedChar.conflict}
-                          onChange={(e) => {
+                          onChange={(e: any) => {
                             const updated = characters.map(c => c.id === selectedChar.id ? { ...c, conflict: e.target.value } : c);
                             setCharacters(updated);
                           }}
                           onBlur={() => handleSaveChart(selectedChar)}
-                          className="w-full text-xs min-h-[70px] rounded-xl border border-m3-outline bg-m3-background p-3 focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary text-m3-on-surface transition-all"
+                          className="w-full"
                         />
                       </div>
 
-                      <div className="space-y-1 font-cairo">
-                        <label className="text-[11px] font-bold text-m3-on-surface-variant">{t('charEpiphanyLabel')}</label>
-                        <textarea
+                      <div className="font-cairo">
+                        <md-outlined-text-field
+                          type="textarea"
+                          rows={3}
+                          label={t('charEpiphanyLabel')}
                           value={selectedChar.epiphany}
-                          onChange={(e) => {
+                          onChange={(e: any) => {
                             const updated = characters.map(c => c.id === selectedChar.id ? { ...c, epiphany: e.target.value } : c);
                             setCharacters(updated);
                           }}
                           onBlur={() => handleSaveChart(selectedChar)}
-                          className="w-full text-xs min-h-[70px] rounded-xl border border-m3-outline bg-m3-background p-3 focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary text-m3-on-surface transition-all"
+                          className="w-full"
                         />
                       </div>
                     </div>
@@ -863,8 +877,8 @@ export const Workspace: React.FC<WorkspaceProps> = ({
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1 font-cairo">
-                <label className="text-[11px] font-bold text-m3-on-surface-variant">{t('scenePovLabel')}</label>
+              <div className="font-cairo">
+                <label className="text-[11px] font-bold text-m3-on-surface-variant block mb-1">{t('scenePovLabel')}</label>
                 {characters.length === 0 ? (
                   <div className="text-[10px] text-rose-500 p-2 bg-rose-50 dark:bg-rose-950/10 rounded-xl">
                     {t('pleaseAddCharsWarning')}
@@ -883,45 +897,45 @@ export const Workspace: React.FC<WorkspaceProps> = ({
                 )}
               </div>
 
-              <div className="space-y-1 font-cairo">
-                <label className="text-[11px] font-bold text-m3-on-surface-variant">{t('sceneSettingLabel')}</label>
-                <input
-                  type="text"
+              <div className="font-cairo mt-5 md:mt-0">
+                <md-outlined-text-field
+                  label={t('sceneSettingLabel')}
                   value={editingScene.setting || ''}
-                  onChange={(e) => setEditingScene({ ...editingScene, setting: e.target.value })}
-                  className="w-full text-xs rounded-xl border border-m3-outline bg-m3-background p-3 focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary text-m3-on-surface transition-all"
+                  onChange={(e: any) => setEditingScene({ ...editingScene, setting: e.target.value })}
                   placeholder={t('sceneSettingCol')}
+                  className="w-full"
                 />
               </div>
 
-              <div className="space-y-1 font-cairo">
-                <label className="text-[11px] font-bold text-m3-on-surface-variant">{t('scenePlotLabel')}</label>
-                <input
-                  type="text"
+              <div className="font-cairo">
+                <md-outlined-text-field
+                  label={t('scenePlotLabel')}
                   value={editingScene.plot_thread || ''}
-                  onChange={(e) => setEditingScene({ ...editingScene, plot_thread: e.target.value })}
-                  className="w-full text-xs rounded-xl border border-m3-outline bg-m3-background p-3 focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary text-m3-on-surface transition-all"
+                  onChange={(e: any) => setEditingScene({ ...editingScene, plot_thread: e.target.value })}
                   placeholder={t('scenePlotCol')}
+                  className="w-full"
                 />
               </div>
 
-              <div className="space-y-1 font-cairo">
-                <label className="text-[11px] font-bold text-m3-on-surface-variant">{t('sceneExpectedWordsLabel')}</label>
-                <input
+              <div className="font-cairo">
+                <md-outlined-text-field
                   type="number"
-                  value={editingScene.expected_word_count || ''}
-                  onChange={(e) => setEditingScene({ ...editingScene, expected_word_count: Number(e.target.value) || 0 })}
-                  className="w-full text-xs rounded-xl border border-m3-outline bg-m3-background p-3 focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary text-m3-on-surface transition-all"
+                  label={t('sceneExpectedWordsLabel')}
+                  value={String(editingScene.expected_word_count || '')}
+                  onChange={(e: any) => setEditingScene({ ...editingScene, expected_word_count: Number(e.target.value) || 0 })}
+                  className="w-full"
                 />
               </div>
 
-              <div className="space-y-1 md:col-span-2 relative font-cairo">
-                <label className="text-[11px] font-bold text-m3-on-surface-variant">{t('sceneWhatHappensLabel')}</label>
-                <textarea
+              <div className="md:col-span-2 font-cairo">
+                <md-outlined-text-field
+                  type="textarea"
+                  rows={4}
+                  label={t('sceneWhatHappensLabel')}
                   value={editingScene.what_happens || ''}
-                  onChange={(e) => setEditingScene({ ...editingScene, what_happens: e.target.value })}
-                  className="w-full min-h-[100px] text-xs rounded-xl border border-m3-outline bg-m3-background p-3 focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary resize-y text-m3-on-surface transition-all"
+                  onChange={(e: any) => setEditingScene({ ...editingScene, what_happens: e.target.value })}
                   placeholder={t('sceneWhatHappensLabel')}
+                  className="w-full"
                 />
                 <div className="flex justify-end mt-1">
                   <WordCounter text={editingScene.what_happens || ''} />
@@ -932,16 +946,18 @@ export const Workspace: React.FC<WorkspaceProps> = ({
             <div className="flex gap-2 justify-end pt-2">
               <button
                 onClick={() => setEditingScene(null)}
-                className="px-4 py-1.5 border border-m3-outline text-m3-primary hover:bg-m3-primary/10 text-xs rounded-full transition-colors cursor-pointer font-cairo font-bold"
+                className="relative overflow-hidden px-4 py-1.5 border border-m3-outline text-m3-primary hover:bg-m3-primary/10 text-xs rounded-full transition-colors cursor-pointer font-cairo font-bold"
               >
                 {t('cancel')}
+                <md-ripple></md-ripple>
               </button>
               <button
                 onClick={() => handleSaveScene(editingScene)}
-                className="flex items-center gap-1.5 px-4 py-1.5 bg-m3-primary hover:opacity-90 text-m3-on-primary text-xs rounded-full transition-all font-bold cursor-pointer font-cairo shadow-sm"
+                className="relative overflow-hidden flex items-center gap-1.5 px-4 py-1.5 bg-m3-primary hover:opacity-90 text-m3-on-primary text-xs rounded-full transition-all font-bold cursor-pointer font-cairo shadow-sm"
               >
-                <Save className="w-3.5 h-3.5" />
+                <span className="material-symbols-rounded text-sm">save</span>
                 <span>{t('save')}</span>
+                <md-ripple></md-ripple>
               </button>
             </div>
           </div>
@@ -975,18 +991,22 @@ export const Workspace: React.FC<WorkspaceProps> = ({
                             <td className="px-4 py-3.5 text-m3-on-surface-variant font-medium truncate max-w-[120px]">{scn.setting || '_'}</td>
                             <td className="px-4 py-3.5 text-m3-on-surface-variant font-medium">{scn.plot_thread || '_'}</td>
                             <td className="px-4 py-3.5 text-m3-on-surface-variant font-medium font-mono">{scn.expected_word_count} / {scn.actual_word_count || 0}</td>
-                            <td className="px-4 py-3.5 flex gap-3 font-cairo">
+                            <td className="px-4 py-3.5 flex gap-2 font-cairo">
                               <button
                                 onClick={() => setEditingScene(scn)}
-                                className="text-[10px] text-m3-on-surface-variant hover:text-m3-primary font-bold cursor-pointer"
+                                className="relative overflow-hidden p-1.5 text-m3-on-surface-variant hover:text-m3-primary rounded-full cursor-pointer flex items-center justify-center"
+                                title={t('edit')}
                               >
-                                {t('edit')}
+                                <span className="material-symbols-rounded text-sm">edit</span>
+                                <md-ripple></md-ripple>
                               </button>
                               <button
                                 onClick={() => handleDeleteScene(scn.id!)}
-                                className="text-[10px] text-rose-500 hover:text-rose-600 font-bold cursor-pointer"
+                                className="relative overflow-hidden p-1.5 text-rose-500 hover:text-rose-600 rounded-full cursor-pointer flex items-center justify-center"
+                                title={t('delete')}
                               >
-                                {t('delete')}
+                                <span className="material-symbols-rounded text-sm">delete</span>
+                                <md-ripple></md-ripple>
                               </button>
                             </td>
                           </tr>
@@ -1048,7 +1068,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
                   <button
                     key={scn.id}
                     onClick={() => setSelectedSceneIdStep9(scn.id!)}
-                    className={`w-full text-start p-2.5 rounded-xl text-xs transition-all cursor-pointer font-cairo ${
+                    className={`relative overflow-hidden w-full text-start p-2.5 rounded-xl text-xs transition-all cursor-pointer font-cairo ${
                       selectedSceneIdStep9 === scn.id
                         ? 'bg-m3-primary-container text-m3-on-primary-container font-bold shadow-sm'
                         : 'hover:bg-m3-surface-variant/45 text-m3-on-surface-variant'
@@ -1056,6 +1076,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
                     title={`${t('sceneNumber')} ${idx + 1}: ${scn.setting || t('sceneNotPlanned')}`}
                   >
                     <span className="block truncate">{t('sceneNumber')} {idx + 1}: {scn.setting || t('sceneNotPlanned')}</span>
+                    <md-ripple></md-ripple>
                   </button>
                 ))}
               </div>
@@ -1079,34 +1100,36 @@ export const Workspace: React.FC<WorkspaceProps> = ({
                         {selectedScene.expected_word_count} {t('words')}
                       </div>
                     </div>
-                    <div className="space-y-1 font-cairo">
-                      <span className="text-[10px] font-bold text-m3-on-surface-variant">{t('sceneActualWordsLabel')}</span>
-                      <input
+                    <div className="font-cairo">
+                      <md-outlined-text-field
                         type="number"
-                        value={selectedScene.actual_word_count || ''}
-                        onChange={(e) => {
+                        label={t('sceneActualWordsLabel')}
+                        value={String(selectedScene.actual_word_count || '')}
+                        onChange={(e: any) => {
                           const updated = scenes.map(s => s.id === selectedScene.id ? { ...s, actual_word_count: Number(e.target.value) || 0 } : s);
                           setScenes(updated);
                         }}
-                        onBlur={(e) => handleSaveNarrative(selectedScene.what_happens, Number(e.target.value) || 0)}
-                        className="w-full text-xs font-bold rounded-xl border border-m3-outline bg-m3-background p-2.5 focus:outline-none focus:border-m3-primary focus:ring-0 text-m3-on-surface"
+                        onBlur={(e: any) => handleSaveNarrative(selectedScene.what_happens, Number(e.target.value) || 0)}
+                        className="w-full"
                       />
                     </div>
                   </div>
 
-                  <div className="space-y-1.5 font-cairo">
-                    <label className="text-[10px] font-bold text-m3-on-surface-variant block">{t('sceneNarrativeTextareaLabel')}</label>
-                    <textarea
+                  <div className="font-cairo">
+                    <md-outlined-text-field
+                      type="textarea"
+                      rows={10}
+                      label={t('sceneNarrativeTextareaLabel')}
                       value={selectedScene.what_happens}
-                      onChange={(e) => {
+                      onChange={(e: any) => {
                         const updated = scenes.map(s => s.id === selectedScene.id ? { ...s, what_happens: e.target.value } : s);
                         setScenes(updated);
                       }}
-                      onBlur={(e) => handleSaveNarrative(e.target.value, selectedScene.actual_word_count)}
-                      className="w-full min-h-[300px] text-xs leading-loose bg-m3-surface border border-m3-outline p-3 rounded-2xl focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary resize-y text-m3-on-surface transition-all shadow-sm"
+                      onBlur={(e: any) => handleSaveNarrative(e.target.value, selectedScene.actual_word_count)}
+                      className="w-full min-h-[300px]"
                       placeholder={t('sceneNarrativePlaceholder')}
                     />
-                    <div className="flex justify-end">
+                    <div className="flex justify-end mt-1">
                       <WordCounter text={selectedScene.what_happens} />
                     </div>
                   </div>
@@ -1134,7 +1157,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
         {renderStepHeader()}
 
         <div className="bg-m3-surface p-5 border border-m3-outline-variant rounded-2xl max-h-[500px] overflow-y-auto text-start select-text shadow-sm">
-          <pre className="text-xs font-mono whitespace-pre-wrap leading-relaxed text-m3-on-surface font-semibold">
+          <pre className="text-xs font-cairo whitespace-pre-wrap leading-relaxed text-m3-on-surface font-semibold">
             {mdContent}
           </pre>
         </div>

@@ -15,7 +15,7 @@ import {
   openProject,
   closeProject
 } from "./lib";
-import { BookOpen, Plus, Menu } from "lucide-react";
+
 
 interface RecentProject {
   path: string;
@@ -261,10 +261,11 @@ function App() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsSidebarOpen(true)}
-              className="md:hidden p-1.5 text-m3-on-surface-variant hover:text-m3-on-surface hover:bg-m3-surface-variant/40 rounded-full cursor-pointer transition-colors"
+              className="relative overflow-hidden md:hidden p-1.5 text-m3-on-surface-variant hover:text-m3-on-surface hover:bg-m3-surface-variant/40 rounded-full cursor-pointer transition-colors flex items-center justify-center"
               title={t("openSidebar")}
             >
-              <Menu className="w-5 h-5" />
+              <span className="material-symbols-rounded text-sm block">menu</span>
+              <md-ripple></md-ripple>
             </button>
             <span 
               onClick={handleCloseProject}
@@ -275,9 +276,10 @@ function App() {
             {activeNovelId !== null && (
               <button
                 onClick={handleCloseProject}
-                className="text-[10px] px-3 py-1 border border-m3-outline-variant hover:bg-m3-surface-variant/40 text-m3-on-surface-variant rounded-full transition-colors cursor-pointer font-cairo font-semibold"
+                className="relative overflow-hidden text-[10px] px-3 py-1 border border-m3-outline-variant hover:bg-m3-surface-variant/40 text-m3-on-surface-variant rounded-full transition-colors cursor-pointer font-cairo font-semibold whitespace-nowrap shrink-0"
               >
                 {t("projectsBtn")}
+                <md-ripple></md-ripple>
               </button>
             )}
           </div>
@@ -290,9 +292,10 @@ function App() {
             )}
             <button
               onClick={() => setShowHelpModal(true)}
-              className="text-xs px-4 py-1.5 border border-m3-outline text-m3-primary hover:bg-m3-primary/10 transition-colors font-bold rounded-full cursor-pointer font-cairo"
+              className="relative overflow-hidden text-xs px-4 py-1.5 border border-m3-outline text-m3-primary hover:bg-m3-primary/10 transition-colors font-bold rounded-full cursor-pointer font-cairo whitespace-nowrap shrink-0"
             >
               {t("helpGuideBtn")}
+              <md-ripple></md-ripple>
             </button>
             <ThemeToggle />
           </div>
@@ -323,16 +326,18 @@ function App() {
                 <div className="flex gap-2 shrink-0">
                   <button
                     onClick={handleOpenFileDialog}
-                    className="flex items-center gap-1.5 text-xs px-4 py-2 border border-m3-outline text-m3-primary hover:bg-m3-primary/10 font-bold rounded-full cursor-pointer transition-colors font-cairo whitespace-nowrap shrink-0"
+                    className="relative overflow-hidden flex items-center justify-center text-xs px-6 py-2.5 border border-m3-outline text-m3-primary hover:bg-m3-primary/10 font-bold rounded-full cursor-pointer transition-colors font-cairo whitespace-nowrap shrink-0"
                   >
-                    <span className="whitespace-nowrap shrink-0">{t("openProjectBtn")}</span>
+                    <span>{t("openProjectBtn")}</span>
+                    <md-ripple></md-ripple>
                   </button>
                   <button
                     onClick={handleCreateFileDialog}
-                    className="flex items-center gap-1.5 text-xs px-5 py-2 bg-m3-primary hover:opacity-90 text-m3-on-primary font-bold rounded-full cursor-pointer transition-all font-cairo shadow-sm whitespace-nowrap shrink-0"
+                    className="relative overflow-hidden flex items-center justify-center gap-2 text-xs px-6 py-2.5 bg-m3-primary hover:opacity-90 text-m3-on-primary font-bold rounded-full cursor-pointer transition-all font-cairo shadow-sm whitespace-nowrap shrink-0"
                   >
-                    <Plus className="w-3.5 h-3.5 shrink-0" />
-                    <span className="whitespace-nowrap shrink-0">{t("createProjectBtn")}</span>
+                    <span className="material-symbols-rounded text-[18px]">add</span>
+                    <span>{t("createProjectBtn")}</span>
+                    <md-ripple></md-ripple>
                   </button>
                 </div>
               </div>
@@ -342,7 +347,7 @@ function App() {
                 <h3 className="text-xs font-bold uppercase tracking-wider text-m3-on-surface-variant">{t("recentProjectsTitle")}</h3>
                 {recentProjects.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-20 text-center space-y-4 border border-dashed border-m3-outline-variant rounded-2xl bg-m3-surface/50">
-                    <BookOpen className="w-10 h-10 text-m3-on-surface-variant/40 stroke-[1.2]" />
+                    <span className="material-symbols-rounded text-4xl text-m3-on-surface-variant/40">library_books</span>
                     <h2 className="text-sm font-bold text-m3-on-surface font-cairo">{t("noRecentProjectsTitle")}</h2>
                     <p className="text-xs text-m3-on-surface-variant max-w-xs leading-relaxed font-cairo font-semibold text-center">
                       {t("noRecentProjectsDesc")}
@@ -354,18 +359,18 @@ function App() {
                       <div 
                         key={project.path}
                         onClick={() => handleOpenProjectPath(project.path)}
-                        className="bg-m3-surface p-4 border border-m3-outline-variant hover:border-m3-primary rounded-2xl cursor-pointer transition-all flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 group relative select-text"
+                        className="bg-m3-surface p-4 border border-m3-outline-variant hover:border-m3-primary rounded-2xl cursor-pointer transition-all flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 group relative select-text"
                       >
-                        <div className="space-y-1">
+                        <div className="space-y-1 min-w-0 flex-1 pe-4 text-start">
                           <h4 className="text-sm font-bold text-m3-on-surface group-hover:text-m3-primary transition-colors font-cairo">
                             {project.title}
                           </h4>
-                          <p className="text-[10px] text-m3-on-surface-variant font-mono truncate max-w-lg select-all" dir="ltr" title={project.path}>
+                          <p className="text-[10px] text-m3-on-surface-variant font-mono truncate w-full select-all" dir="ltr" title={project.path}>
                             {project.path}
                           </p>
                         </div>
                         
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-4 shrink-0 sm:self-center self-end">
                           <span className="text-[10px] text-m3-on-surface-variant font-semibold">
                             {t("openedLabel")} {new Date(project.lastOpened).toLocaleDateString(language === "ar" ? "ar-EG" : "en-US", { day: "numeric", month: "short", year: "numeric" })}
                           </span>
@@ -374,12 +379,11 @@ function App() {
                               e.stopPropagation();
                               removeRecentProject(project.path);
                             }}
-                            className="p-1.5 text-m3-on-surface-variant hover:text-rose-500 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity rounded-full cursor-pointer"
+                            className="relative overflow-hidden p-1.5 text-m3-on-surface-variant hover:text-rose-500 opacity-100 rounded-full cursor-pointer flex items-center justify-center"
                             title={t("removeFromList")}
                           >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
+                            <span className="material-symbols-rounded text-sm">close</span>
+                            <md-ripple></md-ripple>
                           </button>
                         </div>
                       </div>
@@ -406,9 +410,11 @@ function App() {
               <h2 className="text-base font-bold text-m3-on-surface">{t("helpModalTitle")}</h2>
               <button 
                 onClick={() => setShowHelpModal(false)}
-                className="text-m3-on-surface-variant hover:text-m3-on-surface text-xs font-semibold cursor-pointer"
+                className="relative overflow-hidden p-1 text-m3-on-surface-variant hover:text-m3-on-surface hover:bg-m3-surface-variant/40 rounded-full cursor-pointer flex items-center justify-center"
+                title={t("close")}
               >
-                {t("close")}
+                <span className="material-symbols-rounded text-sm">close</span>
+                <md-ripple></md-ripple>
               </button>
             </div>
 
@@ -471,9 +477,10 @@ function App() {
             <div className="mt-6 flex justify-end border-t border-m3-outline-variant pt-4">
               <button 
                 onClick={() => setShowHelpModal(false)}
-                className="px-5 py-2 bg-m3-primary hover:opacity-90 text-m3-on-primary font-bold rounded-full text-xs transition-colors cursor-pointer font-cairo shadow-sm"
+                className="relative overflow-hidden px-6 py-2.5 bg-m3-primary hover:opacity-90 text-m3-on-primary font-bold rounded-full text-xs transition-colors cursor-pointer font-cairo shadow-sm"
               >
-                {t("helpModalCloseBtn")}
+                <span>{t("helpModalCloseBtn")}</span>
+                <md-ripple></md-ripple>
               </button>
             </div>
           </div>
@@ -511,9 +518,10 @@ function App() {
             <div className="flex justify-end pt-2">
               <button
                 onClick={() => setShowPickerModal(false)}
-                className="px-5 py-2 text-xs font-bold border border-m3-outline text-m3-primary hover:bg-m3-primary/10 rounded-full cursor-pointer transition-colors"
+                className="relative overflow-hidden px-6 py-2.5 border border-m3-outline text-m3-primary hover:bg-m3-primary/10 font-bold rounded-full text-xs transition-colors cursor-pointer font-cairo"
               >
-                {t("cancel")}
+                <span>{t("cancel")}</span>
+                <md-ripple></md-ripple>
               </button>
             </div>
           </div>
@@ -561,18 +569,20 @@ function App() {
                   </div>
                 </div>
               ) : (
-                <div className="flex gap-3 justify-end mt-4 select-none font-cairo">
+                <div className="flex gap-3 justify-end mt-4 select-none font-cairo items-center">
                   <button
                     onClick={() => setUpdateInfo(null)}
-                    className="px-4 py-2 text-xs font-bold text-m3-on-surface-variant hover:bg-m3-surface-variant/40 rounded-full transition-colors cursor-pointer"
+                    className="relative overflow-hidden px-4 py-2 text-xs font-bold text-m3-on-surface-variant hover:bg-m3-surface-variant/40 rounded-full transition-colors cursor-pointer"
                   >
                     {language === 'ar' ? 'تخطي' : 'Remind Me Later'}
+                    <md-ripple></md-ripple>
                   </button>
                   <button
                     onClick={handlePerformUpdate}
-                    className="px-5 py-2 text-xs font-bold text-white bg-m3-primary hover:bg-m3-primary/95 shadow rounded-full transition-colors cursor-pointer"
+                    className="relative overflow-hidden px-6 py-2.5 bg-m3-primary hover:opacity-90 text-m3-on-primary font-bold rounded-full text-xs transition-colors cursor-pointer font-cairo shadow-sm"
                   >
-                    {language === 'ar' ? 'تحديث وإعادة تشغيل' : 'Update & Restart'}
+                    <span>{language === 'ar' ? 'تحديث وإعادة تشغيل' : 'Update & Restart'}</span>
+                    <md-ripple></md-ripple>
                   </button>
                 </div>
               )}
