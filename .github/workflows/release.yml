@@ -152,7 +152,7 @@ jobs:
       - name: Run updater sync script
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: node scripts/update-updater.js
+        run: node scripts/update-updater.cjs
 
       - name: Commit and push changes
         run: |
