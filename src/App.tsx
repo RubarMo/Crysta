@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Sidebar } from "./components/Sidebar";
 import { Workspace } from "./components/Workspace";
 import { ThemeToggle } from "./components/ThemeToggle";
 import { useLanguage } from "./LanguageContext";
 import { check } from "@tauri-apps/plugin-updater";
-import { relaunch } from "@tauri-apps/plugin-process";
+import { relaunch, exit } from "@tauri-apps/plugin-process";
+import { onBackButtonPress } from "@tauri-apps/api/app";
 import { 
   Novel, 
   StepProgress, 
@@ -44,6 +45,76 @@ function App() {
     progress: number;
     error: string | null;
   } | null>(null);
+
+  // Back button navigation state ref
+  const navStateRef = useRef({
+    showHelpModal,
+    showPickerModal,
+    isSidebarOpen,
+    activeNovelId,
+    activeStep,
+  });
+
+  // Sync ref with state updates
+  useEffect(() => {
+    navStateRef.current = {
+      showHelpModal,
+      showPickerModal,
+      isSidebarOpen,
+      activeNovelId,
+      activeStep,
+    };
+  }, [showHelpModal, showPickerModal, isSidebarOpen, activeNovelId, activeStep]);
+
+  // Handle Android back button
+  useEffect(() => {
+    let listener: any = null;
+
+    const setupBackButtonListener = async () => {
+      try {
+        listener = await onBackButtonPress(() => {
+          const {
+            showHelpModal: helpOpen,
+            showPickerModal: pickerOpen,
+            isSidebarOpen: sidebarOpen,
+            activeNovelId: novelId,
+            activeStep: step,
+          } = navStateRef.current;
+
+          if (helpOpen) {
+            setShowHelpModal(false);
+          } else if (pickerOpen) {
+            setShowPickerModal(false);
+          } else if (sidebarOpen) {
+            setIsSidebarOpen(false);
+          } else if (novelId !== null) {
+            if (step > 0) {
+              setActiveStep(0);
+            } else {
+              handleCloseProject();
+            }
+          } else {
+            exit(0).catch((err) => {
+              console.error("Failed to exit app:", err);
+            });
+          }
+        });
+      } catch (err) {
+        console.warn("Failed to register back button listener:", err);
+      }
+    };
+
+    setupBackButtonListener();
+
+    return () => {
+      if (listener) {
+        listener.unregister().catch((err: any) => {
+          console.error("Failed to unregister back button listener:", err);
+        });
+      }
+    };
+  }, []);
+
 
   // Check for updates on startup
   useEffect(() => {
@@ -189,7 +260,21 @@ function App() {
 
   const handleCreateFileDialog = async () => {
     try {
-      const path = await createProjectFile(t("newNovelFilename"));
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      let filename = t("newNovelFilename");
+      
+      if (isMobile) {
+        const name = prompt(
+          language === 'ar' ? 'أدخل اسم المشروع الجديد:' : 'Enter new project name:',
+          language === 'ar' ? 'مشروع جديد' : 'New Project'
+        );
+        if (name === null) return; // User cancelled
+        const cleanedName = name.trim().replace(/[/\\?%*:|"<>\s]/g, '_');
+        if (!cleanedName) return;
+        filename = `${cleanedName}.crysta`;
+      }
+
+      const path = await createProjectFile(filename);
       if (path) {
         setLoading(true);
         const novel = await openProject(path);

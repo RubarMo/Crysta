@@ -216,10 +216,14 @@ fn open_project(app: tauri::AppHandle, state: tauri::State<'_, DbState>, path: S
     let count: i64 = stmt.query_row([], |row| row.get(0)).map_err(|e| e.to_string())?;
     
     if count == 0 {
+        let default_title = path_buf
+            .file_stem()
+            .and_then(|s| s.to_str())
+            .unwrap_or("رواية جديدة");
         // Insert default novel
         conn.execute(
             "INSERT INTO novels (title, genre, target_audience, target_word_count, current_word_count) VALUES (?, ?, ?, ?, ?)",
-            params!["رواية جديدة", "عام", "كافة القراء", 50000, 0],
+            params![default_title, "عام", "كافة القراء", 50000, 0],
         ).map_err(|e| e.to_string())?;
     }
     

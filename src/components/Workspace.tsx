@@ -58,6 +58,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
 
   // Copy Clipboard State
   const [copied, setCopied] = useState(false);
+  const [isNovelSaved, setIsNovelSaved] = useState(false);
 
   // Sync step local state on tab switch
   useEffect(() => {
@@ -90,6 +91,10 @@ export const Workspace: React.FC<WorkspaceProps> = ({
       await saveStepProgress(activeNovel.id, activeStep, text, completed);
       onReloadSteps();
     } catch (err: any) {
+      if (err && String(err).includes("No active project loaded")) {
+        console.warn('Ignored step progress save: project is closed');
+        return;
+      }
       console.error('Failed to save step progress', err);
       alert(`${t('error')}: ${err}`);
     }
@@ -114,7 +119,13 @@ export const Workspace: React.FC<WorkspaceProps> = ({
         target_audience: novelAudience,
         target_word_count: novelTargetWords,
       });
+      setIsNovelSaved(true);
+      setTimeout(() => setIsNovelSaved(false), 2000);
     } catch (err: any) {
+      if (err && String(err).includes("No active project loaded")) {
+        console.warn('Ignored novel save: project is closed');
+        return;
+      }
       console.error('Failed to update novel', err);
       alert(`${t('error')}: ${err}`);
     }
@@ -339,6 +350,28 @@ export const Workspace: React.FC<WorkspaceProps> = ({
                 className="w-full"
               />
             </div>
+          </div>
+
+          <div className="flex justify-end pt-4 border-t border-m3-outline-variant/30 mt-4">
+            <button
+              onClick={triggerSaveNovel}
+              className={`relative overflow-hidden flex items-center gap-1.5 px-5 py-2 text-xs rounded-full transition-all font-bold cursor-pointer font-cairo shadow-sm ${
+                isNovelSaved 
+                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white' 
+                  : 'bg-m3-primary hover:opacity-90 text-m3-on-primary'
+              }`}
+            >
+              <span className="material-symbols-rounded text-sm">
+                {isNovelSaved ? 'check' : 'save'}
+              </span>
+              <span>
+                {isNovelSaved 
+                  ? (language === 'ar' ? 'تم الحفظ!' : 'Saved!') 
+                  : (language === 'ar' ? 'حفظ معلومات الرواية' : 'Save Novel Info')
+                }
+              </span>
+              <md-ripple></md-ripple>
+            </button>
           </div>
         </div>
 
