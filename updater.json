@@ -4,20 +4,20 @@
   "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEY1MzY3QkNEREREQzZBRUEKUldUcWF0emR6WHMyOWFqNUhMbzlvRHhGUTJQcTJrK2RUS2IrTDVkOEV1RFBUaXZXNzF0NnlEYmQK",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUcWF0emR6WHMyOWJhUGlPZGlkUkxmbHBWTjdIWTg5dVRnL2lhNVhoZVBNN1UyU0cyV0NEbE14NkpDWnVrYytaUjMvWlV2VWhIMXI3SlFyS0h5cXlLdHF5OUdxdU1UVUFnPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzgzNjc5OTQ4CWZpbGU6Q3J5c3RhXzIuNC4wX3g2NF9lbi1VUy5tc2kKdTM4VkV0Yk5QSFJmYnNQc2JHb1VNeTdHVXVOQUlWczhrbnAwaGNUTmJhbmlyTGhSVEhiZ0VaS2Y0ekZkSEttSGU3emlGcjg4ejFpaE0wci91cm9mQWc9PQo=",
-      "url": "https://github.com/RubarMo/Crysta/releases/download/v2.4.0/Crysta_2.4.0_x64_en-US.msi"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUcWF0emR6WHMyOVM2ZHpVQSs5SnpJSDNtcE4vYm1WcnJtUDFvTzdHTDRFSjNRYXNKZm43YWsyR290RkRYUFNEOTNTZTB4UjViMURLRUloQTdoN0FmNHpicld1NGdWTkFVPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzgzOTQzMzUzCWZpbGU6Q3J5c3RhXzIuNS4wX3g2NF9lbi1VUy5tc2kKVVBPOHBQVTFLcHBBaC9TZVVIcUE1RUZsTU83UUgxY2FPTVQxM1ZaMUxmNXQveGRLYVNvZHdDaWY0bm1ZMVoxczNkNFRxaW10Y3hHZm5LVWJBWmo3Qmc9PQo=",
+      "url": "https://github.com/RubarMo/Crysta/releases/download/v2.5.0/Crysta_2.5.0_x64_en-US.msi"
     },
     "darwin-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUcWF0emR6WHMyOVI0MHJzOHduQ3BNc0Iwb2ZIanNoT3VjTTJLS0xtSEQvZitwRGpTVGJUOFE3bTZLeWpRMk5kYjU0dFhsSzVVck84djFBcmdJcCs2R3FHclJCclNkMHcwPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzgzNjc5OTYyCWZpbGU6Q3J5c3RhLmFwcC50YXIuZ3oKSDQzT2tSekRuM3pEM3BkN3pBbmhqKzBGZmYycHJNN1BBVFN2cE5KVWE2czRhd2c2c2ZUSUFvcDF2OG1wek5Zc2RrWUFRL21qZEMrS0dXdVJXL0ZyQlE9PQo=",
-      "url": "https://github.com/RubarMo/Crysta/releases/download/v2.4.0/Crysta_universal.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUcWF0emR6WHMyOVlvLzg1RktTUWVpbkdqU0E5YkNrOStabW10Z1UzU2lWUGlzTnVMZ2pjUFpKbHRJUUt0ZFExbjhFc2FNMlhGMXR0V0dIVHVTNnhwck9pYVhEMjBvZ1FvPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzgzOTQzMjYyCWZpbGU6Q3J5c3RhLmFwcC50YXIuZ3oKekJGUzBqend4MVpKQ0o2MG5nRjY0SllpeitNZVFRbENROTR1NlhYb3pnbDF2ck5QRVg1WWZQdTN0cE5mUU1nRlQ3YmlZYldMTkgxNU5nUEJPaHkyQ1E9PQo=",
+      "url": "https://github.com/RubarMo/Crysta/releases/download/v2.5.0/Crysta_universal.app.tar.gz"
     },
     "darwin-aarch64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUcWF0emR6WHMyOVI0MHJzOHduQ3BNc0Iwb2ZIanNoT3VjTTJLS0xtSEQvZitwRGpTVGJUOFE3bTZLeWpRMk5kYjU0dFhsSzVVck84djFBcmdJcCs2R3FHclJCclNkMHcwPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzgzNjc5OTYyCWZpbGU6Q3J5c3RhLmFwcC50YXIuZ3oKSDQzT2tSekRuM3pEM3BkN3pBbmhqKzBGZmYycHJNN1BBVFN2cE5KVWE2czRhd2c2c2ZUSUFvcDF2OG1wek5Zc2RrWUFRL21qZEMrS0dXdVJXL0ZyQlE9PQo=",
-      "url": "https://github.com/RubarMo/Crysta/releases/download/v2.4.0/Crysta_universal.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUcWF0emR6WHMyOVlvLzg1RktTUWVpbkdqU0E5YkNrOStabW10Z1UzU2lWUGlzTnVMZ2pjUFpKbHRJUUt0ZFExbjhFc2FNMlhGMXR0V0dIVHVTNnhwck9pYVhEMjBvZ1FvPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzgzOTQzMjYyCWZpbGU6Q3J5c3RhLmFwcC50YXIuZ3oKekJGUzBqend4MVpKQ0o2MG5nRjY0SllpeitNZVFRbENROTR1NlhYb3pnbDF2ck5QRVg1WWZQdTN0cE5mUU1nRlQ3YmlZYldMTkgxNU5nUEJPaHkyQ1E9PQo=",
+      "url": "https://github.com/RubarMo/Crysta/releases/download/v2.5.0/Crysta_universal.app.tar.gz"
     },
     "linux-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUcWF0emR6WHMyOVZvNXR3VUZpOVV2c05ISHFZWlc1MFVFUHluUHNOWUJleTVKaWRwZUg1aHJwM0U5MDJKNFNTemhpN1FRQm9HOVpwQkV2OTFYclZoM3JTYXBQcHB1emdVPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzgzNjc5ODI1CWZpbGU6Q3J5c3RhXzIuNC4wX2FtZDY0LmRlYgorRnJGQ1FiOFhyUC9vaTZ0NDd0UlFYZWNiSTRaRFNIQjlPRFBGMUwyU21EdGRnM1p6SE1UVXRVUnlETzE0ZXR1MkhrdjhXa1dZZU1vTXhlWnpHZVVDQT09Cg==",
-      "url": "https://github.com/RubarMo/Crysta/releases/download/v2.4.0/crysta_2.4.0_amd64.deb"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUcWF0emR6WHMyOVMwOFYva1VMY3VCQjNqZmVpLzhWbHpNT21ZdE1HZ1VBYXM5UEUwalZudE1oalJnQXVGbnFpeWFLZ2F2cDQ1RS9LYXM4a0hXeXJZWXFXTHBXdk42dFEwPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzgzOTQzMjQ3CWZpbGU6Q3J5c3RhXzIuNS4wX2FtZDY0LmRlYgo5OWR3ZG01VFdFNTE0TEMvbUl0OGNZdXEwYkxoMkJIdXhBZ2U0eVgwZTdGbDBaUDJST3VQUjVPblJHQVZ6RVlZVXdVWk9lTnNmVm91UjJVaDYyWDdEUT09Cg==",
+      "url": "https://github.com/RubarMo/Crysta/releases/download/v2.5.0/crysta_2.5.0_amd64.deb"
     }
   }
 }
