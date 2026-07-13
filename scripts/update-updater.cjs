@@ -67,7 +67,7 @@ async function run() {
     // Group assets
     for (const asset of assets) {
       const name = asset.name;
-      const url = asset.browser_download_url;
+      const url = `https://github.com/${repo}/releases/download/${tag}/${name}`;
 
       if (name.endsWith('.msi')) {
         platformData['windows-x86_64'].url = url;
