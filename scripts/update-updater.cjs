@@ -14,9 +14,9 @@ const version = tag.replace(/^v/, '');
 
 async function run() {
   try {
-    // 1. Fetch release details by tag
-    console.log(`Fetching release assets for tag ${tag} in ${repo}...`);
-    const releaseRes = await fetch(`https://api.github.com/repos/${repo}/releases/tags/${tag}`, {
+    // 1. Fetch all releases to find draft release matching tag
+    console.log(`Fetching releases list for ${repo} to find tag ${tag}...`);
+    const releasesRes = await fetch(`https://api.github.com/repos/${repo}/releases`, {
       headers: {
         Authorization: `Bearer ${token}`,
         'Accept': 'application/vnd.github.v3+json',
@@ -24,11 +24,17 @@ async function run() {
       }
     });
 
-    if (!releaseRes.ok) {
-      throw new Error(`Failed to fetch release: ${releaseRes.statusText} (${releaseRes.status})`);
+    if (!releasesRes.ok) {
+      throw new Error(`Failed to fetch releases: ${releasesRes.statusText} (${releasesRes.status})`);
     }
 
-    const release = await releaseRes.json();
+    const releases = await releasesRes.json();
+    const release = releases.find(r => r.tag_name === tag);
+
+    if (!release) {
+      throw new Error(`No release found for tag: ${tag}`);
+    }
+
     console.log(`Found release: ${release.name} (Draft: ${release.draft})`);
 
     const assets = release.assets;
