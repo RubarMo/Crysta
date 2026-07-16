@@ -1,0 +1,10 @@
+C:\Users\Student\OneDrive - GFN GmbH (EDU)\Documents\Coding Projects\Crysta\rust_core\rust_core/target_frb\debug\deps\autocfg-4751a526177a917f.d: C:\Users\Student\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\autocfg-1.5.1\src\lib.rs C:\Users\Student\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\autocfg-1.5.1\src\error.rs C:\Users\Student\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\autocfg-1.5.1\src\rustc.rs C:\Users\Student\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\autocfg-1.5.1\src\version.rs
+
+C:\Users\Student\OneDrive - GFN GmbH (EDU)\Documents\Coding Projects\Crysta\rust_core\rust_core/target_frb\debug\deps\libautocfg-4751a526177a917f.rlib: C:\Users\Student\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\autocfg-1.5.1\src\lib.rs C:\Users\Student\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\autocfg-1.5.1\src\error.rs C:\Users\Student\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\autocfg-1.5.1\src\rustc.rs C:\Users\Student\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\autocfg-1.5.1\src\version.rs
+
+C:\Users\Student\OneDrive - GFN GmbH (EDU)\Documents\Coding Projects\Crysta\rust_core\rust_core/target_frb\debug\deps\libautocfg-4751a526177a917f.rmeta: C:\Users\Student\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\autocfg-1.5.1\src\lib.rs C:\Users\Student\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\autocfg-1.5.1\src\error.rs C:\Users\Student\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\autocfg-1.5.1\src\rustc.rs C:\Users\Student\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\autocfg-1.5.1\src\version.rs
+
+C:\Users\Student\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\autocfg-1.5.1\src\lib.rs:
+C:\Users\Student\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\autocfg-1.5.1\src\error.rs:
+C:\Users\Student\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\autocfg-1.5.1\src\rustc.rs:
+C:\Users\Student\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\autocfg-1.5.1\src\version.rs:
