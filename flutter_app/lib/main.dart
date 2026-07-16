@@ -853,27 +853,31 @@ class _WorkspacePageState extends State<WorkspacePage> {
             child: Card(
               child: Padding(
                 padding: const EdgeInsets.all(12),
-                child: Column(
-                  children: [
-                    quill.QuillToolbar.simple(
-                      configurations: quill.QuillSimpleToolbarConfigurations(
-                        controller: _quillController,
-                        showAlignmentButtons: false,
-                        showCenterAlignment: false,
-                        showFontFamily: false,
-                        showFontSize: false,
-                      ),
-                    ),
-                    const Divider(height: 1),
-                    Expanded(
-                      child: quill.QuillEditor.basic(
-                        configurations: quill.QuillEditorConfigurations(
+                child: KeyedSubtree(
+                  key: ValueKey(_quillController),
+                  child: Column(
+                    children: [
+                      quill.QuillToolbar.simple(
+                        configurations: quill.QuillSimpleToolbarConfigurations(
                           controller: _quillController,
-                          readOnly: false,
+                          showAlignmentButtons: false,
+                          showCenterAlignment: false,
+                          showFontFamily: false,
+                          showFontSize: false,
                         ),
                       ),
-                    ),
-                  ],
+                      const Divider(height: 1),
+                      Expanded(
+                        child: quill.QuillEditor.basic(
+                          configurations: quill.QuillEditorConfigurations(
+                            controller: _quillController,
+                            readOnly: false,
+                            expands: true,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -1082,25 +1086,29 @@ class _WorkspacePageState extends State<WorkspacePage> {
                         child: Card(
                           child: Padding(
                             padding: const EdgeInsets.all(12),
-                            child: Column(
-                              children: [
-                                quill.QuillToolbar.simple(
-                                  configurations: quill.QuillSimpleToolbarConfigurations(
-                                    controller: _quillController,
-                                    showAlignmentButtons: false,
-                                    showCenterAlignment: false,
-                                  ),
-                                ),
-                                const Divider(height: 1),
-                                Expanded(
-                                  child: quill.QuillEditor.basic(
-                                    configurations: quill.QuillEditorConfigurations(
+                            child: KeyedSubtree(
+                              key: ValueKey(_quillController),
+                              child: Column(
+                                children: [
+                                  quill.QuillToolbar.simple(
+                                    configurations: quill.QuillSimpleToolbarConfigurations(
                                       controller: _quillController,
-                                      readOnly: false,
+                                      showAlignmentButtons: false,
+                                      showCenterAlignment: false,
                                     ),
                                   ),
-                                ),
-                              ],
+                                  const Divider(height: 1),
+                                  Expanded(
+                                    child: quill.QuillEditor.basic(
+                                      configurations: quill.QuillEditorConfigurations(
+                                        controller: _quillController,
+                                        readOnly: false,
+                                        expands: true,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
@@ -1320,25 +1328,29 @@ class _WorkspacePageState extends State<WorkspacePage> {
                         child: Card(
                           child: Padding(
                             padding: const EdgeInsets.all(12),
-                            child: Column(
-                              children: [
-                                quill.QuillToolbar.simple(
-                                  configurations: quill.QuillSimpleToolbarConfigurations(
-                                    controller: _quillController,
-                                    showAlignmentButtons: false,
-                                    showCenterAlignment: false,
-                                  ),
-                                ),
-                                const Divider(height: 1),
-                                Expanded(
-                                  child: quill.QuillEditor.basic(
-                                    configurations: quill.QuillEditorConfigurations(
+                            child: KeyedSubtree(
+                              key: ValueKey(_quillController),
+                              child: Column(
+                                children: [
+                                  quill.QuillToolbar.simple(
+                                    configurations: quill.QuillSimpleToolbarConfigurations(
                                       controller: _quillController,
-                                      readOnly: false,
+                                      showAlignmentButtons: false,
+                                      showCenterAlignment: false,
                                     ),
                                   ),
-                                ),
-                              ],
+                                  const Divider(height: 1),
+                                  Expanded(
+                                    child: quill.QuillEditor.basic(
+                                      configurations: quill.QuillEditorConfigurations(
+                                        controller: _quillController,
+                                        readOnly: false,
+                                        expands: true,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
@@ -1474,26 +1486,30 @@ class _WorkspacePageState extends State<WorkspacePage> {
                         child: Card(
                           child: Padding(
                             padding: const EdgeInsets.all(16),
-                            child: Column(
-                              children: [
-                                quill.QuillToolbar.simple(
-                                  configurations: quill.QuillSimpleToolbarConfigurations(
-                                    controller: _quillController,
-                                    showAlignmentButtons: false,
-                                    showCenterAlignment: false,
-                                  ),
-                                ),
-                                const Divider(height: 1),
-                                Expanded(
-                                  child: quill.QuillEditor.basic(
-                                    configurations: quill.QuillEditorConfigurations(
+                            child: KeyedSubtree(
+                              key: ValueKey(_quillController),
+                              child: Column(
+                                children: [
+                                  quill.QuillToolbar.simple(
+                                    configurations: quill.QuillSimpleToolbarConfigurations(
                                       controller: _quillController,
-                                      readOnly: false,
-                                      autoFocus: true,
+                                      showAlignmentButtons: false,
+                                      showCenterAlignment: false,
                                     ),
                                   ),
-                                ),
-                              ],
+                                  const Divider(height: 1),
+                                  Expanded(
+                                    child: quill.QuillEditor.basic(
+                                      configurations: quill.QuillEditorConfigurations(
+                                        controller: _quillController,
+                                        readOnly: false,
+                                        autoFocus: true,
+                                        expands: true,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
