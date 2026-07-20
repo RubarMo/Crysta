@@ -3,8 +3,7 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
-  irondash_engine_context
-  super_native_extensions
+  dynamic_color
   url_launcher_linux
 )
 
