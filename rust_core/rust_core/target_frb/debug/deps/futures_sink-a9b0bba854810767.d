@@ -1,5 +1,0 @@
-C:\Users\Student\OneDrive - GFN GmbH (EDU)\Documents\Coding Projects\Crysta\rust_core\rust_core/target_frb\debug\deps\futures_sink-a9b0bba854810767.d: C:\Users\Student\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\futures-sink-0.3.32\src\lib.rs
-
-C:\Users\Student\OneDrive - GFN GmbH (EDU)\Documents\Coding Projects\Crysta\rust_core\rust_core/target_frb\debug\deps\libfutures_sink-a9b0bba854810767.rmeta: C:\Users\Student\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\futures-sink-0.3.32\src\lib.rs
-
-C:\Users\Student\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\futures-sink-0.3.32\src\lib.rs:

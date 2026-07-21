@@ -5,29 +5,16 @@ import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter/services.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 
 import 'locales.dart';
-import 'src/rust/api.dart' as rust;
-import 'src/rust/frb_generated.dart';
+import 'models.dart';
+import 'db_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  try {
-    print('Before RustLib.init');
-    await RustLib.init();
-    print('After RustLib.init');
-    runApp(const CrystaApp());
-  } catch (e, st) {
-    runApp(MaterialApp(
-      home: Scaffold(
-        body: Center(
-          child: Text('Failed to initialize: $e\n$st', style: const TextStyle(color: Colors.red)),
-        ),
-      ),
-    ));
-  }
+  DatabaseService.init();
+  runApp(const CrystaApp());
 }
 
 class CrystaApp extends StatefulWidget {
@@ -287,7 +274,7 @@ class ProjectManagerPage extends StatefulWidget {
 }
 
 class _ProjectManagerPageState extends State<ProjectManagerPage> {
-  rust.Novel? _currentNovel;
+  Novel? _currentNovel;
   String? _projectPath;
   List<String> _recentProjects = [];
 
@@ -355,7 +342,7 @@ class _ProjectManagerPageState extends State<ProjectManagerPage> {
         path = '$path.crysta';
       }
       try {
-        final novel = await rust.openProject(path: path);
+        final novel = await DatabaseService.openProject(path: path);
         await _addRecentProject(path);
         setState(() {
           _currentNovel = novel;
@@ -376,7 +363,7 @@ class _ProjectManagerPageState extends State<ProjectManagerPage> {
 
     if (path != null) {
       try {
-        final novel = await rust.openProject(path: path);
+        final novel = await DatabaseService.openProject(path: path);
         await _addRecentProject(path);
         setState(() {
           _currentNovel = novel;
@@ -458,7 +445,7 @@ class _ProjectManagerPageState extends State<ProjectManagerPage> {
         projectPath: _projectPath!,
         language: widget.language,
         onClose: () {
-          rust.closeProject();
+          DatabaseService.closeProject();
           setState(() {
             _currentNovel = null;
             _projectPath = null;
@@ -625,7 +612,7 @@ class _ProjectManagerPageState extends State<ProjectManagerPage> {
 }
 
 class WorkspacePage extends StatefulWidget {
-  final rust.Novel novel;
+  final Novel novel;
   final String projectPath;
   final String language;
   final VoidCallback onClose;
@@ -654,7 +641,7 @@ class WorkspacePage extends StatefulWidget {
 
 class _WorkspacePageState extends State<WorkspacePage> {
   int _selectedTabIndex = 0;
-  late rust.Novel _activeNovel;
+  late Novel _activeNovel;
 
   // Interactive Resizable Panes State
   double _sidebarWidth = 260.0;
@@ -675,16 +662,16 @@ class _WorkspacePageState extends State<WorkspacePage> {
 
   bool _isLoadingStep = false;
 
-  List<rust.StepProgress> _allStepsProgress = [];
+  List<StepProgress> _allStepsProgress = [];
 
-  List<rust.Character> _characters = [];
-  rust.Character? _selectedCharacter;
+  List<Character> _characters = [];
+  Character? _selectedCharacter;
 
-  List<rust.Scene> _scenes = [];
-  rust.Scene? _selectedScene;
+  List<Scene> _scenes = [];
+  Scene? _selectedScene;
 
-  List<rust.Chapter> _chapters = [];
-  rust.Chapter? _selectedChapter;
+  List<Chapter> _chapters = [];
+  Chapter? _selectedChapter;
 
   String t(String key) => Locales.t(key, widget.language);
 
@@ -721,7 +708,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
 
   Future<void> _loadStepsProgress() async {
     try {
-      final list = await rust.getStepsProgress(novelId: _activeNovel.id!);
+      final list = await DatabaseService.getStepsProgress(novelId: _activeNovel.id!);
       setState(() {
         _allStepsProgress = list;
       });
@@ -735,7 +722,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
   bool _isStepDone(int stepNum) {
     final s = _allStepsProgress.firstWhere(
       (sp) => sp.stepNumber == stepNum,
-      orElse: () => rust.StepProgress(novelId: 0, stepNumber: 0, contentText: '', isCompleted: false),
+      orElse: () => StepProgress(novelId: 0, stepNumber: 0, contentText: '', isCompleted: false),
     );
     return s.isCompleted;
   }
@@ -744,16 +731,16 @@ class _WorkspacePageState extends State<WorkspacePage> {
     try {
       final existing = _allStepsProgress.firstWhere(
         (sp) => sp.stepNumber == stepNum,
-        orElse: () => rust.StepProgress(novelId: _activeNovel.id!, stepNumber: stepNum, contentText: '', isCompleted: isCompleted),
+        orElse: () => StepProgress(novelId: _activeNovel.id!, stepNumber: stepNum, contentText: '', isCompleted: isCompleted),
       );
-      final updated = rust.StepProgress(
+      final updated = StepProgress(
         id: existing.id,
         novelId: _activeNovel.id!,
         stepNumber: stepNum,
         contentText: existing.contentText,
         isCompleted: isCompleted,
       );
-      await rust.saveStepProgress(progress: updated);
+      await DatabaseService.saveStepProgress(progress: updated);
       await _loadStepsProgress();
     } catch (_) {}
   }
@@ -794,7 +781,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
     if (stepNum > 0 && stepNum != 3 && stepNum != 5 && stepNum != 7 && stepNum != 8 && stepNum != 9) {
       final step = _allStepsProgress.firstWhere(
         (s) => s.stepNumber == stepNum,
-        orElse: () => rust.StepProgress(
+        orElse: () => StepProgress(
           novelId: _activeNovel.id!,
           stepNumber: stepNum,
           contentText: '',
@@ -825,21 +812,21 @@ class _WorkspacePageState extends State<WorkspacePage> {
   Future<void> _saveActiveContent({bool showToast = true}) async {
     try {
       if (_selectedTabIndex == 11 && _selectedChapter != null) {
-        final updated = rust.Chapter(
+        final updated = Chapter(
           id: _selectedChapter!.id,
           novelId: _selectedChapter!.novelId,
           title: _chapterTitleCtrl.text,
           content: _chapterCtrl.text,
           sortOrder: _selectedChapter!.sortOrder,
         );
-        await rust.saveChapter(chapter: updated);
+        await DatabaseService.saveChapter(chapter: updated);
         await _loadChapters();
 
         int totalWords = 0;
         for (var c in _chapters) {
           totalWords += _countWordsFromText(c.content);
         }
-        _activeNovel = rust.Novel(
+        _activeNovel = Novel(
           id: _activeNovel.id,
           title: _activeNovel.title,
           genre: _activeNovel.genre,
@@ -848,7 +835,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
           currentWordCount: totalWords,
           createdAt: _activeNovel.createdAt,
         );
-        await rust.updateNovel(
+        await DatabaseService.updateNovel(
           id: _activeNovel.id!,
           title: _activeNovel.title,
           genre: _activeNovel.genre,
@@ -860,17 +847,17 @@ class _WorkspacePageState extends State<WorkspacePage> {
         final currentDone = _isStepDone(stepNum);
 
         if (stepNum == 1) {
-          await rust.saveStepProgress(
-            progress: rust.StepProgress(novelId: _activeNovel.id!, stepNumber: 1, contentText: _step1Ctrl.text, isCompleted: currentDone),
+          await DatabaseService.saveStepProgress(
+            progress: StepProgress(novelId: _activeNovel.id!, stepNumber: 1, contentText: _step1Ctrl.text, isCompleted: currentDone),
           );
           await _loadStepsProgress();
         } else if (stepNum == 2) {
-          await rust.saveStepProgress(
-            progress: rust.StepProgress(novelId: _activeNovel.id!, stepNumber: 2, contentText: _step2Ctrl.text, isCompleted: currentDone),
+          await DatabaseService.saveStepProgress(
+            progress: StepProgress(novelId: _activeNovel.id!, stepNumber: 2, contentText: _step2Ctrl.text, isCompleted: currentDone),
           );
           await _loadStepsProgress();
         } else if (stepNum == 3 && _selectedCharacter != null) {
-          final updated = rust.Character(
+          final updated = Character(
             id: _selectedCharacter!.id,
             novelId: _selectedCharacter!.novelId,
             name: _selectedCharacter!.name,
@@ -881,15 +868,15 @@ class _WorkspacePageState extends State<WorkspacePage> {
             oneParagraphSummary: _step3SummaryCtrl.text,
             fullSynopsis: _selectedCharacter!.fullSynopsis,
           );
-          await rust.saveCharacter(character: updated);
+          await DatabaseService.saveCharacter(character: updated);
           await _loadCharacters();
         } else if (stepNum == 4) {
-          await rust.saveStepProgress(
-            progress: rust.StepProgress(novelId: _activeNovel.id!, stepNumber: 4, contentText: _step4Ctrl.text, isCompleted: currentDone),
+          await DatabaseService.saveStepProgress(
+            progress: StepProgress(novelId: _activeNovel.id!, stepNumber: 4, contentText: _step4Ctrl.text, isCompleted: currentDone),
           );
           await _loadStepsProgress();
         } else if (stepNum == 5 && _selectedCharacter != null) {
-          final updated = rust.Character(
+          final updated = Character(
             id: _selectedCharacter!.id,
             novelId: _selectedCharacter!.novelId,
             name: _selectedCharacter!.name,
@@ -900,18 +887,18 @@ class _WorkspacePageState extends State<WorkspacePage> {
             oneParagraphSummary: _selectedCharacter!.oneParagraphSummary,
             fullSynopsis: _step5SynopsisCtrl.text,
           );
-          await rust.saveCharacter(character: updated);
+          await DatabaseService.saveCharacter(character: updated);
           await _loadCharacters();
         } else if (stepNum == 6) {
-          await rust.saveStepProgress(
-            progress: rust.StepProgress(novelId: _activeNovel.id!, stepNumber: 6, contentText: _step6Ctrl.text, isCompleted: currentDone),
+          await DatabaseService.saveStepProgress(
+            progress: StepProgress(novelId: _activeNovel.id!, stepNumber: 6, contentText: _step6Ctrl.text, isCompleted: currentDone),
           );
           await _loadStepsProgress();
         } else if (stepNum == 7 && _selectedCharacter != null) {
-          await rust.saveStepProgress(
-            progress: rust.StepProgress(
+          await DatabaseService.saveStepProgress(
+            progress: StepProgress(
               novelId: _activeNovel.id!,
-              stepNumber: 7000 + _selectedCharacter!.id!.toInt(),
+              stepNumber: 7000 + _selectedCharacter!.id!,
               contentText: _step7ChartCtrl.text,
               isCompleted: true,
             ),
@@ -920,7 +907,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
         } else if (stepNum == 8 && _selectedScene != null) {
           final text = _step8SceneCtrl.text;
           final actualWords = _countWordsFromText(text);
-          final updated = rust.Scene(
+          final updated = Scene(
             id: _selectedScene!.id,
             novelId: _selectedScene!.novelId,
             povCharacterId: _selectedScene!.povCharacterId,
@@ -930,14 +917,14 @@ class _WorkspacePageState extends State<WorkspacePage> {
             expectedWordCount: _selectedScene!.expectedWordCount,
             actualWordCount: actualWords,
           );
-          await rust.saveScene(scene: updated);
+          await DatabaseService.saveScene(scene: updated);
           await _loadScenes();
         } else if (stepNum == 9 && _selectedScene != null) {
           final text = _step9SceneCtrl.text;
-          await rust.saveStepProgress(
-            progress: rust.StepProgress(
+          await DatabaseService.saveStepProgress(
+            progress: StepProgress(
               novelId: _activeNovel.id!,
-              stepNumber: 9000 + _selectedScene!.id!.toInt(),
+              stepNumber: 9000 + _selectedScene!.id!,
               contentText: text,
               isCompleted: true,
             ),
@@ -1044,34 +1031,34 @@ class _WorkspacePageState extends State<WorkspacePage> {
   String _getStepContentText(int stepNum) {
     final step = _allStepsProgress.firstWhere(
       (s) => s.stepNumber == stepNum,
-      orElse: () => rust.StepProgress(novelId: 0, stepNumber: 0, contentText: '', isCompleted: false),
+      orElse: () => StepProgress(novelId: 0, stepNumber: 0, contentText: '', isCompleted: false),
     );
     return _cleanText(step.contentText);
   }
 
   Future<void> _loadCharacters() async {
     try {
-      final list = await rust.getCharacters(novelId: _activeNovel.id!);
+      final list = await DatabaseService.getCharacters(novelId: _activeNovel.id!);
       setState(() {
         _characters = list;
       });
     } catch (_) {}
   }
 
-  Future<void> _saveCharacter(rust.Character char) async {
+  Future<void> _saveCharacter(Character char) async {
     try {
-      await rust.saveCharacter(character: char);
+      await DatabaseService.saveCharacter(character: char);
       await _loadCharacters();
     } catch (_) {}
   }
 
-  Future<void> _deleteCharacter(rust.Character char) async {
+  Future<void> _deleteCharacter(Character char) async {
     _confirmDeleteDialog(
       title: widget.language == 'ar' ? 'حذف الشخصية' : 'Delete Character',
       itemName: char.name,
       onConfirm: () async {
         try {
-          await rust.deleteCharacter(id: char.id!.toInt());
+          await DatabaseService.deleteCharacter(id: char.id!);
           await _loadCharacters();
           setState(() {
             _selectedCharacter = null;
@@ -1083,27 +1070,27 @@ class _WorkspacePageState extends State<WorkspacePage> {
 
   Future<void> _loadScenes() async {
     try {
-      final list = await rust.getScenes(novelId: _activeNovel.id!);
+      final list = await DatabaseService.getScenes(novelId: _activeNovel.id!);
       setState(() {
         _scenes = list;
       });
     } catch (_) {}
   }
 
-  Future<void> _saveScene(rust.Scene scene) async {
+  Future<void> _saveScene(Scene scene) async {
     try {
-      await rust.saveScene(scene: scene);
+      await DatabaseService.saveScene(scene: scene);
       await _loadScenes();
     } catch (_) {}
   }
 
-  Future<void> _deleteScene(rust.Scene scn) async {
+  Future<void> _deleteScene(Scene scn) async {
     _confirmDeleteDialog(
       title: widget.language == 'ar' ? 'حذف المشهد' : 'Delete Scene',
       itemName: scn.setting.isNotEmpty ? scn.setting : 'Scene #${scn.id}',
       onConfirm: () async {
         try {
-          await rust.deleteScene(id: scn.id!.toInt(), novelId: _activeNovel.id!);
+          await DatabaseService.deleteScene(id: scn.id!, novelId: _activeNovel.id!);
           await _loadScenes();
           setState(() {
             _selectedScene = null;
@@ -1115,27 +1102,27 @@ class _WorkspacePageState extends State<WorkspacePage> {
 
   Future<void> _loadChapters() async {
     try {
-      final list = await rust.getChapters(novelId: _activeNovel.id!);
+      final list = await DatabaseService.getChapters(novelId: _activeNovel.id!);
       setState(() {
         _chapters = list;
       });
     } catch (_) {}
   }
 
-  Future<void> _saveChapter(rust.Chapter chap) async {
+  Future<void> _saveChapter(Chapter chap) async {
     try {
-      await rust.saveChapter(chapter: chap);
+      await DatabaseService.saveChapter(chapter: chap);
       await _loadChapters();
     } catch (_) {}
   }
 
-  Future<void> _deleteChapter(rust.Chapter chap) async {
+  Future<void> _deleteChapter(Chapter chap) async {
     _confirmDeleteDialog(
       title: widget.language == 'ar' ? 'حذف الفصل' : 'Delete Chapter',
       itemName: chap.title,
       onConfirm: () async {
         try {
-          await rust.deleteChapter(id: chap.id!.toInt());
+          await DatabaseService.deleteChapter(id: chap.id!);
           await _loadChapters();
           setState(() {
             _selectedChapter = null;
@@ -1163,7 +1150,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
 
     if (format == 'txt') {
       try {
-        final textOut = await rust.exportToTxt(titles: titles, contents: contents);
+        final textOut = await DatabaseService.exportToTxt(titles: titles, contents: contents);
         final path = await FilePicker.platform.saveFile(
           dialogTitle: t('exportTxtBtn'),
           fileName: '${_activeNovel.title}.txt',
@@ -1190,7 +1177,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
           allowedExtensions: ['docx'],
         );
         if (path != null) {
-          await rust.exportToDocx(path: path, titles: titles, contents: contents);
+          await DatabaseService.exportToDocx(path: path, titles: titles, contents: contents);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(t('exportCopied')), backgroundColor: Theme.of(context).colorScheme.primary),
           );
@@ -1640,7 +1627,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
                     initialValue: _activeNovel.title,
                     decoration: InputDecoration(labelText: t('novelTitleLabel'), border: const OutlineInputBorder()),
                     onChanged: (val) {
-                      _activeNovel = rust.Novel(
+                      _activeNovel = Novel(
                         id: _activeNovel.id,
                         title: val,
                         genre: _activeNovel.genre,
@@ -1649,7 +1636,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
                         currentWordCount: _activeNovel.currentWordCount,
                         createdAt: _activeNovel.createdAt,
                       );
-                      rust.updateNovel(
+                      DatabaseService.updateNovel(
                         id: _activeNovel.id!,
                         title: _activeNovel.title,
                         genre: _activeNovel.genre,
@@ -1666,7 +1653,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
                               initialValue: _activeNovel.genre,
                               decoration: InputDecoration(labelText: t('novelGenreLabel'), border: const OutlineInputBorder()),
                               onChanged: (val) {
-                                _activeNovel = rust.Novel(
+                                _activeNovel = Novel(
                                   id: _activeNovel.id,
                                   title: _activeNovel.title,
                                   genre: val,
@@ -1675,7 +1662,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
                                   currentWordCount: _activeNovel.currentWordCount,
                                   createdAt: _activeNovel.createdAt,
                                 );
-                                rust.updateNovel(
+                                DatabaseService.updateNovel(
                                   id: _activeNovel.id!,
                                   title: _activeNovel.title,
                                   genre: _activeNovel.genre,
@@ -1689,7 +1676,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
                               initialValue: _activeNovel.targetAudience,
                               decoration: InputDecoration(labelText: t('novelAudienceLabel'), border: const OutlineInputBorder()),
                               onChanged: (val) {
-                                _activeNovel = rust.Novel(
+                                _activeNovel = Novel(
                                   id: _activeNovel.id,
                                   title: _activeNovel.title,
                                   genre: _activeNovel.genre,
@@ -1698,7 +1685,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
                                   currentWordCount: _activeNovel.currentWordCount,
                                   createdAt: _activeNovel.createdAt,
                                 );
-                                rust.updateNovel(
+                                DatabaseService.updateNovel(
                                   id: _activeNovel.id!,
                                   title: _activeNovel.title,
                                   genre: _activeNovel.genre,
@@ -1716,7 +1703,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
                                 initialValue: _activeNovel.genre,
                                 decoration: InputDecoration(labelText: t('novelGenreLabel'), border: const OutlineInputBorder()),
                                 onChanged: (val) {
-                                  _activeNovel = rust.Novel(
+                                  _activeNovel = Novel(
                                     id: _activeNovel.id,
                                     title: _activeNovel.title,
                                     genre: val,
@@ -1725,7 +1712,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
                                     currentWordCount: _activeNovel.currentWordCount,
                                     createdAt: _activeNovel.createdAt,
                                   );
-                                  rust.updateNovel(
+                                  DatabaseService.updateNovel(
                                     id: _activeNovel.id!,
                                     title: _activeNovel.title,
                                     genre: _activeNovel.genre,
@@ -1741,7 +1728,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
                                 initialValue: _activeNovel.targetAudience,
                                 decoration: InputDecoration(labelText: t('novelAudienceLabel'), border: const OutlineInputBorder()),
                                 onChanged: (val) {
-                                  _activeNovel = rust.Novel(
+                                  _activeNovel = Novel(
                                     id: _activeNovel.id,
                                     title: _activeNovel.title,
                                     genre: _activeNovel.genre,
@@ -1750,7 +1737,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
                                     currentWordCount: _activeNovel.currentWordCount,
                                     createdAt: _activeNovel.createdAt,
                                   );
-                                  rust.updateNovel(
+                                  DatabaseService.updateNovel(
                                     id: _activeNovel.id!,
                                     title: _activeNovel.title,
                                     genre: _activeNovel.genre,
@@ -1768,7 +1755,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
                     keyboardType: TextInputType.number,
                     decoration: InputDecoration(labelText: t('novelTargetWordsLabel'), border: const OutlineInputBorder()),
                     onChanged: (val) {
-                      _activeNovel = rust.Novel(
+                      _activeNovel = Novel(
                         id: _activeNovel.id,
                         title: _activeNovel.title,
                         genre: _activeNovel.genre,
@@ -1777,7 +1764,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
                         currentWordCount: _activeNovel.currentWordCount,
                         createdAt: _activeNovel.createdAt,
                       );
-                      rust.updateNovel(
+                      DatabaseService.updateNovel(
                         id: _activeNovel.id!,
                         title: _activeNovel.title,
                         genre: _activeNovel.genre,
@@ -1789,7 +1776,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
                   const SizedBox(height: 20),
                   ElevatedButton.icon(
                     onPressed: () async {
-                      await rust.updateNovel(
+                      await DatabaseService.updateNovel(
                         id: _activeNovel.id!,
                         title: _activeNovel.title,
                         genre: _activeNovel.genre,
@@ -2068,7 +2055,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
     );
   }
 
-  void _openCharacterDialog([rust.Character? existing]) {
+  void _openCharacterDialog([Character? existing]) {
     final nameCtrl = TextEditingController(text: existing?.name ?? '');
     final motCtrl = TextEditingController(text: existing?.motivation ?? '');
     final goalCtrl = TextEditingController(text: existing?.goal ?? '');
@@ -2099,7 +2086,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
             TextButton(onPressed: () => Navigator.pop(context), child: Text(t('cancel'))),
             ElevatedButton(
               onPressed: () async {
-                final char = rust.Character(
+                final char = Character(
                   id: existing?.id,
                   novelId: _activeNovel.id!,
                   name: nameCtrl.text,
@@ -2299,8 +2286,8 @@ class _WorkspacePageState extends State<WorkspacePage> {
                             _selectedCharacter = char;
                           });
                           final chartStep = _allStepsProgress.firstWhere(
-                            (s) => s.stepNumber == (7000 + char.id!.toInt()),
-                            orElse: () => rust.StepProgress(novelId: _activeNovel.id!, stepNumber: 7000 + char.id!.toInt(), contentText: '', isCompleted: false),
+                            (s) => s.stepNumber == (7000 + char.id!),
+                            orElse: () => StepProgress(novelId: _activeNovel.id!, stepNumber: 7000 + char.id!, contentText: '', isCompleted: false),
                           );
                           _step7ChartCtrl.text = _cleanText(chartStep.contentText);
                         },
@@ -2443,7 +2430,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
                       final isSelected = _selectedScene?.id == scn.id;
                       final povChar = _characters.firstWhere(
                         (c) => c.id == scn.povCharacterId,
-                        orElse: () => rust.Character(novelId: 0, name: t('sceneNotPlanned'), motivation: '', goal: '', conflict: '', epiphany: '', oneParagraphSummary: '', fullSynopsis: ''),
+                        orElse: () => Character(novelId: 0, name: t('sceneNotPlanned'), motivation: '', goal: '', conflict: '', epiphany: '', oneParagraphSummary: '', fullSynopsis: ''),
                       );
 
                       return ListTile(
@@ -2530,7 +2517,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
                                 children: [
                                   Flexible(
                                     child: Text(
-                                      '${t('scenePovCol')}: ${_characters.firstWhere((c) => c.id == _selectedScene!.povCharacterId, orElse: () => rust.Character(novelId: 0, name: t('sceneNotPlanned'), motivation: '', goal: '', conflict: '', epiphany: '', oneParagraphSummary: '', fullSynopsis: '')).name}',
+                                      '${t('scenePovCol')}: ${_characters.firstWhere((c) => c.id == _selectedScene!.povCharacterId, orElse: () => Character(novelId: 0, name: t('sceneNotPlanned'), motivation: '', goal: '', conflict: '', epiphany: '', oneParagraphSummary: '', fullSynopsis: '')).name}',
                                       style: const TextStyle(fontWeight: FontWeight.bold),
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -2583,7 +2570,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
     );
   }
 
-  void _openSceneMetadataDialog([rust.Scene? existing]) {
+  void _openSceneMetadataDialog([Scene? existing]) {
     int? selectedPovId = existing?.povCharacterId;
     final settingCtrl = TextEditingController(text: existing?.setting ?? '');
     final plotCtrl = TextEditingController(text: existing?.plotThread ?? '');
@@ -2619,7 +2606,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
               TextButton(onPressed: () => Navigator.pop(context), child: Text(t('cancel'))),
               ElevatedButton(
                 onPressed: () async {
-                  final scn = rust.Scene(
+                  final scn = Scene(
                     id: existing?.id,
                     novelId: _activeNovel.id!,
                     povCharacterId: selectedPovId,
@@ -2674,8 +2661,8 @@ class _WorkspacePageState extends State<WorkspacePage> {
                             _selectedScene = scn;
                           });
                           final step9Prog = _allStepsProgress.firstWhere(
-                            (s) => s.stepNumber == (9000 + scn.id!.toInt()),
-                            orElse: () => rust.StepProgress(novelId: _activeNovel.id!, stepNumber: 9000 + scn.id!.toInt(), contentText: '', isCompleted: false),
+                            (s) => s.stepNumber == (9000 + scn.id!),
+                            orElse: () => StepProgress(novelId: _activeNovel.id!, stepNumber: 9000 + scn.id!, contentText: '', isCompleted: false),
                           );
                           _step9SceneCtrl.text = _cleanText(step9Prog.contentText);
                         },
@@ -2734,7 +2721,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    '${t('scenePovCol')}: ${_characters.firstWhere((c) => c.id == _selectedScene!.povCharacterId, orElse: () => rust.Character(novelId: 0, name: t('sceneNotPlanned'), motivation: '', goal: '', conflict: '', epiphany: '', oneParagraphSummary: '', fullSynopsis: '')).name}',
+                                    '${t('scenePovCol')}: ${_characters.firstWhere((c) => c.id == _selectedScene!.povCharacterId, orElse: () => Character(novelId: 0, name: t('sceneNotPlanned'), motivation: '', goal: '', conflict: '', epiphany: '', oneParagraphSummary: '', fullSynopsis: '')).name}',
                                     style: const TextStyle(fontWeight: FontWeight.bold),
                                   ),
                                   Text('${t('scenePlotCol')}: ${_selectedScene!.plotThread}'),
@@ -2825,8 +2812,8 @@ class _WorkspacePageState extends State<WorkspacePage> {
     sb.writeln('## Step 7: ${t('step7Title')}');
     for (var c in _characters) {
       final chart = _allStepsProgress.firstWhere(
-        (s) => s.stepNumber == (7000 + c.id!.toInt()),
-        orElse: () => rust.StepProgress(novelId: 0, stepNumber: 0, contentText: '', isCompleted: false),
+        (s) => s.stepNumber == (7000 + c.id!),
+        orElse: () => StepProgress(novelId: 0, stepNumber: 0, contentText: '', isCompleted: false),
       );
       sb.writeln('### ${c.name} Detailed Chart');
       sb.writeln('${_cleanText(chart.contentText)}\n');
@@ -2836,8 +2823,8 @@ class _WorkspacePageState extends State<WorkspacePage> {
     for (int i = 0; i < _scenes.length; i++) {
       final scn = _scenes[i];
       final step9Prog = _allStepsProgress.firstWhere(
-        (s) => s.stepNumber == (9000 + scn.id!.toInt()),
-        orElse: () => rust.StepProgress(novelId: 0, stepNumber: 0, contentText: '', isCompleted: false),
+        (s) => s.stepNumber == (9000 + scn.id!),
+        orElse: () => StepProgress(novelId: 0, stepNumber: 0, contentText: '', isCompleted: false),
       );
       sb.writeln('### Scene #${i + 1}: ${scn.setting}');
       sb.writeln('- **Plot Thread**: ${scn.plotThread}');
@@ -2946,7 +2933,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
                 Text(t('chaptersSidebarTitle'), style: const TextStyle(fontWeight: FontWeight.bold)),
                 IconButton(
                   onPressed: () async {
-                    final newChap = rust.Chapter(
+                    final newChap = Chapter(
                       novelId: _activeNovel.id!,
                       title: 'Chapter ${_chapters.length + 1}',
                       content: '',
@@ -3009,14 +2996,14 @@ class _WorkspacePageState extends State<WorkspacePage> {
                           controller: _chapterTitleCtrl,
                           decoration: InputDecoration(labelText: t('chapterTitleLabel')),
                           onChanged: (val) {
-                            _selectedChapter = rust.Chapter(
+                            _selectedChapter = Chapter(
                               id: _selectedChapter!.id,
                               novelId: _selectedChapter!.novelId,
                               title: val,
                               content: _chapterCtrl.text,
                               sortOrder: _selectedChapter!.sortOrder,
                             );
-                            rust.saveChapter(chapter: _selectedChapter!);
+                            DatabaseService.saveChapter(chapter: _selectedChapter!);
                           },
                         ),
                       ),
@@ -3058,14 +3045,14 @@ class _WorkspacePageState extends State<WorkspacePage> {
                           controller: _chapterTitleCtrl,
                           decoration: InputDecoration(labelText: t('chapterTitleLabel')),
                           onChanged: (val) {
-                            _selectedChapter = rust.Chapter(
+                            _selectedChapter = Chapter(
                               id: _selectedChapter!.id,
                               novelId: _selectedChapter!.novelId,
                               title: val,
                               content: _chapterCtrl.text,
                               sortOrder: _selectedChapter!.sortOrder,
                             );
-                            rust.saveChapter(chapter: _selectedChapter!);
+                            DatabaseService.saveChapter(chapter: _selectedChapter!);
                           },
                         ),
                       ),
