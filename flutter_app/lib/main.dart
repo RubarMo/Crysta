@@ -8,7 +8,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 
-
 import 'locales.dart';
 import 'src/rust/api.dart' as rust;
 import 'src/rust/frb_generated.dart';
@@ -74,30 +73,31 @@ class _CrystaAppState extends State<CrystaApp> {
         }
 
         return MaterialApp(
-      title: 'Crysta Novel Studio',
-      debugShowCheckedModeBanner: false,
-      themeMode: _themeMode,
-      localizationsDelegates: FlutterQuillLocalizations.localizationsDelegates,
-        theme: ThemeData(
-          useMaterial3: true,
-          colorScheme: lightScheme,
-          fontFamily: _language == 'ar' ? 'Cairo' : null,
-        ),
-        darkTheme: ThemeData(
-          useMaterial3: true,
-          colorScheme: darkScheme,
-          fontFamily: _language == 'ar' ? 'Cairo' : null,
-        ),
-        home: ProjectManagerPage(
-          onThemeSettingsChanged: updateTheme,
-          currentThemeMode: _themeMode,
-          currentSeedColor: _seedColor,
-          useDynamicColor: _useDynamicColor,
-          onLanguageToggle: toggleLanguage,
-          language: _language,
-        ),
-      );
-    });
+          title: 'Crysta Novel Studio',
+          debugShowCheckedModeBanner: false,
+          themeMode: _themeMode,
+          localizationsDelegates: FlutterQuillLocalizations.localizationsDelegates,
+          theme: ThemeData(
+            useMaterial3: true,
+            colorScheme: lightScheme,
+            fontFamily: _language == 'ar' ? 'Cairo' : null,
+          ),
+          darkTheme: ThemeData(
+            useMaterial3: true,
+            colorScheme: darkScheme,
+            fontFamily: _language == 'ar' ? 'Cairo' : null,
+          ),
+          home: ProjectManagerPage(
+            onThemeSettingsChanged: updateTheme,
+            currentThemeMode: _themeMode,
+            currentSeedColor: _seedColor,
+            useDynamicColor: _useDynamicColor,
+            onLanguageToggle: toggleLanguage,
+            language: _language,
+          ),
+        );
+      },
+    );
   }
 }
 
@@ -199,7 +199,7 @@ class _NativeTextEditorState extends State<NativeTextEditor> {
     super.dispose();
   }
 
-  int _countWords() {
+  int countWords() {
     final text = _quillController.document.toPlainText().trim();
     if (text.isEmpty) return 0;
     return text.split(RegExp(r'\s+')).length;
@@ -207,7 +207,7 @@ class _NativeTextEditorState extends State<NativeTextEditor> {
 
   @override
   Widget build(BuildContext context) {
-    final wordCount = _countWords();
+    final wordCount = countWords();
 
     return Column(
       children: [
@@ -493,105 +493,130 @@ class _ProjectManagerPageState extends State<ProjectManagerPage> {
               onPressed: () => _showThemeSettingsDialog(context, widget.currentThemeMode, widget.currentSeedColor, widget.useDynamicColor, widget.onThemeSettingsChanged, t),
               icon: const Icon(Icons.palette),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 8),
           ],
         ),
-        body: Center(
-          child: Container(
-            constraints: const BoxConstraints(maxWidth: 650),
-            padding: const EdgeInsets.all(32),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Icon(
-                  Icons.menu_book,
-                  size: 80,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  t('appName'),
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  t('appTagline'),
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                ),
-                const SizedBox(height: 36),
-                Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: _createNewProject,
-                        icon: const Icon(Icons.create_new_folder),
-                        label: Text(t('createProjectBtn')),
-                        style: ElevatedButton.styleFrom(padding: const EdgeInsets.all(16)),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () => _openProjectFile(),
-                        icon: const Icon(Icons.file_open),
-                        label: Text(t('openProjectBtn')),
-                        style: OutlinedButton.styleFrom(padding: const EdgeInsets.all(16)),
-                      ),
-                    ),
-                  ],
-                ),
-                if (_recentProjects.isNotEmpty) ...[
-                  const SizedBox(height: 32),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        t('recentProjectsTitle'),
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                      ),
-                      TextButton(
-                        onPressed: () async {
-                          _recentProjects.clear();
-                          final file = await _getRecentConfigFile();
-                          if (await file.exists()) await file.delete();
-                          setState(() {});
-                        },
-                        child: Text(widget.language == 'ar' ? 'مسح القائمة' : 'Clear List', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Expanded(
-                    child: Card(
-                      child: ListView.builder(
-                        itemCount: _recentProjects.length,
-                        itemBuilder: (context, index) {
-                          final p = _recentProjects[index];
-                          return ListTile(
-                            leading: Icon(Icons.insert_drive_file, color: Theme.of(context).colorScheme.primary),
-                            title: Text(
-                              p.split(Platform.pathSeparator).last,
-                              style: const TextStyle(fontWeight: FontWeight.bold),
-                              overflow: TextOverflow.ellipsis,
+        body: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final isSmall = constraints.maxWidth < 450;
+              return Center(
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.all(isSmall ? 16 : 32),
+                  child: Container(
+                    constraints: const BoxConstraints(maxWidth: 650),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Icon(
+                          Icons.menu_book,
+                          size: isSmall ? 60 : 80,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          t('appName'),
+                          textAlign: TextAlign.center,
+                          style: (isSmall ? Theme.of(context).textTheme.headlineMedium : Theme.of(context).textTheme.headlineLarge)?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          t('appTagline'),
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              ),
+                        ),
+                        const SizedBox(height: 28),
+                        if (isSmall) ...[
+                          ElevatedButton.icon(
+                            onPressed: _createNewProject,
+                            icon: const Icon(Icons.create_new_folder),
+                            label: Text(t('createProjectBtn')),
+                            style: ElevatedButton.styleFrom(padding: const EdgeInsets.all(16)),
+                          ),
+                          const SizedBox(height: 12),
+                          OutlinedButton.icon(
+                            onPressed: () => _openProjectFile(),
+                            icon: const Icon(Icons.file_open),
+                            label: Text(t('openProjectBtn')),
+                            style: OutlinedButton.styleFrom(padding: const EdgeInsets.all(16)),
+                          ),
+                        ] else ...[
+                          Row(
+                            children: [
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: _createNewProject,
+                                  icon: const Icon(Icons.create_new_folder),
+                                  label: Text(t('createProjectBtn')),
+                                  style: ElevatedButton.styleFrom(padding: const EdgeInsets.all(16)),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  onPressed: () => _openProjectFile(),
+                                  icon: const Icon(Icons.file_open),
+                                  label: Text(t('openProjectBtn')),
+                                  style: OutlinedButton.styleFrom(padding: const EdgeInsets.all(16)),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                        if (_recentProjects.isNotEmpty) ...[
+                          const SizedBox(height: 32),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                t('recentProjectsTitle'),
+                                style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                              ),
+                              TextButton(
+                                onPressed: () async {
+                                  _recentProjects.clear();
+                                  final file = await _getRecentConfigFile();
+                                  if (await file.exists()) await file.delete();
+                                  setState(() {});
+                                },
+                                child: Text(widget.language == 'ar' ? 'مسح القائمة' : 'Clear List', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Card(
+                            child: ListView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: _recentProjects.length,
+                              itemBuilder: (context, index) {
+                                final p = _recentProjects[index];
+                                return ListTile(
+                                  leading: Icon(Icons.insert_drive_file, color: Theme.of(context).colorScheme.primary),
+                                  title: Text(
+                                    p.split(Platform.pathSeparator).last,
+                                    style: const TextStyle(fontWeight: FontWeight.bold),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  subtitle: Text(p, style: const TextStyle(fontSize: 11), overflow: TextOverflow.ellipsis),
+                                  onTap: () => _openProjectFile(p),
+                                );
+                              },
                             ),
-                            subtitle: Text(p, style: const TextStyle(fontSize: 11), overflow: TextOverflow.ellipsis),
-                            onTap: () => _openProjectFile(p),
-                          );
-                        },
-                      ),
+                          ),
+                        ],
+                      ],
                     ),
                   ),
-                ],
-              ],
-            ),
+                ),
+              );
+            },
           ),
         ),
       ),
@@ -703,33 +728,57 @@ class _WorkspacePageState extends State<WorkspacePage> {
     } catch (_) {}
   }
 
-  bool _isStepDone(int stepNum) {
-    return _allStepsProgress.any((s) => s.stepNumber == stepNum && s.isCompleted);
+  int _countCompletedSteps() {
+    return _allStepsProgress.where((s) => s.stepNumber >= 1 && s.stepNumber <= 10 && s.isCompleted).length;
   }
 
-  int _countCompletedSteps() {
-    int count = 0;
-    for (int i = 1; i <= 10; i++) {
-      if (_isStepDone(i)) count++;
-    }
-    return count;
+  bool _isStepDone(int stepNum) {
+    final s = _allStepsProgress.firstWhere(
+      (sp) => sp.stepNumber == stepNum,
+      orElse: () => rust.StepProgress(novelId: 0, stepNumber: 0, contentText: '', isCompleted: false),
+    );
+    return s.isCompleted;
   }
 
   Future<void> _toggleStepCompleted(int stepNum, bool isCompleted) async {
-    final step = _allStepsProgress.firstWhere(
-      (s) => s.stepNumber == stepNum,
-      orElse: () => rust.StepProgress(novelId: _activeNovel.id!, stepNumber: stepNum, contentText: '', isCompleted: false),
-    );
-
-    await rust.saveStepProgress(
-      progress: rust.StepProgress(
+    try {
+      final existing = _allStepsProgress.firstWhere(
+        (sp) => sp.stepNumber == stepNum,
+        orElse: () => rust.StepProgress(novelId: _activeNovel.id!, stepNumber: stepNum, contentText: '', isCompleted: isCompleted),
+      );
+      final updated = rust.StepProgress(
+        id: existing.id,
         novelId: _activeNovel.id!,
         stepNumber: stepNum,
-        contentText: step.contentText,
+        contentText: existing.contentText,
         isCompleted: isCompleted,
-      ),
-    );
-    await _loadStepsProgress();
+      );
+      await rust.saveStepProgress(progress: updated);
+      await _loadStepsProgress();
+    } catch (_) {}
+  }
+
+  String _cleanText(String jsonOrRaw) {
+    if (jsonOrRaw.trim().isEmpty) return '';
+    try {
+      final parsed = jsonDecode(jsonOrRaw);
+      if (parsed is List) {
+        final StringBuffer sb = StringBuffer();
+        for (var op in parsed) {
+          if (op is Map && op.containsKey('insert')) {
+            sb.write(op['insert']);
+          }
+        }
+        return sb.toString().trim();
+      }
+    } catch (_) {}
+    return jsonOrRaw.trim();
+  }
+
+  int _countWordsFromText(String rawText) {
+    final text = _cleanText(rawText);
+    if (text.isEmpty) return 0;
+    return text.split(RegExp(r'\s+')).length;
   }
 
   Future<void> _loadTabContent(int tabIndex) async {
@@ -773,23 +822,6 @@ class _WorkspacePageState extends State<WorkspacePage> {
     });
   }
 
-  String _cleanText(String jsonOrRaw) {
-    if (jsonOrRaw.isEmpty) return '';
-    try {
-      final parsed = jsonDecode(jsonOrRaw);
-      if (parsed is List) {
-        final StringBuffer sb = StringBuffer();
-        for (var op in parsed) {
-          if (op is Map && op.containsKey('insert')) {
-            sb.write(op['insert']);
-          }
-        }
-        return sb.toString().trim();
-      }
-    } catch (_) {}
-    return jsonOrRaw;
-  }
-
   Future<void> _saveActiveContent({bool showToast = true}) async {
     try {
       if (_selectedTabIndex == 11 && _selectedChapter != null) {
@@ -802,6 +834,27 @@ class _WorkspacePageState extends State<WorkspacePage> {
         );
         await rust.saveChapter(chapter: updated);
         await _loadChapters();
+
+        int totalWords = 0;
+        for (var c in _chapters) {
+          totalWords += _countWordsFromText(c.content);
+        }
+        _activeNovel = rust.Novel(
+          id: _activeNovel.id,
+          title: _activeNovel.title,
+          genre: _activeNovel.genre,
+          targetAudience: _activeNovel.targetAudience,
+          targetWordCount: _activeNovel.targetWordCount,
+          currentWordCount: totalWords,
+          createdAt: _activeNovel.createdAt,
+        );
+        await rust.updateNovel(
+          id: _activeNovel.id!,
+          title: _activeNovel.title,
+          genre: _activeNovel.genre,
+          targetAudience: _activeNovel.targetAudience,
+          targetWordCount: _activeNovel.targetWordCount,
+        );
       } else {
         final stepNum = _getStepNumberForTab(_selectedTabIndex);
         final currentDone = _isStepDone(stepNum);
@@ -866,7 +919,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
           await _loadStepsProgress();
         } else if (stepNum == 8 && _selectedScene != null) {
           final text = _step8SceneCtrl.text;
-          final actualWords = text.trim().isEmpty ? 0 : text.trim().split(RegExp(r'\s+')).length;
+          final actualWords = _countWordsFromText(text);
           final updated = rust.Scene(
             id: _selectedScene!.id,
             novelId: _selectedScene!.novelId,
@@ -1204,20 +1257,32 @@ class _WorkspacePageState extends State<WorkspacePage> {
     );
   }
 
-  Widget _buildStepHeaderActions(int stepNum) {
+  Widget _buildStepHeaderActions(int stepNum, {required bool isMobile}) {
     final isDone = _isStepDone(stepNum);
-    return Row(
+    return Wrap(
+      crossAxisAlignment: WrapCrossAlignment.center,
+      alignment: WrapAlignment.end,
+      spacing: 8,
+      runSpacing: 4,
       children: [
-        Text(t('markAsCompleted')),
-        Checkbox(
-          value: isDone,
-          onChanged: (val) => _toggleStepCompleted(stepNum, val ?? false),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(t('markAsCompleted'), style: TextStyle(fontSize: isMobile ? 12 : 14)),
+            Checkbox(
+              value: isDone,
+              onChanged: (val) => _toggleStepCompleted(stepNum, val ?? false),
+              visualDensity: isMobile ? VisualDensity.compact : null,
+            ),
+          ],
         ),
-        const SizedBox(width: 8),
         ElevatedButton.icon(
           onPressed: () => _saveActiveContent(showToast: true),
-          icon: const Icon(Icons.save),
+          icon: const Icon(Icons.save, size: 16),
           label: Text(t('save')),
+          style: ElevatedButton.styleFrom(
+            padding: isMobile ? const EdgeInsets.symmetric(horizontal: 12, vertical: 8) : null,
+          ),
         ),
       ],
     );
@@ -1245,16 +1310,90 @@ class _WorkspacePageState extends State<WorkspacePage> {
     );
   }
 
+  Widget _buildSidebarContent({required bool isMobile}) {
+    final completedSteps = _countCompletedSteps();
+    return Card(
+      margin: isMobile ? EdgeInsets.zero : const EdgeInsets.all(8),
+      elevation: isMobile ? 0 : null,
+      shape: isMobile ? const RoundedRectangleBorder() : null,
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(t('completedSteps'), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    Text('$completedSteps / 10', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary)),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                LinearProgressIndicator(
+                  value: completedSteps / 10,
+                  color: Theme.of(context).colorScheme.primary,
+                  backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              children: [
+                _buildSidebarTile(0, t('step0Title'), Icons.dashboard, isMobile: isMobile),
+                const Divider(height: 1),
+                _buildSidebarStepTile(1, t('step1Title'), 1, isMobile: isMobile),
+                _buildSidebarStepTile(2, t('step2Title'), 2, isMobile: isMobile),
+                _buildSidebarStepTile(3, t('step3Title'), 3, isMobile: isMobile),
+                _buildSidebarStepTile(4, t('step4Title'), 4, isMobile: isMobile),
+                _buildSidebarStepTile(5, t('step5Title'), 5, isMobile: isMobile),
+                _buildSidebarStepTile(6, t('step6Title'), 6, isMobile: isMobile),
+                _buildSidebarStepTile(7, t('step7Title'), 7, isMobile: isMobile),
+                _buildSidebarStepTile(8, t('step8Title'), 8, isMobile: isMobile),
+                _buildSidebarStepTile(9, t('step9Title'), 9, isMobile: isMobile),
+                _buildSidebarStepTile(10, t('step10Title'), 10, isMobile: isMobile),
+                const Divider(height: 1),
+                _buildSidebarTile(11, t('writeNovelTitle'), Icons.edit_note, color: Theme.of(context).colorScheme.primary, isMobile: isMobile),
+              ],
+            ),
+          ),
+          const Divider(height: 1),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('${t('builtBy')} Rubar', style: TextStyle(fontSize: 10, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                const Chip(
+                  label: Text('v3.0.0', style: TextStyle(fontSize: 9)),
+                  visualDensity: VisualDensity.compact,
+                  padding: EdgeInsets.zero,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final textDir = widget.language == 'ar' ? TextDirection.rtl : TextDirection.ltr;
-    final completedSteps = _countCompletedSteps();
+    final isMobile = MediaQuery.of(context).size.width < 700;
 
     return Directionality(
       textDirection: textDir,
       child: Scaffold(
+        drawer: isMobile ? Drawer(child: SafeArea(child: _buildSidebarContent(isMobile: true))) : null,
         appBar: AppBar(
           title: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Flexible(
                 child: Text(
@@ -1263,16 +1402,18 @@ class _WorkspacePageState extends State<WorkspacePage> {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              const SizedBox(width: 8),
-              Chip(
-                label: Text(
-                  widget.projectPath.split(Platform.pathSeparator).last,
-                  style: const TextStyle(fontSize: 10),
-                  overflow: TextOverflow.ellipsis,
+              if (!isMobile) ...[
+                const SizedBox(width: 8),
+                Chip(
+                  label: Text(
+                    widget.projectPath.split(Platform.pathSeparator).last,
+                    style: const TextStyle(fontSize: 10),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  padding: EdgeInsets.zero,
+                  visualDensity: VisualDensity.compact,
                 ),
-                padding: EdgeInsets.zero,
-                visualDensity: VisualDensity.compact,
-              ),
+              ],
             ],
           ),
           actions: [
@@ -1290,112 +1431,48 @@ class _WorkspacePageState extends State<WorkspacePage> {
               onPressed: () => _showThemeSettingsDialog(context, widget.currentThemeMode, widget.currentSeedColor, widget.useDynamicColor, widget.onThemeSettingsChanged, t),
               icon: const Icon(Icons.palette),
             ),
-            ElevatedButton.icon(
+            IconButton(
               onPressed: () async {
                 await _saveActiveContent(showToast: false);
                 widget.onClose();
               },
-              icon: const Icon(Icons.close, size: 16),
-              label: Text(t('close')),
-              style: ElevatedButton.styleFrom(
-                foregroundColor: Theme.of(context).colorScheme.onError,
-                backgroundColor: Theme.of(context).colorScheme.error,
-              ),
+              icon: const Icon(Icons.close),
+              color: Theme.of(context).colorScheme.error,
+              tooltip: t('close'),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 4),
           ],
         ),
-        body: Row(
-          children: [
-            SizedBox(
-              width: _sidebarWidth,
-              child: Card(
-                margin: const EdgeInsets.all(8),
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(t('completedSteps'), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                              Text('$completedSteps / 10', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary)),
-                            ],
-                          ),
-                          const SizedBox(height: 6),
-                          LinearProgressIndicator(
-                            value: completedSteps / 10,
-                            color: Theme.of(context).colorScheme.primary,
-                            backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const Divider(height: 1),
-                    Expanded(
-                      child: ListView(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        children: [
-                          _buildSidebarTile(0, t('step0Title'), Icons.dashboard),
-                          const Divider(height: 1),
-                          _buildSidebarStepTile(1, t('step1Title'), 1),
-                          _buildSidebarStepTile(2, t('step2Title'), 2),
-                          _buildSidebarStepTile(3, t('step3Title'), 3),
-                          _buildSidebarStepTile(4, t('step4Title'), 4),
-                          _buildSidebarStepTile(5, t('step5Title'), 5),
-                          _buildSidebarStepTile(6, t('step6Title'), 6),
-                          _buildSidebarStepTile(7, t('step7Title'), 7),
-                          _buildSidebarStepTile(8, t('step8Title'), 8),
-                          _buildSidebarStepTile(9, t('step9Title'), 9),
-                          _buildSidebarStepTile(10, t('step10Title'), 10),
-                          const Divider(height: 1),
-                          _buildSidebarTile(11, t('writeNovelTitle'), Icons.edit_note, color: Theme.of(context).colorScheme.primary),
-                        ],
-                      ),
-                    ),
-                    const Divider(height: 1),
-                    Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('${t('builtBy')} Rubar', style: TextStyle(fontSize: 10, color: Theme.of(context).colorScheme.onSurfaceVariant)),
-                          const Chip(
-                            label: Text('v3.0.0', style: TextStyle(fontSize: 9)),
-                            visualDensity: VisualDensity.compact,
-                            padding: EdgeInsets.zero,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+        body: isMobile
+            ? (_isLoadingStep
+                ? const Center(child: CircularProgressIndicator())
+                : _buildTabContent(isMobile: true))
+            : Row(
+                children: [
+                  SizedBox(
+                    width: _sidebarWidth,
+                    child: _buildSidebarContent(isMobile: false),
+                  ),
+                  _buildResizeDivider(
+                    onDrag: (details) {
+                      setState(() {
+                        final delta = widget.language == 'ar' ? -details.delta.dx : details.delta.dx;
+                        _sidebarWidth = (_sidebarWidth + delta).clamp(200.0, 500.0);
+                      });
+                    },
+                  ),
+                  Expanded(
+                    child: _isLoadingStep
+                        ? const Center(child: CircularProgressIndicator())
+                        : _buildTabContent(isMobile: false),
+                  ),
+                ],
               ),
-            ),
-            _buildResizeDivider(
-              onDrag: (details) {
-                setState(() {
-                  final delta = widget.language == 'ar' ? -details.delta.dx : details.delta.dx;
-                  _sidebarWidth = (_sidebarWidth + delta).clamp(200.0, 500.0);
-                });
-              },
-            ),
-            Expanded(
-              child: _isLoadingStep
-                  ? const Center(child: CircularProgressIndicator())
-                  : _buildTabContent(),
-            ),
-          ],
-        ),
       ),
     );
   }
 
-  Widget _buildSidebarTile(int index, String title, IconData icon, {Color? color}) {
+  Widget _buildSidebarTile(int index, String title, IconData icon, {Color? color, bool isMobile = false}) {
     final isSelected = _selectedTabIndex == index;
     return ListTile(
       dense: true,
@@ -1407,6 +1484,9 @@ class _WorkspacePageState extends State<WorkspacePage> {
         overflow: TextOverflow.visible,
       ),
       onTap: () async {
+        if (isMobile) {
+          Navigator.pop(context);
+        }
         await _saveActiveContent(showToast: false);
         setState(() {
           _selectedTabIndex = index;
@@ -1416,7 +1496,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
     );
   }
 
-  Widget _buildSidebarStepTile(int index, String title, int stepNum) {
+  Widget _buildSidebarStepTile(int index, String title, int stepNum, {bool isMobile = false}) {
     final isSelected = _selectedTabIndex == index;
     final isDone = _isStepDone(stepNum);
 
@@ -1426,7 +1506,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
       leading: CircleAvatar(
         radius: 10,
         backgroundColor: isSelected ? Colors.teal : Theme.of(context).colorScheme.surfaceContainerHighest,
-        child: Text('$stepNum', style: TextStyle(fontSize: 10, color: Colors.white)),
+        child: Text('$stepNum', style: const TextStyle(fontSize: 10, color: Colors.white)),
       ),
       title: Text(
         title,
@@ -1435,6 +1515,9 @@ class _WorkspacePageState extends State<WorkspacePage> {
       ),
       trailing: isDone ? Icon(Icons.check_circle, color: Theme.of(context).colorScheme.primary, size: 16) : null,
       onTap: () async {
+        if (isMobile) {
+          Navigator.pop(context);
+        }
         await _saveActiveContent(showToast: false);
         setState(() {
           _selectedTabIndex = index;
@@ -1444,63 +1527,73 @@ class _WorkspacePageState extends State<WorkspacePage> {
     );
   }
 
-  Widget _buildTabContent() {
+  Widget _buildTabContent({required bool isMobile}) {
     switch (_selectedTabIndex) {
       case 0:
-        return _buildDashboardTab();
+        return _buildDashboardTab(isMobile: isMobile);
       case 1:
-        return _buildStepEditorTab(t('step1Title'), t('step1Desc'), 0, _step1Ctrl, 1);
+        return _buildStepEditorTab(t('step1Title'), t('step1Desc'), 0, _step1Ctrl, 1, isMobile: isMobile);
       case 2:
-        return _buildStepEditorTab(t('step2Title'), t('step2Desc'), 1, _step2Ctrl, 2);
+        return _buildStepEditorTab(t('step2Title'), t('step2Desc'), 1, _step2Ctrl, 2, isMobile: isMobile);
       case 3:
-        return _buildCharacterBiosTab();
+        return _buildCharacterBiosTab(isMobile: isMobile);
       case 4:
-        return _buildStepEditorTab(t('step4Title'), t('step4Desc'), 2, _step4Ctrl, 4);
+        return _buildStepEditorTab(t('step4Title'), t('step4Desc'), 2, _step4Ctrl, 4, isMobile: isMobile);
       case 5:
-        return _buildCharacterPovSynopsesTab();
+        return _buildCharacterPovSynopsesTab(isMobile: isMobile);
       case 6:
-        return _buildStepEditorTab(t('step6Title'), t('step6Desc'), 4, _step6Ctrl, 6);
+        return _buildStepEditorTab(t('step6Title'), t('step6Desc'), 4, _step6Ctrl, 6, isMobile: isMobile);
       case 7:
-        return _buildDetailedCharacterChartsTab();
+        return _buildDetailedCharacterChartsTab(isMobile: isMobile);
       case 8:
-        return _buildSceneListMasterDetailTab();
+        return _buildSceneListMasterDetailTab(isMobile: isMobile);
       case 9:
-        return _buildSceneNarrativeOutlinesTab();
+        return _buildSceneNarrativeOutlinesTab(isMobile: isMobile);
       case 10:
-        return _buildExportTab();
+        return _buildExportTab(isMobile: isMobile);
       case 11:
-        return _buildWriteNovelTab();
+        return _buildWriteNovelTab(isMobile: isMobile);
       default:
         return const Center(child: Text('Unknown tab'));
     }
   }
 
-  Widget _buildDashboardTab() {
+  Widget _buildDashboardTab({required bool isMobile}) {
     final targetWords = _activeNovel.targetWordCount > 0 ? _activeNovel.targetWordCount : 50000;
     final currentWords = _activeNovel.currentWordCount;
     final progress = (currentWords / targetWords).clamp(0.0, 1.0);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(isMobile ? 12 : 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(t('novelDashboardTitle'), style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
+          Text(t('novelDashboardTitle'), style: (isMobile ? Theme.of(context).textTheme.titleLarge : Theme.of(context).textTheme.headlineSmall)?.copyWith(fontWeight: FontWeight.bold)),
           Text(t('novelDashboardDesc'), style: Theme.of(context).textTheme.bodySmall),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
           Card(
+            margin: EdgeInsets.zero,
             child: Padding(
-              padding: const EdgeInsets.all(20),
+              padding: EdgeInsets.all(isMobile ? 12 : 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(t('writingProgress'), style: const TextStyle(fontWeight: FontWeight.bold)),
-                      Text('$currentWords / $targetWords ${t('words')} (${(progress * 100).toStringAsFixed(1)}%)', style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary)),
-                    ],
-                  ),
+                  isMobile
+                      ? Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(t('writingProgress'), style: const TextStyle(fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 4),
+                            Text('$currentWords / $targetWords ${t('words')} (${(progress * 100).toStringAsFixed(1)}%)', style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary, fontSize: 12)),
+                          ],
+                        )
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(t('writingProgress'), style: const TextStyle(fontWeight: FontWeight.bold)),
+                            Text('$currentWords / $targetWords ${t('words')} (${(progress * 100).toStringAsFixed(1)}%)', style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary)),
+                          ],
+                        ),
                   const SizedBox(height: 12),
                   LinearProgressIndicator(
                     value: progress,
@@ -1513,20 +1606,31 @@ class _WorkspacePageState extends State<WorkspacePage> {
               ),
             ),
           ),
-          const SizedBox(height: 24),
-          Row(
-            children: [
-              Expanded(child: _buildStatCard(t('statsCharactersCount'), '${_characters.length}', Icons.people, Theme.of(context).colorScheme.secondary)),
-              const SizedBox(width: 12),
-              Expanded(child: _buildStatCard(t('statsScenesPlanned'), '${_scenes.length}', Icons.table_chart, Theme.of(context).colorScheme.tertiary)),
-              const SizedBox(width: 12),
-              Expanded(child: _buildStatCard(t('statsScenesDone'), '${_scenes.where((s) => s.actualWordCount > 0).length}', Icons.check_circle, Colors.teal)),
-            ],
-          ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
+          isMobile
+              ? Column(
+                  children: [
+                    _buildStatCard(t('statsCharactersCount'), '${_characters.length}', Icons.people, Theme.of(context).colorScheme.secondary),
+                    const SizedBox(height: 8),
+                    _buildStatCard(t('statsScenesPlanned'), '${_scenes.length}', Icons.table_chart, Theme.of(context).colorScheme.tertiary),
+                    const SizedBox(height: 8),
+                    _buildStatCard(t('statsScenesDone'), '${_scenes.where((s) => s.actualWordCount > 0).length}', Icons.check_circle, Colors.teal),
+                  ],
+                )
+              : Row(
+                  children: [
+                    Expanded(child: _buildStatCard(t('statsCharactersCount'), '${_characters.length}', Icons.people, Theme.of(context).colorScheme.secondary)),
+                    const SizedBox(width: 12),
+                    Expanded(child: _buildStatCard(t('statsScenesPlanned'), '${_scenes.length}', Icons.table_chart, Theme.of(context).colorScheme.tertiary)),
+                    const SizedBox(width: 12),
+                    Expanded(child: _buildStatCard(t('statsScenesDone'), '${_scenes.where((s) => s.actualWordCount > 0).length}', Icons.check_circle, Colors.teal)),
+                  ],
+                ),
+          const SizedBox(height: 16),
           Card(
+            margin: EdgeInsets.zero,
             child: Padding(
-              padding: const EdgeInsets.all(20),
+              padding: EdgeInsets.all(isMobile ? 12 : 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -1555,59 +1659,109 @@ class _WorkspacePageState extends State<WorkspacePage> {
                     },
                   ),
                   const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextFormField(
-                          initialValue: _activeNovel.genre,
-                          decoration: InputDecoration(labelText: t('novelGenreLabel'), border: const OutlineInputBorder()),
-                          onChanged: (val) {
-                            _activeNovel = rust.Novel(
-                              id: _activeNovel.id,
-                              title: _activeNovel.title,
-                              genre: val,
-                              targetAudience: _activeNovel.targetAudience,
-                              targetWordCount: _activeNovel.targetWordCount,
-                              currentWordCount: _activeNovel.currentWordCount,
-                              createdAt: _activeNovel.createdAt,
-                            );
-                            rust.updateNovel(
-                              id: _activeNovel.id!,
-                              title: _activeNovel.title,
-                              genre: _activeNovel.genre,
-                              targetAudience: _activeNovel.targetAudience,
-                              targetWordCount: _activeNovel.targetWordCount,
-                            );
-                          },
+                  isMobile
+                      ? Column(
+                          children: [
+                            TextFormField(
+                              initialValue: _activeNovel.genre,
+                              decoration: InputDecoration(labelText: t('novelGenreLabel'), border: const OutlineInputBorder()),
+                              onChanged: (val) {
+                                _activeNovel = rust.Novel(
+                                  id: _activeNovel.id,
+                                  title: _activeNovel.title,
+                                  genre: val,
+                                  targetAudience: _activeNovel.targetAudience,
+                                  targetWordCount: _activeNovel.targetWordCount,
+                                  currentWordCount: _activeNovel.currentWordCount,
+                                  createdAt: _activeNovel.createdAt,
+                                );
+                                rust.updateNovel(
+                                  id: _activeNovel.id!,
+                                  title: _activeNovel.title,
+                                  genre: _activeNovel.genre,
+                                  targetAudience: _activeNovel.targetAudience,
+                                  targetWordCount: _activeNovel.targetWordCount,
+                                );
+                              },
+                            ),
+                            const SizedBox(height: 16),
+                            TextFormField(
+                              initialValue: _activeNovel.targetAudience,
+                              decoration: InputDecoration(labelText: t('novelAudienceLabel'), border: const OutlineInputBorder()),
+                              onChanged: (val) {
+                                _activeNovel = rust.Novel(
+                                  id: _activeNovel.id,
+                                  title: _activeNovel.title,
+                                  genre: _activeNovel.genre,
+                                  targetAudience: val,
+                                  targetWordCount: _activeNovel.targetWordCount,
+                                  currentWordCount: _activeNovel.currentWordCount,
+                                  createdAt: _activeNovel.createdAt,
+                                );
+                                rust.updateNovel(
+                                  id: _activeNovel.id!,
+                                  title: _activeNovel.title,
+                                  genre: _activeNovel.genre,
+                                  targetAudience: _activeNovel.targetAudience,
+                                  targetWordCount: _activeNovel.targetWordCount,
+                                );
+                              },
+                            ),
+                          ],
+                        )
+                      : Row(
+                          children: [
+                            Expanded(
+                              child: TextFormField(
+                                initialValue: _activeNovel.genre,
+                                decoration: InputDecoration(labelText: t('novelGenreLabel'), border: const OutlineInputBorder()),
+                                onChanged: (val) {
+                                  _activeNovel = rust.Novel(
+                                    id: _activeNovel.id,
+                                    title: _activeNovel.title,
+                                    genre: val,
+                                    targetAudience: _activeNovel.targetAudience,
+                                    targetWordCount: _activeNovel.targetWordCount,
+                                    currentWordCount: _activeNovel.currentWordCount,
+                                    createdAt: _activeNovel.createdAt,
+                                  );
+                                  rust.updateNovel(
+                                    id: _activeNovel.id!,
+                                    title: _activeNovel.title,
+                                    genre: _activeNovel.genre,
+                                    targetAudience: _activeNovel.targetAudience,
+                                    targetWordCount: _activeNovel.targetWordCount,
+                                  );
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: TextFormField(
+                                initialValue: _activeNovel.targetAudience,
+                                decoration: InputDecoration(labelText: t('novelAudienceLabel'), border: const OutlineInputBorder()),
+                                onChanged: (val) {
+                                  _activeNovel = rust.Novel(
+                                    id: _activeNovel.id,
+                                    title: _activeNovel.title,
+                                    genre: _activeNovel.genre,
+                                    targetAudience: val,
+                                    targetWordCount: _activeNovel.targetWordCount,
+                                    currentWordCount: _activeNovel.currentWordCount,
+                                    createdAt: _activeNovel.createdAt,
+                                  );
+                                  rust.updateNovel(
+                                    id: _activeNovel.id!,
+                                    title: _activeNovel.title,
+                                    genre: _activeNovel.genre,
+                                    targetAudience: _activeNovel.targetAudience,
+                                    targetWordCount: _activeNovel.targetWordCount,
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: TextFormField(
-                          initialValue: _activeNovel.targetAudience,
-                          decoration: InputDecoration(labelText: t('novelAudienceLabel'), border: const OutlineInputBorder()),
-                          onChanged: (val) {
-                            _activeNovel = rust.Novel(
-                              id: _activeNovel.id,
-                              title: _activeNovel.title,
-                              genre: _activeNovel.genre,
-                              targetAudience: val,
-                              targetWordCount: _activeNovel.targetWordCount,
-                              currentWordCount: _activeNovel.currentWordCount,
-                              createdAt: _activeNovel.createdAt,
-                            );
-                            rust.updateNovel(
-                              id: _activeNovel.id!,
-                              title: _activeNovel.title,
-                              genre: _activeNovel.genre,
-                              targetAudience: _activeNovel.targetAudience,
-                              targetWordCount: _activeNovel.targetWordCount,
-                            );
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
                   const SizedBox(height: 16),
                   TextFormField(
                     initialValue: '${_activeNovel.targetWordCount}',
@@ -1684,30 +1838,39 @@ class _WorkspacePageState extends State<WorkspacePage> {
     );
   }
 
-  Widget _buildStepEditorTab(String title, String instruction, int referenceStepNum, TextEditingController controller, int stepNum) {
+  Widget _buildStepEditorTab(String title, String instruction, int referenceStepNum, TextEditingController controller, int stepNum, {required bool isMobile}) {
     final refText = referenceStepNum > 0 ? _getStepContentText(referenceStepNum) : '';
 
     return Padding(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(isMobile ? 12 : 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
-                  title,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-                  overflow: TextOverflow.ellipsis,
+          if (isMobile) ...[
+            Text(
+              title,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            _buildStepHeaderActions(stepNum, isMobile: true),
+          ] else ...[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    title,
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-              ),
-              _buildStepHeaderActions(stepNum),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(instruction, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
-          const SizedBox(height: 16),
+                _buildStepHeaderActions(stepNum, isMobile: false),
+              ],
+            ),
+          ],
+          const SizedBox(height: 8),
+          Text(instruction, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+          const SizedBox(height: 12),
           if (referenceStepNum > 0) ...[
             ExpansionTile(
               leading: Icon(Icons.auto_stories, color: Theme.of(context).colorScheme.primary),
@@ -1722,10 +1885,11 @@ class _WorkspacePageState extends State<WorkspacePage> {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
           ],
           Expanded(
             child: Card(
+              margin: EdgeInsets.zero,
               child: NativeTextEditor(
                 controller: controller,
                 wordCountLabel: t('words'),
@@ -1738,70 +1902,159 @@ class _WorkspacePageState extends State<WorkspacePage> {
   }
 
   // STEP 3: Major Character Bios Setup Sheet
-  Widget _buildCharacterBiosTab() {
-    return Row(
-      children: [
-        SizedBox(
-          width: _listPaneWidth,
-          child: Card(
-            margin: const EdgeInsets.all(16),
-            child: Column(
+  Widget _buildCharacterBiosTab({required bool isMobile}) {
+    Widget listPane = Card(
+      margin: isMobile ? EdgeInsets.zero : const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
               children: [
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          t('charactersTitle'),
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      IconButton(
-                        onPressed: () => _openCharacterDialog(),
-                        icon: Icon(Icons.add_circle, color: Theme.of(context).colorScheme.primary),
-                        tooltip: t('addCharacterBtn'),
-                      ),
-                    ],
+                Expanded(
+                  child: Text(
+                    t('charactersTitle'),
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                const Divider(height: 1),
-                Expanded(
-                  child: _characters.isEmpty
-                      ? Center(child: Text(t('noCharactersYet'), textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)))
-                      : ListView.builder(
-                          itemCount: _characters.length,
-                          itemBuilder: (context, index) {
-                            final char = _characters[index];
-                            final isSelected = _selectedCharacter?.id == char.id;
-                            return ListTile(
-                              leading: CircleAvatar(
-                                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                                child: Text(char.name.isNotEmpty ? char.name[0].toUpperCase() : '?'),
-                              ),
-                              title: Text(char.name, style: const TextStyle(fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
-                              subtitle: Text(char.motivation, maxLines: 1, overflow: TextOverflow.ellipsis),
-                              selected: isSelected,
-                              trailing: IconButton(
-                                icon: Icon(Icons.delete_outline, color: Theme.of(context).colorScheme.error, size: 18),
-                                onPressed: () => _deleteCharacter(char),
-                              ),
-                              onTap: () async {
-                                await _saveActiveContent(showToast: false);
-                                setState(() {
-                                  _selectedCharacter = char;
-                                  _step3SummaryCtrl.text = _cleanText(char.oneParagraphSummary);
-                                });
-                              },
-                            );
-                          },
-                        ),
+                IconButton(
+                  onPressed: () => _openCharacterDialog(),
+                  icon: Icon(Icons.add_circle, color: Theme.of(context).colorScheme.primary),
+                  tooltip: t('addCharacterBtn'),
                 ),
               ],
             ),
           ),
-        ),
+          const Divider(height: 1),
+          Expanded(
+            child: _characters.isEmpty
+                ? Center(child: Text(t('noCharactersYet'), textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)))
+                : ListView.builder(
+                    itemCount: _characters.length,
+                    itemBuilder: (context, index) {
+                      final char = _characters[index];
+                      final isSelected = _selectedCharacter?.id == char.id;
+                      return ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                          child: Text(char.name.isNotEmpty ? char.name[0].toUpperCase() : '?'),
+                        ),
+                        title: Text(char.name, style: const TextStyle(fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
+                        subtitle: Text(char.motivation, maxLines: 1, overflow: TextOverflow.ellipsis),
+                        selected: isSelected,
+                        trailing: IconButton(
+                          icon: Icon(Icons.delete_outline, color: Theme.of(context).colorScheme.error, size: 18),
+                          onPressed: () => _deleteCharacter(char),
+                        ),
+                        onTap: () async {
+                          await _saveActiveContent(showToast: false);
+                          setState(() {
+                            _selectedCharacter = char;
+                            _step3SummaryCtrl.text = _cleanText(char.oneParagraphSummary);
+                          });
+                        },
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+
+    Widget detailPane = Padding(
+      padding: EdgeInsets.all(isMobile ? 12 : 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              if (isMobile)
+                IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: () => setState(() => _selectedCharacter = null),
+                ),
+              Expanded(
+                child: Text(
+                  t('step3Title'),
+                  style: (isMobile ? Theme.of(context).textTheme.titleLarge : Theme.of(context).textTheme.headlineSmall)?.copyWith(fontWeight: FontWeight.bold),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              _buildStepHeaderActions(3, isMobile: isMobile),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _selectedCharacter == null
+              ? Center(child: Padding(padding: const EdgeInsets.all(40), child: Text(t('selectCharPlaceholder'))))
+              : Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Flexible(
+                            child: Text(
+                              _selectedCharacter!.name,
+                              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          OutlinedButton.icon(
+                            onPressed: () => _openCharacterDialog(_selectedCharacter),
+                            icon: const Icon(Icons.edit, size: 16),
+                            label: Text(t('edit')),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Card(
+                        margin: EdgeInsets.zero,
+                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('${t('charMotivationLabel')}: ${_selectedCharacter!.motivation}'),
+                              const SizedBox(height: 4),
+                              Text('${t('charGoalLabel')}: ${_selectedCharacter!.goal}'),
+                              const SizedBox(height: 4),
+                              Text('${t('charConflictLabel')}: ${_selectedCharacter!.conflict}'),
+                              const SizedBox(height: 4),
+                              Text('${t('charEpiphanyLabel')}: ${_selectedCharacter!.epiphany}'),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(t('charSummaryLabel'), style: const TextStyle(fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 6),
+                      Expanded(
+                        child: Card(
+                          margin: EdgeInsets.zero,
+                          child: NativeTextEditor(
+                            controller: _step3SummaryCtrl,
+                            wordCountLabel: t('words'),
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+        ],
+      ),
+    );
+
+    if (isMobile) {
+      return _selectedCharacter == null ? listPane : detailPane;
+    }
+
+    return Row(
+      children: [
+        SizedBox(width: _listPaneWidth, child: listPane),
         _buildResizeDivider(
           onDrag: (details) {
             setState(() {
@@ -1810,86 +2063,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
             });
           },
         ),
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        t('step3Title'),
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    _buildStepHeaderActions(3),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                _selectedCharacter == null
-                    ? Center(child: Padding(padding: const EdgeInsets.all(40), child: Text(t('selectCharPlaceholder'))))
-                    : Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Flexible(
-                                  child: Text(
-                                    _selectedCharacter!.name,
-                                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                OutlinedButton.icon(
-                                  onPressed: () => _openCharacterDialog(_selectedCharacter),
-                                  icon: const Icon(Icons.edit),
-                                  label: Text(t('edit')),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            Card(
-                              color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                              child: Padding(
-                                padding: const EdgeInsets.all(16),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text('${t('charMotivationLabel')}: ${_selectedCharacter!.motivation}'),
-                                    const SizedBox(height: 4),
-                                    Text('${t('charGoalLabel')}: ${_selectedCharacter!.goal}'),
-                                    const SizedBox(height: 4),
-                                    Text('${t('charConflictLabel')}: ${_selectedCharacter!.conflict}'),
-                                    const SizedBox(height: 4),
-                                    Text('${t('charEpiphanyLabel')}: ${_selectedCharacter!.epiphany}'),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            Text(t('charSummaryLabel'), style: const TextStyle(fontWeight: FontWeight.bold)),
-                            const SizedBox(height: 8),
-                            Expanded(
-                              child: Card(
-                                child: NativeTextEditor(
-                                  controller: _step3SummaryCtrl,
-                                  wordCountLabel: t('words'),
-                                ),
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-              ],
-            ),
-          ),
-        )
+        Expanded(child: detailPane),
       ],
     );
   }
@@ -1948,55 +2122,133 @@ class _WorkspacePageState extends State<WorkspacePage> {
   }
 
   // STEP 5: Character POV Synopses (1 page story narrative from character's POV)
-  Widget _buildCharacterPovSynopsesTab() {
-    return Row(
-      children: [
-        SizedBox(
-          width: _listPaneWidth,
-          child: Card(
-            margin: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Text(
-                    t('charSynopsesTitle'),
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                const Divider(height: 1),
-                Expanded(
-                  child: _characters.isEmpty
-                      ? Center(child: Text(t('pleaseAddCharsFirst'), textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)))
-                      : ListView.builder(
-                          itemCount: _characters.length,
-                          itemBuilder: (context, index) {
-                            final char = _characters[index];
-                            final isSelected = _selectedCharacter?.id == char.id;
-                            return ListTile(
-                              leading: CircleAvatar(
-                                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                                child: Text(char.name.isNotEmpty ? char.name[0].toUpperCase() : '?'),
-                              ),
-                              title: Text(char.name, style: const TextStyle(fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
-                              subtitle: Text(char.motivation, maxLines: 1, overflow: TextOverflow.ellipsis),
-                              selected: isSelected,
-                              onTap: () async {
-                                await _saveActiveContent(showToast: false);
-                                setState(() {
-                                  _selectedCharacter = char;
-                                  _step5SynopsisCtrl.text = _cleanText(char.fullSynopsis);
-                                });
-                              },
-                            );
-                          },
-                        ),
-                ),
-              ],
+  Widget _buildCharacterPovSynopsesTab({required bool isMobile}) {
+    Widget listPane = Card(
+      margin: isMobile ? EdgeInsets.zero : const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              t('charSynopsesTitle'),
+              style: const TextStyle(fontWeight: FontWeight.bold),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
-        ),
+          const Divider(height: 1),
+          Expanded(
+            child: _characters.isEmpty
+                ? Center(child: Text(t('pleaseAddCharsFirst'), textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)))
+                : ListView.builder(
+                    itemCount: _characters.length,
+                    itemBuilder: (context, index) {
+                      final char = _characters[index];
+                      final isSelected = _selectedCharacter?.id == char.id;
+                      return ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                          child: Text(char.name.isNotEmpty ? char.name[0].toUpperCase() : '?'),
+                        ),
+                        title: Text(char.name, style: const TextStyle(fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
+                        subtitle: Text(char.motivation, maxLines: 1, overflow: TextOverflow.ellipsis),
+                        selected: isSelected,
+                        onTap: () async {
+                          await _saveActiveContent(showToast: false);
+                          setState(() {
+                            _selectedCharacter = char;
+                            _step5SynopsisCtrl.text = _cleanText(char.fullSynopsis);
+                          });
+                        },
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+
+    Widget detailPane = Padding(
+      padding: EdgeInsets.all(isMobile ? 12 : 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              if (isMobile)
+                IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: () => setState(() => _selectedCharacter = null),
+                ),
+              Expanded(
+                child: Text(
+                  t('step5Title'),
+                  style: (isMobile ? Theme.of(context).textTheme.titleLarge : Theme.of(context).textTheme.headlineSmall)?.copyWith(fontWeight: FontWeight.bold),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              _buildStepHeaderActions(5, isMobile: isMobile),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _selectedCharacter == null
+              ? Center(child: Padding(padding: const EdgeInsets.all(40), child: Text(t('selectCharPlaceholder'))))
+              : Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        '${_selectedCharacter!.name} - ${t('charExtendedSynopsisLabel')}',
+                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      ExpansionTile(
+                        leading: Icon(Icons.person, color: Theme.of(context).colorScheme.primary),
+                        title: Text('${_selectedCharacter!.name} (${t('charRefBioLabel')} Step 3)', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                        children: [
+                          ConstrainedBox(
+                            constraints: const BoxConstraints(maxHeight: 140),
+                            child: SingleChildScrollView(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('${t('charMotivationLabel')}: ${_selectedCharacter!.motivation}'),
+                                  Text('${t('charGoalLabel')}: ${_selectedCharacter!.goal}'),
+                                  Text('${t('charConflictLabel')}: ${_selectedCharacter!.conflict}'),
+                                  Text('${t('charEpiphanyLabel')}: ${_selectedCharacter!.epiphany}'),
+                                  const SizedBox(height: 4),
+                                  Text('${t('charSummaryLabel')}: ${_cleanText(_selectedCharacter!.oneParagraphSummary)}'),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Expanded(
+                        child: Card(
+                          margin: EdgeInsets.zero,
+                          child: NativeTextEditor(
+                            controller: _step5SynopsisCtrl,
+                            wordCountLabel: t('words'),
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+        ],
+      ),
+    );
+
+    if (isMobile) {
+      return _selectedCharacter == null ? listPane : detailPane;
+    }
+
+    return Row(
+      children: [
+        SizedBox(width: _listPaneWidth, child: listPane),
         _buildResizeDivider(
           onDrag: (details) {
             setState(() {
@@ -2005,134 +2257,143 @@ class _WorkspacePageState extends State<WorkspacePage> {
             });
           },
         ),
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        t('step5Title'),
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    _buildStepHeaderActions(5),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                _selectedCharacter == null
-                    ? Center(child: Padding(padding: const EdgeInsets.all(40), child: Text(t('selectCharPlaceholder'))))
-                    : Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Text(
-                              '${_selectedCharacter!.name} - ${t('charExtendedSynopsisLabel')}',
-                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                            ),
-                            const SizedBox(height: 12),
-                            ExpansionTile(
-                              leading: Icon(Icons.person, color: Theme.of(context).colorScheme.primary),
-                              title: Text('${_selectedCharacter!.name} (${t('charRefBioLabel')} Step 3)', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-                              children: [
-                                ConstrainedBox(
-                                  constraints: const BoxConstraints(maxHeight: 140),
-                                  child: SingleChildScrollView(
-                                    padding: const EdgeInsets.all(16),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text('${t('charMotivationLabel')}: ${_selectedCharacter!.motivation}'),
-                                        Text('${t('charGoalLabel')}: ${_selectedCharacter!.goal}'),
-                                        Text('${t('charConflictLabel')}: ${_selectedCharacter!.conflict}'),
-                                        Text('${t('charEpiphanyLabel')}: ${_selectedCharacter!.epiphany}'),
-                                        const SizedBox(height: 4),
-                                        Text('${t('charSummaryLabel')}: ${_cleanText(_selectedCharacter!.oneParagraphSummary)}'),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 16),
-                            Expanded(
-                              child: Card(
-                                child: NativeTextEditor(
-                                  controller: _step5SynopsisCtrl,
-                                  wordCountLabel: t('words'),
-                                ),
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-              ],
-            ),
-          ),
-        )
+        Expanded(child: detailPane),
       ],
     );
   }
 
   // STEP 7: Detailed Character Charts (Independent per-character chart notes)
-  Widget _buildDetailedCharacterChartsTab() {
-    return Row(
-      children: [
-        SizedBox(
-          width: _listPaneWidth,
-          child: Card(
-            margin: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Text(
-                    t('charChartsTitle'),
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                const Divider(height: 1),
-                Expanded(
-                  child: _characters.isEmpty
-                      ? Center(child: Text(t('pleaseAddCharsFirst'), textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)))
-                      : ListView.builder(
-                          itemCount: _characters.length,
-                          itemBuilder: (context, index) {
-                            final char = _characters[index];
-                            final isSelected = _selectedCharacter?.id == char.id;
-                            return ListTile(
-                              leading: CircleAvatar(
-                                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                                child: Text(char.name.isNotEmpty ? char.name[0].toUpperCase() : '?'),
-                              ),
-                              title: Text(char.name, style: const TextStyle(fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
-                              subtitle: Text(char.motivation, maxLines: 1, overflow: TextOverflow.ellipsis),
-                              selected: isSelected,
-                              onTap: () async {
-                                await _saveActiveContent(showToast: false);
-                                setState(() {
-                                  _selectedCharacter = char;
-                                });
-                                final chartStep = _allStepsProgress.firstWhere(
-                                  (s) => s.stepNumber == (7000 + char.id!.toInt()),
-                                  orElse: () => rust.StepProgress(novelId: _activeNovel.id!, stepNumber: 7000 + char.id!.toInt(), contentText: '', isCompleted: false),
-                                );
-                                _step7ChartCtrl.text = _cleanText(chartStep.contentText);
-                              },
-                            );
-                          },
-                        ),
-                ),
-              ],
+  Widget _buildDetailedCharacterChartsTab({required bool isMobile}) {
+    Widget listPane = Card(
+      margin: isMobile ? EdgeInsets.zero : const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              t('charChartsTitle'),
+              style: const TextStyle(fontWeight: FontWeight.bold),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
-        ),
+          const Divider(height: 1),
+          Expanded(
+            child: _characters.isEmpty
+                ? Center(child: Text(t('pleaseAddCharsFirst'), textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)))
+                : ListView.builder(
+                    itemCount: _characters.length,
+                    itemBuilder: (context, index) {
+                      final char = _characters[index];
+                      final isSelected = _selectedCharacter?.id == char.id;
+                      return ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                          child: Text(char.name.isNotEmpty ? char.name[0].toUpperCase() : '?'),
+                        ),
+                        title: Text(char.name, style: const TextStyle(fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
+                        subtitle: Text(char.motivation, maxLines: 1, overflow: TextOverflow.ellipsis),
+                        selected: isSelected,
+                        onTap: () async {
+                          await _saveActiveContent(showToast: false);
+                          setState(() {
+                            _selectedCharacter = char;
+                          });
+                          final chartStep = _allStepsProgress.firstWhere(
+                            (s) => s.stepNumber == (7000 + char.id!.toInt()),
+                            orElse: () => rust.StepProgress(novelId: _activeNovel.id!, stepNumber: 7000 + char.id!.toInt(), contentText: '', isCompleted: false),
+                          );
+                          _step7ChartCtrl.text = _cleanText(chartStep.contentText);
+                        },
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+
+    Widget detailPane = Padding(
+      padding: EdgeInsets.all(isMobile ? 12 : 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              if (isMobile)
+                IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: () => setState(() => _selectedCharacter = null),
+                ),
+              Expanded(
+                child: Text(
+                  t('step7Title'),
+                  style: (isMobile ? Theme.of(context).textTheme.titleLarge : Theme.of(context).textTheme.headlineSmall)?.copyWith(fontWeight: FontWeight.bold),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              _buildStepHeaderActions(7, isMobile: isMobile),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _selectedCharacter == null
+              ? Center(child: Padding(padding: const EdgeInsets.all(40), child: Text(t('selectCharPlaceholder'))))
+              : Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        '${_selectedCharacter!.name} - ${t('charChartsTitle')}',
+                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      ExpansionTile(
+                        leading: Icon(Icons.badge, color: Theme.of(context).colorScheme.primary),
+                        title: Text('${_selectedCharacter!.name} (${t('charRefBioLabel')} Step 3)', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                        children: [
+                          ConstrainedBox(
+                            constraints: const BoxConstraints(maxHeight: 140),
+                            child: SingleChildScrollView(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('${t('charMotivationLabel')}: ${_selectedCharacter!.motivation}'),
+                                  Text('${t('charGoalLabel')}: ${_selectedCharacter!.goal}'),
+                                  Text('${t('charConflictLabel')}: ${_selectedCharacter!.conflict}'),
+                                  Text('${t('charEpiphanyLabel')}: ${_selectedCharacter!.epiphany}'),
+                                  const SizedBox(height: 4),
+                                  Text('${t('charSummaryLabel')}: ${_cleanText(_selectedCharacter!.oneParagraphSummary)}'),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Expanded(
+                        child: Card(
+                          margin: EdgeInsets.zero,
+                          child: NativeTextEditor(
+                            controller: _step7ChartCtrl,
+                            wordCountLabel: t('words'),
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+        ],
+      ),
+    );
+
+    if (isMobile) {
+      return _selectedCharacter == null ? listPane : detailPane;
+    }
+
+    return Row(
+      children: [
+        SizedBox(width: _listPaneWidth, child: listPane),
         _buildResizeDivider(
           onDrag: (details) {
             setState(() {
@@ -2141,146 +2402,174 @@ class _WorkspacePageState extends State<WorkspacePage> {
             });
           },
         ),
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        t('step7Title'),
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    _buildStepHeaderActions(7),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                _selectedCharacter == null
-                    ? Center(child: Padding(padding: const EdgeInsets.all(40), child: Text(t('selectCharPlaceholder'))))
-                    : Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Text(
-                              '${_selectedCharacter!.name} - ${t('charChartsTitle')}',
-                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                            ),
-                            const SizedBox(height: 12),
-                            ExpansionTile(
-                              leading: Icon(Icons.badge, color: Theme.of(context).colorScheme.primary),
-                              title: Text('${_selectedCharacter!.name} (${t('charRefBioLabel')} Step 3)', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-                              children: [
-                                ConstrainedBox(
-                                  constraints: const BoxConstraints(maxHeight: 140),
-                                  child: SingleChildScrollView(
-                                    padding: const EdgeInsets.all(16),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text('${t('charMotivationLabel')}: ${_selectedCharacter!.motivation}'),
-                                        Text('${t('charGoalLabel')}: ${_selectedCharacter!.goal}'),
-                                        Text('${t('charConflictLabel')}: ${_selectedCharacter!.conflict}'),
-                                        Text('${t('charEpiphanyLabel')}: ${_selectedCharacter!.epiphany}'),
-                                        const SizedBox(height: 4),
-                                        Text('${t('charSummaryLabel')}: ${_cleanText(_selectedCharacter!.oneParagraphSummary)}'),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 16),
-                            Expanded(
-                              child: Card(
-                                child: NativeTextEditor(
-                                  controller: _step7ChartCtrl,
-                                  wordCountLabel: t('words'),
-                                ),
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-              ],
-            ),
-          ),
-        )
+        Expanded(child: detailPane),
       ],
     );
   }
 
   // STEP 8: Scene List Spreadsheet (Master-Detail Split Editor)
-  Widget _buildSceneListMasterDetailTab() {
-    return Row(
-      children: [
-        SizedBox(
-          width: _listPaneWidth,
-          child: Card(
-            margin: const EdgeInsets.all(16),
-            child: Column(
+  Widget _buildSceneListMasterDetailTab({required bool isMobile}) {
+    Widget listPane = Card(
+      margin: isMobile ? EdgeInsets.zero : const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
               children: [
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          t('scenesTitle'),
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      IconButton(
-                        onPressed: () => _openSceneMetadataDialog(),
-                        icon: Icon(Icons.add_circle, color: Theme.of(context).colorScheme.primary),
-                        tooltip: t('addSceneBtn'),
-                      ),
-                    ],
+                Expanded(
+                  child: Text(
+                    t('scenesTitle'),
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                const Divider(height: 1),
-                Expanded(
-                  child: _scenes.isEmpty
-                      ? Center(child: Text(t('noScenesYet'), textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)))
-                      : ListView.builder(
-                          itemCount: _scenes.length,
-                          itemBuilder: (context, index) {
-                            final scn = _scenes[index];
-                            final isSelected = _selectedScene?.id == scn.id;
-                            final povChar = _characters.firstWhere(
-                              (c) => c.id == scn.povCharacterId,
-                              orElse: () => rust.Character(novelId: 0, name: t('sceneNotPlanned'), motivation: '', goal: '', conflict: '', epiphany: '', oneParagraphSummary: '', fullSynopsis: ''),
-                            );
-
-                            return ListTile(
-                              title: Text('${t('sceneNumber')} #${index + 1}: ${scn.setting.isNotEmpty ? scn.setting : t('sceneNotPlanned')}', overflow: TextOverflow.ellipsis),
-                              subtitle: Text('${povChar.name} | ${scn.plotThread}', maxLines: 1, overflow: TextOverflow.ellipsis),
-                              selected: isSelected,
-                              trailing: IconButton(
-                                icon: Icon(Icons.delete_outline, color: Theme.of(context).colorScheme.error, size: 18),
-                                onPressed: () => _deleteScene(scn),
-                              ),
-                              onTap: () async {
-                                await _saveActiveContent(showToast: false);
-                                setState(() {
-                                  _selectedScene = scn;
-                                  _step8SceneCtrl.text = _cleanText(scn.whatHappens);
-                                });
-                              },
-                            );
-                          },
-                        ),
+                IconButton(
+                  onPressed: () => _openSceneMetadataDialog(),
+                  icon: Icon(Icons.add_circle, color: Theme.of(context).colorScheme.primary),
+                  tooltip: t('addSceneBtn'),
                 ),
               ],
             ),
           ),
-        ),
+          const Divider(height: 1),
+          Expanded(
+            child: _scenes.isEmpty
+                ? Center(child: Text(t('noScenesYet'), textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)))
+                : ListView.builder(
+                    itemCount: _scenes.length,
+                    itemBuilder: (context, index) {
+                      final scn = _scenes[index];
+                      final isSelected = _selectedScene?.id == scn.id;
+                      final povChar = _characters.firstWhere(
+                        (c) => c.id == scn.povCharacterId,
+                        orElse: () => rust.Character(novelId: 0, name: t('sceneNotPlanned'), motivation: '', goal: '', conflict: '', epiphany: '', oneParagraphSummary: '', fullSynopsis: ''),
+                      );
+
+                      return ListTile(
+                        title: Text('${t('sceneNumber')} #${index + 1}: ${scn.setting.isNotEmpty ? scn.setting : t('sceneNotPlanned')}', overflow: TextOverflow.ellipsis),
+                        subtitle: Text('${povChar.name} | ${scn.plotThread}', maxLines: 1, overflow: TextOverflow.ellipsis),
+                        selected: isSelected,
+                        trailing: IconButton(
+                          icon: Icon(Icons.delete_outline, color: Theme.of(context).colorScheme.error, size: 18),
+                          onPressed: () => _deleteScene(scn),
+                        ),
+                        onTap: () async {
+                          await _saveActiveContent(showToast: false);
+                          setState(() {
+                            _selectedScene = scn;
+                            _step8SceneCtrl.text = _cleanText(scn.whatHappens);
+                          });
+                        },
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+
+    Widget detailPane = Padding(
+      padding: EdgeInsets.all(isMobile ? 12 : 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              if (isMobile)
+                IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: () => setState(() => _selectedScene = null),
+                ),
+              Expanded(
+                child: Text(
+                  t('step8Title'),
+                  style: (isMobile ? Theme.of(context).textTheme.titleLarge : Theme.of(context).textTheme.headlineSmall)?.copyWith(fontWeight: FontWeight.bold),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              _buildStepHeaderActions(8, isMobile: isMobile),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _selectedScene == null
+              ? Center(child: Padding(padding: const EdgeInsets.all(40), child: Text(t('selectScenePlaceholder'))))
+              : Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Flexible(
+                            child: Text(
+                              '${t('sceneNumber')} - ${_selectedScene!.setting}',
+                              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          OutlinedButton.icon(
+                            onPressed: () => _openSceneMetadataDialog(_selectedScene),
+                            icon: const Icon(Icons.edit, size: 16),
+                            label: Text(t('edit')),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Card(
+                        margin: EdgeInsets.zero,
+                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Flexible(
+                                    child: Text(
+                                      '${t('scenePovCol')}: ${_characters.firstWhere((c) => c.id == _selectedScene!.povCharacterId, orElse: () => rust.Character(novelId: 0, name: t('sceneNotPlanned'), motivation: '', goal: '', conflict: '', epiphany: '', oneParagraphSummary: '', fullSynopsis: '')).name}',
+                                      style: const TextStyle(fontWeight: FontWeight.bold),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  Text('${t('sceneWordsCol')}: ${_selectedScene!.expectedWordCount} / ${_selectedScene!.actualWordCount}'),
+                                ],
+                              ),
+                              const SizedBox(height: 6),
+                              Text('${t('scenePlotCol')}: ${_selectedScene!.plotThread}'),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(t('sceneWhatHappensLabel'), style: const TextStyle(fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 6),
+                      Expanded(
+                        child: Card(
+                          margin: EdgeInsets.zero,
+                          child: NativeTextEditor(
+                            controller: _step8SceneCtrl,
+                            wordCountLabel: t('words'),
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+        ],
+      ),
+    );
+
+    if (isMobile) {
+      return _selectedScene == null ? listPane : detailPane;
+    }
+
+    return Row(
+      children: [
+        SizedBox(width: _listPaneWidth, child: listPane),
         _buildResizeDivider(
           onDrag: (details) {
             setState(() {
@@ -2289,91 +2578,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
             });
           },
         ),
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        t('step8Title'),
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    _buildStepHeaderActions(8),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                _selectedScene == null
-                    ? Center(child: Padding(padding: const EdgeInsets.all(40), child: Text(t('selectScenePlaceholder'))))
-                    : Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Flexible(
-                                  child: Text(
-                                    '${t('sceneNumber')} - ${_selectedScene!.setting}',
-                                    style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                OutlinedButton.icon(
-                                  onPressed: () => _openSceneMetadataDialog(_selectedScene),
-                                  icon: const Icon(Icons.edit),
-                                  label: Text(t('edit')),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            Card(
-                              color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                              child: Padding(
-                                padding: const EdgeInsets.all(16),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(
-                                          '${t('scenePovCol')}: ${_characters.firstWhere((c) => c.id == _selectedScene!.povCharacterId, orElse: () => rust.Character(novelId: 0, name: t('sceneNotPlanned'), motivation: '', goal: '', conflict: '', epiphany: '', oneParagraphSummary: '', fullSynopsis: '')).name}',
-                                          style: const TextStyle(fontWeight: FontWeight.bold),
-                                        ),
-                                        Text('${t('sceneWordsCol')}: ${_selectedScene!.expectedWordCount} / ${_selectedScene!.actualWordCount}'),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 6),
-                                    Text('${t('scenePlotCol')}: ${_selectedScene!.plotThread}'),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            Text(t('sceneWhatHappensLabel'), style: const TextStyle(fontWeight: FontWeight.bold)),
-                            const SizedBox(height: 8),
-                            Expanded(
-                              child: Card(
-                                child: NativeTextEditor(
-                                  controller: _step8SceneCtrl,
-                                  wordCountLabel: t('words'),
-                                ),
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-              ],
-            ),
-          ),
-        )
+        Expanded(child: detailPane),
       ],
     );
   }
@@ -2437,55 +2642,136 @@ class _WorkspacePageState extends State<WorkspacePage> {
   }
 
   // STEP 9: Scene Narrative Outlines
-  Widget _buildSceneNarrativeOutlinesTab() {
-    return Row(
-      children: [
-        SizedBox(
-          width: _listPaneWidth,
-          child: Card(
-            margin: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Text(
-                    t('scenesListLabel'),
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                const Divider(height: 1),
-                Expanded(
-                  child: _scenes.isEmpty
-                      ? Center(child: Text(t('pleaseAddScenesFirst'), textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)))
-                      : ListView.builder(
-                          itemCount: _scenes.length,
-                          itemBuilder: (context, index) {
-                            final scn = _scenes[index];
-                            final isSelected = _selectedScene?.id == scn.id;
-                            return ListTile(
-                              title: Text('${t('sceneNumber')} #${index + 1}: ${scn.setting.isNotEmpty ? scn.setting : t('sceneNotPlanned')}', overflow: TextOverflow.ellipsis),
-                              subtitle: Text(scn.plotThread, maxLines: 1, overflow: TextOverflow.ellipsis),
-                              selected: isSelected,
-                              onTap: () async {
-                                await _saveActiveContent(showToast: false);
-                                setState(() {
-                                  _selectedScene = scn;
-                                });
-                                final step9Prog = _allStepsProgress.firstWhere(
-                                  (s) => s.stepNumber == (9000 + scn.id!.toInt()),
-                                  orElse: () => rust.StepProgress(novelId: _activeNovel.id!, stepNumber: 9000 + scn.id!.toInt(), contentText: '', isCompleted: false),
-                                );
-                                _step9SceneCtrl.text = _cleanText(step9Prog.contentText);
-                              },
-                            );
-                          },
-                        ),
-                ),
-              ],
+  Widget _buildSceneNarrativeOutlinesTab({required bool isMobile}) {
+    Widget listPane = Card(
+      margin: isMobile ? EdgeInsets.zero : const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              t('scenesListLabel'),
+              style: const TextStyle(fontWeight: FontWeight.bold),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
-        ),
+          const Divider(height: 1),
+          Expanded(
+            child: _scenes.isEmpty
+                ? Center(child: Text(t('pleaseAddScenesFirst'), textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)))
+                : ListView.builder(
+                    itemCount: _scenes.length,
+                    itemBuilder: (context, index) {
+                      final scn = _scenes[index];
+                      final isSelected = _selectedScene?.id == scn.id;
+                      return ListTile(
+                        title: Text('${t('sceneNumber')} #${index + 1}: ${scn.setting.isNotEmpty ? scn.setting : t('sceneNotPlanned')}', overflow: TextOverflow.ellipsis),
+                        subtitle: Text(scn.plotThread, maxLines: 1, overflow: TextOverflow.ellipsis),
+                        selected: isSelected,
+                        onTap: () async {
+                          await _saveActiveContent(showToast: false);
+                          setState(() {
+                            _selectedScene = scn;
+                          });
+                          final step9Prog = _allStepsProgress.firstWhere(
+                            (s) => s.stepNumber == (9000 + scn.id!.toInt()),
+                            orElse: () => rust.StepProgress(novelId: _activeNovel.id!, stepNumber: 9000 + scn.id!.toInt(), contentText: '', isCompleted: false),
+                          );
+                          _step9SceneCtrl.text = _cleanText(step9Prog.contentText);
+                        },
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+
+    Widget detailPane = Padding(
+      padding: EdgeInsets.all(isMobile ? 12 : 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              if (isMobile)
+                IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: () => setState(() => _selectedScene = null),
+                ),
+              Expanded(
+                child: Text(
+                  t('step9Title'),
+                  style: (isMobile ? Theme.of(context).textTheme.titleLarge : Theme.of(context).textTheme.headlineSmall)?.copyWith(fontWeight: FontWeight.bold),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              _buildStepHeaderActions(9, isMobile: isMobile),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _selectedScene == null
+              ? Center(child: Padding(padding: const EdgeInsets.all(40), child: Text(t('selectScenePlaceholder'))))
+              : Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        '${t('sceneNumber')} - ${_selectedScene!.setting}',
+                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      ExpansionTile(
+                        leading: Icon(Icons.table_chart, color: Theme.of(context).colorScheme.primary),
+                        title: Text('${t('sceneSummaryLabel')} - ${t('referenceToStep')} 8', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                        children: [
+                          ConstrainedBox(
+                            constraints: const BoxConstraints(maxHeight: 140),
+                            child: SingleChildScrollView(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '${t('scenePovCol')}: ${_characters.firstWhere((c) => c.id == _selectedScene!.povCharacterId, orElse: () => rust.Character(novelId: 0, name: t('sceneNotPlanned'), motivation: '', goal: '', conflict: '', epiphany: '', oneParagraphSummary: '', fullSynopsis: '')).name}',
+                                    style: const TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                  Text('${t('scenePlotCol')}: ${_selectedScene!.plotThread}'),
+                                  const SizedBox(height: 6),
+                                  Text('${t('sceneWhatHappensLabel')}: ${_cleanText(_selectedScene!.whatHappens)}'),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Text(t('sceneNarrativeTextareaLabel'), style: const TextStyle(fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 6),
+                      Expanded(
+                        child: Card(
+                          margin: EdgeInsets.zero,
+                          child: NativeTextEditor(
+                            controller: _step9SceneCtrl,
+                            wordCountLabel: t('words'),
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+        ],
+      ),
+    );
+
+    if (isMobile) {
+      return _selectedScene == null ? listPane : detailPane;
+    }
+
+    return Row(
+      children: [
+        SizedBox(width: _listPaneWidth, child: listPane),
         _buildResizeDivider(
           onDrag: (details) {
             setState(() {
@@ -2494,85 +2780,13 @@ class _WorkspacePageState extends State<WorkspacePage> {
             });
           },
         ),
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        t('step9Title'),
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    _buildStepHeaderActions(9),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                _selectedScene == null
-                    ? Center(child: Padding(padding: const EdgeInsets.all(40), child: Text(t('selectScenePlaceholder'))))
-                    : Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Text(
-                              '${t('sceneNumber')} - ${_selectedScene!.setting}',
-                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                            ),
-                            const SizedBox(height: 12),
-                            ExpansionTile(
-                              leading: Icon(Icons.table_chart, color: Theme.of(context).colorScheme.primary),
-                              title: Text('${t('sceneSummaryLabel')} - ${t('referenceToStep')} 8', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-                              children: [
-                                ConstrainedBox(
-                                  constraints: const BoxConstraints(maxHeight: 140),
-                                  child: SingleChildScrollView(
-                                    padding: const EdgeInsets.all(16),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          '${t('scenePovCol')}: ${_characters.firstWhere((c) => c.id == _selectedScene!.povCharacterId, orElse: () => rust.Character(novelId: 0, name: t('sceneNotPlanned'), motivation: '', goal: '', conflict: '', epiphany: '', oneParagraphSummary: '', fullSynopsis: '')).name}',
-                                          style: const TextStyle(fontWeight: FontWeight.bold),
-                                        ),
-                                        Text('${t('scenePlotCol')}: ${_selectedScene!.plotThread}'),
-                                        const SizedBox(height: 6),
-                                        Text('${t('sceneWhatHappensLabel')}: ${_cleanText(_selectedScene!.whatHappens)}'),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 16),
-                            Text(t('sceneNarrativeTextareaLabel'), style: const TextStyle(fontWeight: FontWeight.bold)),
-                            const SizedBox(height: 8),
-                            Expanded(
-                              child: Card(
-                                child: NativeTextEditor(
-                                  controller: _step9SceneCtrl,
-                                  wordCountLabel: t('words'),
-                                ),
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-              ],
-            ),
-          ),
-        )
+        Expanded(child: detailPane),
       ],
     );
   }
 
   // STEP 10: Complete Novel Overview & Export
-  Widget _buildExportTab() {
+  Widget _buildExportTab({required bool isMobile}) {
     final StringBuffer sb = StringBuffer();
     sb.writeln('# ${_activeNovel.title}\n');
     sb.writeln('**${t('novelGenreLabel')}**: ${_activeNovel.genre}');
@@ -2642,41 +2856,70 @@ class _WorkspacePageState extends State<WorkspacePage> {
     final mdContent = sb.toString();
 
     return Padding(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(isMobile ? 12 : 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
-                  t('step10Title'),
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-                  overflow: TextOverflow.ellipsis,
+          isMobile
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      t('step10Title'),
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            Clipboard.setData(ClipboardData(text: mdContent));
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(t('exportCopied')), backgroundColor: Theme.of(context).colorScheme.primary),
+                            );
+                          },
+                          icon: const Icon(Icons.copy, size: 16),
+                          label: Text(t('exportCopyBtn')),
+                        ),
+                        _buildStepHeaderActions(10, isMobile: true),
+                      ],
+                    ),
+                  ],
+                )
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        t('step10Title'),
+                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            Clipboard.setData(ClipboardData(text: mdContent));
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(t('exportCopied')), backgroundColor: Theme.of(context).colorScheme.primary),
+                            );
+                          },
+                          icon: const Icon(Icons.copy),
+                          label: Text(t('exportCopyBtn')),
+                        ),
+                        const SizedBox(width: 8),
+                        _buildStepHeaderActions(10, isMobile: false),
+                      ],
+                    ),
+                  ],
                 ),
-              ),
-              Row(
-                children: [
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      Clipboard.setData(ClipboardData(text: mdContent));
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(t('exportCopied')), backgroundColor: Theme.of(context).colorScheme.primary),
-                      );
-                    },
-                    icon: const Icon(Icons.copy),
-                    label: Text(t('exportCopyBtn')),
-                  ),
-                  const SizedBox(width: 8),
-                  _buildStepHeaderActions(10),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           Expanded(
             child: Card(
+              margin: EdgeInsets.zero,
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: SingleChildScrollView(
@@ -2690,66 +2933,193 @@ class _WorkspacePageState extends State<WorkspacePage> {
     );
   }
 
-  Widget _buildWriteNovelTab() {
-    return Row(
-      children: [
-        SizedBox(
-          width: _listPaneWidth,
-          child: Card(
-            margin: const EdgeInsets.all(16),
-            child: Column(
+  Widget _buildWriteNovelTab({required bool isMobile}) {
+    Widget listPane = Card(
+      margin: isMobile ? EdgeInsets.zero : const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                Text(t('chaptersSidebarTitle'), style: const TextStyle(fontWeight: FontWeight.bold)),
+                IconButton(
+                  onPressed: () async {
+                    final newChap = rust.Chapter(
+                      novelId: _activeNovel.id!,
+                      title: 'Chapter ${_chapters.length + 1}',
+                      content: '',
+                      sortOrder: _chapters.length.toInt(),
+                    );
+                    await _saveChapter(newChap);
+                  },
+                  icon: Icon(Icons.add_circle, color: Theme.of(context).colorScheme.primary),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1),
+          Expanded(
+            child: ListView.builder(
+              itemCount: _chapters.length,
+              itemBuilder: (context, index) {
+                final chap = _chapters[index];
+                final isSelected = _selectedChapter?.id == chap.id;
+                return ListTile(
+                  title: Text(chap.title, overflow: TextOverflow.ellipsis),
+                  selected: isSelected,
+                  trailing: IconButton(
+                    icon: Icon(Icons.delete_outline, color: Theme.of(context).colorScheme.error, size: 18),
+                    onPressed: () => _deleteChapter(chap),
+                  ),
+                  onTap: () async {
+                    await _saveActiveContent(showToast: false);
+                    setState(() {
+                      _selectedChapter = chap;
+                      _chapterTitleCtrl.text = chap.title;
+                      _chapterCtrl.text = _cleanText(chap.content);
+                    });
+                  },
+                );
+              },
+            ),
+          )
+        ],
+      ),
+    );
+
+    Widget detailPane = _selectedChapter == null
+        ? Center(child: Text(t('selectChapterPlaceholder')))
+        : Padding(
+            padding: EdgeInsets.all(isMobile ? 12 : 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (isMobile) ...[
+                  Row(
                     children: [
-                      Text(t('chaptersSidebarTitle'), style: const TextStyle(fontWeight: FontWeight.bold)),
                       IconButton(
-                        onPressed: () async {
-                          final newChap = rust.Chapter(
-                            novelId: _activeNovel.id!,
-                            title: 'Chapter ${_chapters.length + 1}',
-                            content: '',
-                            sortOrder: _chapters.length.toInt(),
-                          );
-                          await _saveChapter(newChap);
-                        },
-                        icon: Icon(Icons.add_circle, color: Theme.of(context).colorScheme.primary),
+                        icon: const Icon(Icons.arrow_back),
+                        onPressed: () => setState(() => _selectedChapter = null),
+                      ),
+                      Expanded(
+                        child: TextFormField(
+                          key: ValueKey(_selectedChapter?.id),
+                          controller: _chapterTitleCtrl,
+                          decoration: InputDecoration(labelText: t('chapterTitleLabel')),
+                          onChanged: (val) {
+                            _selectedChapter = rust.Chapter(
+                              id: _selectedChapter!.id,
+                              novelId: _selectedChapter!.novelId,
+                              title: val,
+                              content: _chapterCtrl.text,
+                              sortOrder: _selectedChapter!.sortOrder,
+                            );
+                            rust.saveChapter(chapter: _selectedChapter!);
+                          },
+                        ),
                       ),
                     ],
                   ),
-                ),
-                const Divider(height: 1),
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: _chapters.length,
-                    itemBuilder: (context, index) {
-                      final chap = _chapters[index];
-                      final isSelected = _selectedChapter?.id == chap.id;
-                      return ListTile(
-                        title: Text(chap.title, overflow: TextOverflow.ellipsis),
-                        selected: isSelected,
-                        trailing: IconButton(
-                          icon: Icon(Icons.delete_outline, color: Theme.of(context).colorScheme.error, size: 18),
-                          onPressed: () => _deleteChapter(chap),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 4,
+                    runSpacing: 4,
+                    children: [
+                      OutlinedButton.icon(
+                        onPressed: () => _exportDocument('txt'),
+                        icon: const Icon(Icons.article, size: 14),
+                        label: Text(t('exportTxtBtn'), style: const TextStyle(fontSize: 11)),
+                      ),
+                      OutlinedButton.icon(
+                        onPressed: () => _exportDocument('docx'),
+                        icon: const Icon(Icons.description, size: 14),
+                        label: Text(t('exportDocxBtn'), style: const TextStyle(fontSize: 11)),
+                      ),
+                      IconButton(
+                        onPressed: () => _deleteChapter(_selectedChapter!),
+                        icon: Icon(Icons.delete, color: Theme.of(context).colorScheme.error, size: 20),
+                      ),
+                      ElevatedButton.icon(
+                        onPressed: () => _saveActiveContent(showToast: true),
+                        icon: const Icon(Icons.save, size: 16),
+                        label: Text(t('save')),
+                      ),
+                    ],
+                  ),
+                ] else ...[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          key: ValueKey(_selectedChapter?.id),
+                          controller: _chapterTitleCtrl,
+                          decoration: InputDecoration(labelText: t('chapterTitleLabel')),
+                          onChanged: (val) {
+                            _selectedChapter = rust.Chapter(
+                              id: _selectedChapter!.id,
+                              novelId: _selectedChapter!.novelId,
+                              title: val,
+                              content: _chapterCtrl.text,
+                              sortOrder: _selectedChapter!.sortOrder,
+                            );
+                            rust.saveChapter(chapter: _selectedChapter!);
+                          },
                         ),
-                        onTap: () async {
-                          await _saveActiveContent(showToast: false);
-                          setState(() {
-                            _selectedChapter = chap;
-                            _chapterTitleCtrl.text = chap.title;
-                            _chapterCtrl.text = _cleanText(chap.content);
-                          });
-                        },
-                      );
-                    },
+                      ),
+                      const SizedBox(width: 16),
+                      Row(
+                        children: [
+                          OutlinedButton.icon(
+                            onPressed: () => _exportDocument('txt'),
+                            icon: const Icon(Icons.article),
+                            label: Text(t('exportTxtBtn')),
+                          ),
+                          const SizedBox(width: 8),
+                          OutlinedButton.icon(
+                            onPressed: () => _exportDocument('docx'),
+                            icon: const Icon(Icons.description),
+                            label: Text(t('exportDocxBtn')),
+                          ),
+                          const SizedBox(width: 8),
+                          IconButton(
+                            onPressed: () => _deleteChapter(_selectedChapter!),
+                            icon: Icon(Icons.delete, color: Theme.of(context).colorScheme.error),
+                          ),
+                          const SizedBox(width: 8),
+                          ElevatedButton.icon(
+                            onPressed: () => _saveActiveContent(showToast: true),
+                            icon: const Icon(Icons.save),
+                            label: Text(t('save')),
+                          ),
+                        ],
+                      )
+                    ],
+                  ),
+                ],
+                const SizedBox(height: 12),
+                Expanded(
+                  child: Card(
+                    margin: EdgeInsets.zero,
+                    child: NativeTextEditor(
+                      controller: _chapterCtrl,
+                      wordCountLabel: t('words'),
+                    ),
                   ),
                 )
               ],
             ),
-          ),
-        ),
+          );
+
+    if (isMobile) {
+      return _selectedChapter == null ? listPane : detailPane;
+    }
+
+    return Row(
+      children: [
+        SizedBox(width: _listPaneWidth, child: listPane),
         _buildResizeDivider(
           onDrag: (details) {
             setState(() {
@@ -2758,76 +3128,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
             });
           },
         ),
-        Expanded(
-          child: _selectedChapter == null
-              ? Center(child: Text(t('selectChapterPlaceholder')))
-              : Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: TextFormField(
-                              key: ValueKey(_selectedChapter?.id),
-                              controller: _chapterTitleCtrl,
-                              decoration: InputDecoration(labelText: t('chapterTitleLabel')),
-                              onChanged: (val) {
-                                _selectedChapter = rust.Chapter(
-                                  id: _selectedChapter!.id,
-                                  novelId: _selectedChapter!.novelId,
-                                  title: val,
-                                  content: _chapterCtrl.text,
-                                  sortOrder: _selectedChapter!.sortOrder,
-                                );
-                                rust.saveChapter(chapter: _selectedChapter!);
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Row(
-                            children: [
-                              OutlinedButton.icon(
-                                onPressed: () => _exportDocument('txt'),
-                                icon: const Icon(Icons.article),
-                                label: Text(t('exportTxtBtn')),
-                              ),
-                              const SizedBox(width: 8),
-                              OutlinedButton.icon(
-                                onPressed: () => _exportDocument('docx'),
-                                icon: const Icon(Icons.description),
-                                label: Text(t('exportDocxBtn')),
-                              ),
-                              const SizedBox(width: 8),
-                              IconButton(
-                                onPressed: () => _deleteChapter(_selectedChapter!),
-                                icon: Icon(Icons.delete, color: Theme.of(context).colorScheme.error),
-                              ),
-                              const SizedBox(width: 8),
-                              ElevatedButton.icon(
-                                onPressed: () => _saveActiveContent(showToast: true),
-                                icon: const Icon(Icons.save),
-                                label: Text(t('save')),
-                              ),
-                            ],
-                          )
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      Expanded(
-                        child: Card(
-                          child: NativeTextEditor(
-                            controller: _chapterCtrl,
-                            wordCountLabel: t('words'),
-                          ),
-                        ),
-                      )
-                    ],
-                  ),
-                ),
-        )
+        Expanded(child: detailPane),
       ],
     );
   }
@@ -2939,27 +3240,27 @@ class _ThemeSettingsDialogState extends State<ThemeSettingsDialog> {
               Text(widget.t('seedColor') == 'seedColor' ? 'Seed Color' : widget.t('seedColor'), style: const TextStyle(fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
               Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: _seedColors.map((c) {
-                final isSelected = c.value == _color.value;
-                return GestureDetector(
-                  onTap: () {
-                    setState(() => _color = c);
-                    _apply();
-                  },
-                  child: CircleAvatar(
-                    backgroundColor: c,
-                    radius: 20,
-                    child: isSelected ? const Icon(Icons.check, color: Colors.white) : null,
-                  ),
-                );
-              }).toList(),
-            ),
+                spacing: 8,
+                runSpacing: 8,
+                children: _seedColors.map((c) {
+                  final isSelected = c.value == _color.value;
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() => _color = c);
+                      _apply();
+                    },
+                    child: CircleAvatar(
+                      backgroundColor: c,
+                      radius: 20,
+                      child: isSelected ? const Icon(Icons.check, color: Colors.white) : null,
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
           ],
-        ],
+        ),
       ),
-    ),
       actions: [
         TextButton(onPressed: () => Navigator.pop(context), child: Text(widget.t('close'))),
       ],
