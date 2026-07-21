@@ -1,72 +1,60 @@
 <p align="center">
-  <img src="src-tauri/icons/icon.png" alt="Crysta Logo" width="128" height="128" />
+  <h1 align="center">❄️ Crysta — Novel Studio</h1>
+  <p align="center">
+    <strong>A local-first, cross-platform novel writing studio based on the Snowflake Method.</strong>
+  </p>
+  <p align="center">
+    <img src="https://img.shields.io/badge/Flutter-3.41%2B-02569B?logo=flutter&logoColor=white" alt="Flutter" />
+    <img src="https://img.shields.io/badge/Dart-3.11%2B-0175C2?logo=dart&logoColor=white" alt="Dart" />
+    <img src="https://img.shields.io/badge/SQLite-Local--First-003B57?logo=sqlite&logoColor=white" alt="SQLite" />
+    <img src="https://img.shields.io/badge/Platforms-Android%20%7C%20Windows%20%7C%20iOS%20%7C%20macOS%20%7C%20Linux-brightgreen" alt="Platforms" />
+    <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License" />
+  </p>
 </p>
 
-# Crysta
+---
 
-Crysta is a local-first desktop and mobile application designed to guide novelists through structuring their stories using the Snowflake Method. It provides an offline-first writing workspace with built-in step tracking, character management, and scene outlines.
+## 📖 About Crysta
 
-Built using **Tauri v2**, **React**, **TypeScript**, and **Rust (SQLite)**, Crysta compiles native binaries across desktop and mobile platforms.
+**Crysta** is an offline-first, privacy-respecting novel studio designed to guide writers through structuring and drafting novels using **Randy Ingermanson's 10-Step Snowflake Method**.
+
+Built 100% in **Flutter & Dart**, Crysta delivers a fast, responsive experience on both mobile touchscreens (Android & iOS) and desktop monitors (Windows, macOS, & Linux).
 
 ---
 
-## 💻 Platforms & Compilation Targets
+## ✨ Key Features
 
-Crysta compiles native bundles for the following environments:
-*   **Desktop:** Windows (MSI, NSIS installer), macOS (DMG, App bundle), Linux (DEB, RPM, AppImage).
-*   **Mobile:** Android (unaligned release APK, Google Play AAB bundle).
-
----
-
-## 📥 Installation
-
-You can download pre-compiled packages directly from the [Releases](https://github.com/RubarMo/Crysta/releases) section, or build the binaries yourself.
-
-### Pre-compiled Releases
-
-Choose the binary that matches your operating system:
-*   **Windows:** Download the `.msi` or `.exe` installer.
-*   **macOS:** Download the `.dmg` or `.app.tar.gz` package.
-*   **Linux:** Download the `.deb`, `.rpm`, or `.AppImage` package.
-*   **Android:** Download the `.apk` package.
+- **❄️ 10-Step Snowflake Workflow**: Structured progression from a 15-word hook all the way to complete scene-by-scene narrative drafting.
+- **📱💻 Responsive Master-Detail Design**:
+  - **Mobile**: Touch-optimized layout featuring an adaptive Navigation Drawer, stacked metrics, and full-screen drill-down editors with back-button navigation.
+  - **Desktop**: Multi-pane desktop workspace with drag-to-resize sidebars and split master-detail views.
+- **💾 Local-First & Private**: Stories are saved in standalone SQLite files (`.crysta`). No accounts, no cloud lock-in, no telemetry.
+- **🌐 Dynamic Bilingual UI (RTL & LTR)**: Native support for Arabic (RTL) and English (LTR) with instant, real-time layout flipping.
+- **✏️ Rich Text & Metrics**: Integrated rich-text editing (`flutter_quill`), real-time word counting, and progress tracking bars.
+- **📄 Exporting**: Export your novel and structured outlines directly to **`.txt`** and **`.docx`** (Microsoft Word) documents.
+- **🎨 Material 3 Theming**: Built-in Light/Dark themes and dynamic seed color customization.
 
 ---
 
-### ⚠️ OS Security Warnings (Unsigned Binaries)
+## 🏗️ Architecture
 
-Because Crysta is a local-first, open-source utility, the compiled binaries are not signed with paid commercial developer certificates (such as Microsoft Authenticode or Apple Developer ID). Depending on your OS, you may see a warning when installing:
+Crysta uses a clean, zero-native-toolchain Flutter architecture:
 
-#### Windows (SmartScreen)
-1. Double-click the installer.
-2. On the blue "Windows protected your PC" pop-up, click **More info**.
-3. Click **Run anyway** to launch the installer.
+```
+Crysta/
+└── flutter_app/
+    ├── lib/
+    │   ├── main.dart        # Responsive UI, Navigation & Snowflake Tab Builders
+    │   ├── db_service.dart  # Native SQLite Engine (sqflite & sqflite_common_ffi)
+    │   ├── models.dart      # Data Models (Novel, Character, Scene, Chapter, StepProgress)
+    │   └── locales.dart     # Internationalization (Arabic & English)
+    ├── android/             # Android Platform Target
+    ├── windows/             # Windows Platform Target
+    └── pubspec.yaml         # Project Dependencies
+```
 
-#### macOS (Gatekeeper)
-1. Mount the `.dmg` (or extract the `.app.tar.gz` archive) and drag Crysta to your Applications folder.
-2. Double-click the app. If blocked by Gatekeeper, click **OK**.
-3. Right-click (or `Control`-click) the Crysta app icon and select **Open**.
-4. Click **Open** on the confirmation dialog. This permanently saves a security exception for the app.
-
-#### Linux
-1. Right-click the `.AppImage` file and open **Properties**.
-2. Go to the **Permissions** tab and check **Allow executing file as program**.
-3. Alternatively, run `chmod +x <filename>` in your terminal, then run the package.
-
-#### Android
-1. Download the **signed debug APK** (`app-universal-debug.apk`) directly to your phone.
-2. Open the APK. If prompted by your browser or files app, toggle **Allow installation from this source**.
-3. If blocked by Play Protect, tap **Install anyway**.
-
----
-
-## 🛠️ Architecture & Core Features
-
-*   **Local-First Database (`.crysta`):** Projects are saved as standalone SQLite databases containing the entire writing draft, progress markers, characters, and scene metadata. Files can be copied, moved, or backed up manually or via cloud services (e.g., OneDrive, iCloud).
-*   **Fully Offline:** No accounts, remote servers, or internet connection required. All database queries execute locally through native JNI/FFI bindings to SQLite.
-*   **Bilingual Directionality:** Dynamic layout orientation (RTL for Arabic, LTR for English) toggled instantly inside the application.
-*   **10-Step Snowflake Walkthrough:** Interactive writing templates mapped directly onto the classical Snowflake outlining method.
-*   **Outlining Tools:** Included word counters, character bio planners (motivations, goals, conflicts, epiphanies), and detailed scene outline sheets (POV mapping, settings, word metrics).
-*   **Native System Access:** Relies on desktop file dialogs (`rfd` crate) and implements custom directory resolvers on mobile targets to interact with local app sandboxes.
+- **Frontend**: Flutter Material 3 with adaptive layouts.
+- **Database Engine**: `sqflite` (Android/iOS) and `sqflite_common_ffi` (Desktop).
 
 ---
 
@@ -74,66 +62,64 @@ Because Crysta is a local-first, open-source utility, the compiled binaries are 
 
 ### Prerequisites
 
-*   **Node.js** (v20+ recommended)
-*   **Rust Toolchain** (latest stable release)
-*   *For Windows compilation:* Visual Studio C++ Build Tools
-*   *For Android compilation:* Java JDK (17 or 21) and Android SDK/NDK tools
+- [Flutter SDK](https://docs.flutter.dev/get-started/install) (3.41+ recommended)
+- [Dart SDK](https://dart.dev/get-dart) (3.11+ included with Flutter)
 
-### Development Build
+### Development
 
-1. Clone and navigate to the project directory:
+1. **Clone the repository:**
    ```bash
    git clone https://github.com/RubarMo/Crysta.git
-   cd Crysta
+   cd Crysta/flutter_app
    ```
-2. Install dependencies:
+
+2. **Fetch dependencies:**
    ```bash
-   npm install
+   flutter pub get
    ```
-3. Run the development server:
-   *   **Desktop Preview:**
-       ```bash
-       npm run tauri dev
-       ```
-   *   **Android Mobile Live Preview:** (with a physical device or emulator running)
-       ```bash
-       npx tauri android dev
-       ```
+
+3. **Run locally:**
+   - **Windows Desktop:**
+     ```bash
+     flutter run -d windows
+     ```
+   - **Android Mobile:**
+     ```bash
+     flutter run -d android
+     ```
 
 ### Production Build
 
-*   **Compile Desktop Installers:**
-    ```bash
-    npm run tauri build
-    ```
-*   **Compile Android APK & AAB:**
-    ```bash
-    npx tauri android build
-    ```
+- **Windows Executable:**
+  ```bash
+  flutter build windows --release
+  ```
+  *Output:* `flutter_app/build/windows/x64/runner/Release/crysta.exe`
 
-Production outputs are located in:
-*   *Desktop:* `src-tauri/target/release/bundle/`
-*   *Android:* `src-tauri/gen/android/app/build/outputs/`
-
----
-
-## 📖 The Snowflake Method Overview
-
-The application follows the 10-step story design sequence developed by Randy Ingermanson:
-
-1.  **One-Sentence Summary:** Draft a 15-word story hook.
-2.  **One-Paragraph Summary:** Expand to a five-sentence narrative shape (setup, three disasters, resolution).
-3.  **Character Bios:** Plan core character characteristics, motivations, and epiphanies.
-4.  **One-Page Synopsis:** Develop each sentence of your one-paragraph summary into a full page.
-5.  **Character POV Synopses:** Describe the story arc from the perspective of each major character.
-6.  **Four-Page Synopsis:** Expand the outline to a comprehensive plot structure.
-7.  **Character Profile Sheets:** Complete detailed profiles, physical appearance, and growth charts.
-8.  **Scene List:** Map the synopsis into an ordered sequence of scenes.
-9.  **Scene Outlines:** Narrative description of the action occurring in each scene.
-10. **First Draft:** Author the final novel draft.
+- **Android Release APK:**
+  ```bash
+  flutter build apk --release
+  ```
+  *Output:* `flutter_app/build/app/outputs/flutter-apk/app-release.apk`
 
 ---
 
-## 📄 License
+## 📖 The 10-Step Snowflake Method
 
-Distributed under the MIT License. See [LICENSE](LICENSE) for details.
+1. **Step 1 — One-Sentence Summary**: Craft a 15-word story hook.
+2. **Step 2 — One-Paragraph Summary**: Expand into a 5-sentence narrative arc (setup, 3 disasters, resolution).
+3. **Step 3 — Character Bios**: Define character motivations, goals, conflicts, and epiphany moments.
+4. **Step 4 — One-Page Synopsis**: Expand each sentence of Step 2 into a full paragraph.
+5. **Step 5 — Character POV Synopses**: Write a 1-page story narrative from the perspective of each major character.
+6. **Step 6 — Four-Page Synopsis**: Develop a comprehensive plot structure.
+7. **Step 7 — Character Profile Charts**: Detailed character attribute charts and growth trajectories.
+8. **Step 8 — Scene List**: Map out all novel scenes, POV assignments, and target word counts.
+9. **Step 9 — Scene Outlines**: Write detailed narrative action descriptions for each planned scene.
+10. **Step 10 — Write Novel**: Author final novel chapters with real-time target word count progress.
+
+---
+
+## 📄 License & Credits
+
+- Developed by **RubarMo**.
+- Released under the [MIT License](LICENSE).

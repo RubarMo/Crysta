@@ -1,17 +1,29 @@
-# crysta
+# Crysta Flutter Application
 
-A new Flutter project.
+This directory contains the main **Flutter & Dart** application for Crysta.
 
-## Getting Started
+## Quick Links
 
-This project is a starting point for a Flutter application.
+- [Root Documentation](../README.md)
+- [Database Service (SQLite)](lib/db_service.dart)
+- [Data Models](lib/models.dart)
+- [Main Application Code](lib/main.dart)
 
-A few resources to get you started if this is your first Flutter project:
+## Build Commands
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+```bash
+# Fetch dependencies
+flutter pub get
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+# Run on Desktop (Windows)
+flutter run -d windows
+
+# Run on Mobile (Android)
+flutter run -d android
+
+# Build Windows Release Executable
+flutter build windows --release
+
+# Build Android Release APK
+flutter build apk --release
+```
