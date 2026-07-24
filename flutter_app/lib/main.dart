@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:appflowy_editor/appflowy_editor.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:dynamic_color/dynamic_color.dart';
@@ -108,169 +107,101 @@ class NativeTextEditor extends StatefulWidget {
 }
 
 class _NativeTextEditorState extends State<NativeTextEditor> {
-  late EditorState _editorState;
-  String _selectedFont = 'Segoe UI';
-  double _selectedFontSize = 15.0;
+  // ponytail: Flutter uses logical arrow keys (Left=backward, Right=forward)
+  // which inverts visually in RTL. We swap them so arrows match native Windows
+  // visual behavior. Ceiling: doesn't handle mixed bidi runs per-character.
+  KeyEventResult _handleRtlArrowKeys(FocusNode node, KeyEvent event) {
+    if (event is! KeyDownEvent && event is! KeyRepeatEvent) return KeyEventResult.ignored;
 
-  static const List<String> _fontOptions = [
-    'Segoe UI',
-    'Cairo',
-    'Arial',
-    'Times New Roman',
-    'Courier New',
-    'Georgia',
-    'Tahoma',
-    'Verdana',
-    'Trebuchet MS',
-    'Impact',
-    'Calibri',
-    'Cambria',
-    'Consolas',
-    'Amiri',
-    'Traditional Arabic',
-    'Simplified Arabic',
-    'Dubai',
-  ];
+    final key = event.logicalKey;
+    if (key != LogicalKeyboardKey.arrowLeft && key != LogicalKeyboardKey.arrowRight) {
+      return KeyEventResult.ignored;
+    }
 
-  @override
-  void initState() {
-    super.initState();
-    _initEditorState();
+    final ctrl = widget.controller;
+    final sel = ctrl.selection;
+    if (!sel.isValid) return KeyEventResult.ignored;
+
+    final text = ctrl.text;
+    final shift = HardwareKeyboard.instance.isShiftPressed;
+    final isCtrl = HardwareKeyboard.instance.isControlPressed;
+    final bool visualLeft = key == LogicalKeyboardKey.arrowLeft;
+
+    int newOffset;
+    if (isCtrl) {
+      newOffset = visualLeft
+          ? _nextWordBoundary(text, sel.extentOffset, forward: true)
+          : _nextWordBoundary(text, sel.extentOffset, forward: false);
+    } else {
+      newOffset = visualLeft
+          ? (sel.extentOffset + 1).clamp(0, text.length)
+          : (sel.extentOffset - 1).clamp(0, text.length);
+    }
+
+    if (shift) {
+      ctrl.selection = sel.copyWith(extentOffset: newOffset);
+    } else {
+      if (!sel.isCollapsed) {
+        ctrl.selection = TextSelection.collapsed(
+          offset: visualLeft ? sel.end : sel.start,
+        );
+      } else {
+        ctrl.selection = TextSelection.collapsed(offset: newOffset);
+      }
+    }
+
+    return KeyEventResult.handled;
   }
 
-  void _initEditorState() {
-    final text = widget.controller.text;
-    if (text.trim().isEmpty) {
-      _editorState = EditorState.blank();
+  static int _nextWordBoundary(String text, int offset, {required bool forward}) {
+    if (forward) {
+      int i = offset;
+      while (i < text.length && !_isWordBreak(text[i])) i++;
+      while (i < text.length && _isWordBreak(text[i])) i++;
+      return i;
     } else {
-      try {
-        final parsed = jsonDecode(text);
-        if (parsed is Map<String, dynamic>) {
-          _editorState = EditorState(document: Document.fromJson(parsed));
-        } else {
-          _editorState = EditorState.blank();
-        }
-      } catch (_) {
-        _editorState = EditorState.blank();
-      }
+      int i = offset;
+      while (i > 0 && _isWordBreak(text[i - 1])) i--;
+      while (i > 0 && !_isWordBreak(text[i - 1])) i--;
+      return i;
     }
   }
 
-  @override
-  void dispose() {
-    super.dispose();
-  }
+  static bool _isWordBreak(String ch) => ch == ' ' || ch == '\n' || ch == '\t';
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final onSurfaceColor = theme.colorScheme.onSurface;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
-          ),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    widget.isRtl ? 'محرر النصوص AppFlowy' : 'AppFlowy Document Editor',
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 6),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    Container(
-                      height: 32,
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.5)),
-                      ),
-                      child: DropdownButtonHideUnderline(
-                        child: DropdownButton<String>(
-                          value: _selectedFont,
-                          isDense: true,
-                          style: TextStyle(fontSize: 12, color: onSurfaceColor),
-                          items: _fontOptions
-                              .map((font) => DropdownMenuItem(value: font, child: Text(font)))
-                              .toList(),
-                          onChanged: (val) {
-                            if (val != null) {
-                              setState(() => _selectedFont = val);
-                            }
-                          },
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Container(
-                      height: 32,
-                      padding: const EdgeInsets.symmetric(horizontal: 6),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.5)),
-                      ),
-                      child: DropdownButtonHideUnderline(
-                        child: DropdownButton<double>(
-                          value: _selectedFontSize,
-                          isDense: true,
-                          style: TextStyle(fontSize: 12, color: onSurfaceColor),
-                          items: const [
-                            DropdownMenuItem(value: 12.0, child: Text('12pt')),
-                            DropdownMenuItem(value: 14.0, child: Text('14pt')),
-                            DropdownMenuItem(value: 15.0, child: Text('15pt')),
-                            DropdownMenuItem(value: 18.0, child: Text('18pt')),
-                            DropdownMenuItem(value: 20.0, child: Text('20pt')),
-                            DropdownMenuItem(value: 24.0, child: Text('24pt')),
-                            DropdownMenuItem(value: 28.0, child: Text('28pt')),
-                          ],
-                          onChanged: (val) {
-                            if (val != null) {
-                              setState(() => _selectedFontSize = val);
-                            }
-                          },
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-        const Divider(height: 1),
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: AppFlowyEditor(
-              editorState: _editorState,
-              editorStyle: EditorStyle.desktop(
-                padding: const EdgeInsets.all(16),
-                textStyleConfiguration: TextStyleConfiguration(
-                  text: TextStyle(
-                    color: onSurfaceColor,
-                    fontSize: _selectedFontSize,
-                    fontFamily: _selectedFont,
-                    height: 1.6,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
+    final textField = TextField(
+      controller: widget.controller,
+      maxLines: null,
+      expands: true,
+      textAlignVertical: TextAlignVertical.top,
+      textDirection: widget.isRtl ? TextDirection.rtl : TextDirection.ltr,
+      textAlign: widget.isRtl ? TextAlign.right : TextAlign.left,
+      onChanged: widget.onChanged,
+      style: TextStyle(
+        color: onSurfaceColor,
+        fontSize: 15.0,
+        fontFamily: widget.isRtl ? 'Cairo' : 'Segoe UI',
+        height: 1.6,
+      ),
+      decoration: InputDecoration(
+        hintText: widget.placeholder,
+        contentPadding: const EdgeInsets.all(16),
+        border: InputBorder.none,
+        enabledBorder: InputBorder.none,
+        focusedBorder: InputBorder.none,
+      ),
+    );
+
+    if (!widget.isRtl) return textField;
+
+    return Focus(
+      onKeyEvent: _handleRtlArrowKeys,
+      child: textField,
     );
   }
 }
