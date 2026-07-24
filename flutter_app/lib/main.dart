@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter/services.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
@@ -63,7 +62,6 @@ class _CrystaAppState extends State<CrystaApp> {
           title: 'Crysta Novel Studio',
           debugShowCheckedModeBanner: false,
           themeMode: _themeMode,
-          localizationsDelegates: FlutterQuillLocalizations.localizationsDelegates,
           theme: ThemeData(
             useMaterial3: true,
             colorScheme: lightScheme,
@@ -92,6 +90,7 @@ class NativeTextEditor extends StatefulWidget {
   final TextEditingController controller;
   final String wordCountLabel;
   final String placeholder;
+  final bool isRtl;
   final ValueChanged<String>? onChanged;
 
   const NativeTextEditor({
@@ -99,6 +98,7 @@ class NativeTextEditor extends StatefulWidget {
     required this.controller,
     required this.wordCountLabel,
     this.placeholder = '',
+    this.isRtl = false,
     this.onChanged,
   });
 
@@ -107,146 +107,101 @@ class NativeTextEditor extends StatefulWidget {
 }
 
 class _NativeTextEditorState extends State<NativeTextEditor> {
-  late QuillController _quillController;
-  bool _isSyncing = false;
+  // ponytail: Flutter uses logical arrow keys (Left=backward, Right=forward)
+  // which inverts visually in RTL. We swap them so arrows match native Windows
+  // visual behavior. Ceiling: doesn't handle mixed bidi runs per-character.
+  KeyEventResult _handleRtlArrowKeys(FocusNode node, KeyEvent event) {
+    if (event is! KeyDownEvent && event is! KeyRepeatEvent) return KeyEventResult.ignored;
 
-  @override
-  void initState() {
-    super.initState();
-    _initQuillController();
-    widget.controller.addListener(_onTextControllerChanged);
-  }
-
-  void _onTextControllerChanged() {
-    if (_isSyncing) return;
-    final currentDeltaJson = jsonEncode(_quillController.document.toDelta().toJson());
-    if (widget.controller.text != currentDeltaJson) {
-      _quillController.removeListener(_onQuillChanged);
-      _quillController.dispose();
-      _initQuillController();
-      setState(() {});
+    final key = event.logicalKey;
+    if (key != LogicalKeyboardKey.arrowLeft && key != LogicalKeyboardKey.arrowRight) {
+      return KeyEventResult.ignored;
     }
-  }
 
-  void _initQuillController() {
-    Document doc;
-    final text = widget.controller.text;
-    if (text.trim().isEmpty) {
-      doc = Document();
+    final ctrl = widget.controller;
+    final sel = ctrl.selection;
+    if (!sel.isValid) return KeyEventResult.ignored;
+
+    final text = ctrl.text;
+    final shift = HardwareKeyboard.instance.isShiftPressed;
+    final isCtrl = HardwareKeyboard.instance.isControlPressed;
+    final bool visualLeft = key == LogicalKeyboardKey.arrowLeft;
+
+    int newOffset;
+    if (isCtrl) {
+      newOffset = visualLeft
+          ? _nextWordBoundary(text, sel.extentOffset, forward: true)
+          : _nextWordBoundary(text, sel.extentOffset, forward: false);
     } else {
-      try {
-        final parsed = jsonDecode(text);
-        if (parsed is List) {
-          doc = Document.fromJson(parsed);
-        } else {
-          doc = Document()..insert(0, text);
-        }
-      } catch (_) {
-        doc = Document()..insert(0, text);
+      newOffset = visualLeft
+          ? (sel.extentOffset + 1).clamp(0, text.length)
+          : (sel.extentOffset - 1).clamp(0, text.length);
+    }
+
+    if (shift) {
+      ctrl.selection = sel.copyWith(extentOffset: newOffset);
+    } else {
+      if (!sel.isCollapsed) {
+        ctrl.selection = TextSelection.collapsed(
+          offset: visualLeft ? sel.end : sel.start,
+        );
+      } else {
+        ctrl.selection = TextSelection.collapsed(offset: newOffset);
       }
     }
 
-    _quillController = QuillController(
-      document: doc,
-      selection: const TextSelection.collapsed(offset: 0),
-    );
-
-    _quillController.addListener(_onQuillChanged);
+    return KeyEventResult.handled;
   }
 
-  void _onQuillChanged() {
-    _isSyncing = true;
-    final deltaJson = jsonEncode(_quillController.document.toDelta().toJson());
-    if (widget.controller.text != deltaJson) {
-      widget.controller.text = deltaJson;
-      if (widget.onChanged != null) {
-        widget.onChanged!(deltaJson);
-      }
-    }
-    _isSyncing = false;
-  }
-
-  @override
-  void didUpdateWidget(NativeTextEditor oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.controller != widget.controller) {
-      oldWidget.controller.removeListener(_onTextControllerChanged);
-      _quillController.removeListener(_onQuillChanged);
-      _quillController.dispose();
-      _initQuillController();
-      widget.controller.addListener(_onTextControllerChanged);
+  static int _nextWordBoundary(String text, int offset, {required bool forward}) {
+    if (forward) {
+      int i = offset;
+      while (i < text.length && !_isWordBreak(text[i])) i++;
+      while (i < text.length && _isWordBreak(text[i])) i++;
+      return i;
+    } else {
+      int i = offset;
+      while (i > 0 && _isWordBreak(text[i - 1])) i--;
+      while (i > 0 && !_isWordBreak(text[i - 1])) i--;
+      return i;
     }
   }
 
-  @override
-  void dispose() {
-    widget.controller.removeListener(_onTextControllerChanged);
-    _quillController.removeListener(_onQuillChanged);
-    _quillController.dispose();
-    super.dispose();
-  }
-
-  int countWords() {
-    final text = _quillController.document.toPlainText().trim();
-    if (text.isEmpty) return 0;
-    return text.split(RegExp(r'\s+')).length;
-  }
+  static bool _isWordBreak(String ch) => ch == ' ' || ch == '\n' || ch == '\t';
 
   @override
   Widget build(BuildContext context) {
-    final wordCount = countWords();
+    final theme = Theme.of(context);
+    final onSurfaceColor = theme.colorScheme.onSurface;
 
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.4),
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: QuillSimpleToolbar(
-                    controller: _quillController,
-                    config: const QuillSimpleToolbarConfig(
-                      showFontFamily: false,
-                      showFontSize: false,
-                      showSearchButton: false,
-                      showSubscript: false,
-                      showSuperscript: false,
-                      showInlineCode: false,
-                      showCodeBlock: false,
-                      showIndent: false,
-                      showLink: false,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Chip(
-                avatar: Icon(Icons.description, size: 14, color: Theme.of(context).colorScheme.primary),
-                label: Text('$wordCount ${widget.wordCountLabel}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
-                visualDensity: VisualDensity.compact,
-              ),
-            ],
-          ),
-        ),
-        const Divider(height: 1),
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: QuillEditor.basic(
-              controller: _quillController,
-              config: QuillEditorConfig(
-                placeholder: widget.placeholder.isNotEmpty ? widget.placeholder : 'Type your text here...',
-              ),
-            ),
-          ),
-        ),
-      ],
+    final textField = TextField(
+      controller: widget.controller,
+      maxLines: null,
+      expands: true,
+      textAlignVertical: TextAlignVertical.top,
+      textDirection: widget.isRtl ? TextDirection.rtl : TextDirection.ltr,
+      textAlign: widget.isRtl ? TextAlign.right : TextAlign.left,
+      onChanged: widget.onChanged,
+      style: TextStyle(
+        color: onSurfaceColor,
+        fontSize: 15.0,
+        fontFamily: widget.isRtl ? 'Cairo' : 'Segoe UI',
+        height: 1.6,
+      ),
+      decoration: InputDecoration(
+        hintText: widget.placeholder,
+        contentPadding: const EdgeInsets.all(16),
+        border: InputBorder.none,
+        enabledBorder: InputBorder.none,
+        focusedBorder: InputBorder.none,
+      ),
+    );
+
+    if (!widget.isRtl) return textField;
+
+    return Focus(
+      onKeyEvent: _handleRtlArrowKeys,
+      child: textField,
     );
   }
 }
@@ -991,7 +946,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Theme.of(context).colorScheme.error,
-                foregroundColor: Colors.white,
+                foregroundColor: Theme.of(context).colorScheme.onError,
               ),
               child: Text(widget.language == 'ar' ? 'حذف' : 'Delete'),
             ),
@@ -1372,13 +1327,24 @@ class _WorkspacePageState extends State<WorkspacePage> {
   @override
   Widget build(BuildContext context) {
     final textDir = widget.language == 'ar' ? TextDirection.rtl : TextDirection.ltr;
-    final isMobile = MediaQuery.of(context).size.width < 700;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isCompact = screenWidth < 700;
+    final isExpanded = screenWidth >= 1150;
 
     return Directionality(
       textDirection: textDir,
       child: Scaffold(
-        drawer: isMobile ? Drawer(child: SafeArea(child: _buildSidebarContent(isMobile: true))) : null,
+        drawer: !isExpanded ? Drawer(child: SafeArea(child: _buildSidebarContent(isMobile: true))) : null,
         appBar: AppBar(
+          leading: !isExpanded
+              ? Builder(
+                  builder: (ctx) => IconButton(
+                    icon: const Icon(Icons.menu),
+                    tooltip: t('completedSteps'),
+                    onPressed: () => Scaffold.of(ctx).openDrawer(),
+                  ),
+                )
+              : null,
           title: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -1389,7 +1355,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              if (!isMobile) ...[
+              if (!isCompact) ...[
                 const SizedBox(width: 8),
                 Chip(
                   label: Text(
@@ -1430,24 +1396,26 @@ class _WorkspacePageState extends State<WorkspacePage> {
             const SizedBox(width: 4),
           ],
         ),
-        body: isMobile
+        body: isCompact
             ? (_isLoadingStep
                 ? const Center(child: CircularProgressIndicator())
                 : _buildTabContent(isMobile: true))
             : Row(
                 children: [
-                  SizedBox(
-                    width: _sidebarWidth,
-                    child: _buildSidebarContent(isMobile: false),
-                  ),
-                  _buildResizeDivider(
-                    onDrag: (details) {
-                      setState(() {
-                        final delta = widget.language == 'ar' ? -details.delta.dx : details.delta.dx;
-                        _sidebarWidth = (_sidebarWidth + delta).clamp(200.0, 500.0);
-                      });
-                    },
-                  ),
+                  if (isExpanded) ...[
+                    SizedBox(
+                      width: _sidebarWidth,
+                      child: _buildSidebarContent(isMobile: false),
+                    ),
+                    _buildResizeDivider(
+                      onDrag: (details) {
+                        setState(() {
+                          final delta = widget.language == 'ar' ? -details.delta.dx : details.delta.dx;
+                          _sidebarWidth = (_sidebarWidth + delta).clamp(200.0, 340.0);
+                        });
+                      },
+                    ),
+                  ],
                   Expanded(
                     child: _isLoadingStep
                         ? const Center(child: CircularProgressIndicator())
@@ -1880,6 +1848,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
               child: NativeTextEditor(
                 controller: controller,
                 wordCountLabel: t('words'),
+                isRtl: widget.language == 'ar',
               ),
             ),
           )
@@ -2025,6 +1994,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
                           child: NativeTextEditor(
                             controller: _step3SummaryCtrl,
                             wordCountLabel: t('words'),
+                            isRtl: widget.language == 'ar',
                           ),
                         ),
                       )
@@ -2040,17 +2010,18 @@ class _WorkspacePageState extends State<WorkspacePage> {
     }
 
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SizedBox(width: _listPaneWidth, child: listPane),
         _buildResizeDivider(
           onDrag: (details) {
             setState(() {
               final delta = widget.language == 'ar' ? -details.delta.dx : details.delta.dx;
-              _listPaneWidth = (_listPaneWidth + delta).clamp(200.0, 550.0);
+              _listPaneWidth = (_listPaneWidth + delta).clamp(200.0, 360.0);
             });
           },
         ),
-        Expanded(child: detailPane),
+        Expanded(child: ClipRect(child: detailPane)),
       ],
     );
   }
@@ -2219,6 +2190,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
                           child: NativeTextEditor(
                             controller: _step5SynopsisCtrl,
                             wordCountLabel: t('words'),
+                            isRtl: widget.language == 'ar',
                           ),
                         ),
                       )
@@ -2234,17 +2206,18 @@ class _WorkspacePageState extends State<WorkspacePage> {
     }
 
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SizedBox(width: _listPaneWidth, child: listPane),
         _buildResizeDivider(
           onDrag: (details) {
             setState(() {
               final delta = widget.language == 'ar' ? -details.delta.dx : details.delta.dx;
-              _listPaneWidth = (_listPaneWidth + delta).clamp(200.0, 550.0);
+              _listPaneWidth = (_listPaneWidth + delta).clamp(200.0, 360.0);
             });
           },
         ),
-        Expanded(child: detailPane),
+        Expanded(child: ClipRect(child: detailPane)),
       ],
     );
   }
@@ -2364,6 +2337,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
                           child: NativeTextEditor(
                             controller: _step7ChartCtrl,
                             wordCountLabel: t('words'),
+                            isRtl: widget.language == 'ar',
                           ),
                         ),
                       )
@@ -2379,17 +2353,18 @@ class _WorkspacePageState extends State<WorkspacePage> {
     }
 
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SizedBox(width: _listPaneWidth, child: listPane),
         _buildResizeDivider(
           onDrag: (details) {
             setState(() {
               final delta = widget.language == 'ar' ? -details.delta.dx : details.delta.dx;
-              _listPaneWidth = (_listPaneWidth + delta).clamp(200.0, 550.0);
+              _listPaneWidth = (_listPaneWidth + delta).clamp(200.0, 360.0);
             });
           },
         ),
-        Expanded(child: detailPane),
+        Expanded(child: ClipRect(child: detailPane)),
       ],
     );
   }
@@ -2540,6 +2515,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
                           child: NativeTextEditor(
                             controller: _step8SceneCtrl,
                             wordCountLabel: t('words'),
+                            isRtl: widget.language == 'ar',
                           ),
                         ),
                       )
@@ -2555,17 +2531,18 @@ class _WorkspacePageState extends State<WorkspacePage> {
     }
 
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SizedBox(width: _listPaneWidth, child: listPane),
         _buildResizeDivider(
           onDrag: (details) {
             setState(() {
               final delta = widget.language == 'ar' ? -details.delta.dx : details.delta.dx;
-              _listPaneWidth = (_listPaneWidth + delta).clamp(200.0, 550.0);
+              _listPaneWidth = (_listPaneWidth + delta).clamp(200.0, 360.0);
             });
           },
         ),
-        Expanded(child: detailPane),
+        Expanded(child: ClipRect(child: detailPane)),
       ],
     );
   }
@@ -2742,6 +2719,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
                           child: NativeTextEditor(
                             controller: _step9SceneCtrl,
                             wordCountLabel: t('words'),
+                            isRtl: widget.language == 'ar',
                           ),
                         ),
                       )
@@ -2757,17 +2735,18 @@ class _WorkspacePageState extends State<WorkspacePage> {
     }
 
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SizedBox(width: _listPaneWidth, child: listPane),
         _buildResizeDivider(
           onDrag: (details) {
             setState(() {
               final delta = widget.language == 'ar' ? -details.delta.dx : details.delta.dx;
-              _listPaneWidth = (_listPaneWidth + delta).clamp(200.0, 550.0);
+              _listPaneWidth = (_listPaneWidth + delta).clamp(200.0, 360.0);
             });
           },
         ),
-        Expanded(child: detailPane),
+        Expanded(child: ClipRect(child: detailPane)),
       ],
     );
   }
@@ -2979,113 +2958,78 @@ class _WorkspacePageState extends State<WorkspacePage> {
     Widget detailPane = _selectedChapter == null
         ? Center(child: Text(t('selectChapterPlaceholder')))
         : Padding(
-            padding: EdgeInsets.all(isMobile ? 12 : 24),
+            padding: EdgeInsets.all(isMobile ? 12 : 20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                if (isMobile) ...[
-                  Row(
-                    children: [
+                Row(
+                  children: [
+                    if (isMobile)
                       IconButton(
                         icon: const Icon(Icons.arrow_back),
                         onPressed: () => setState(() => _selectedChapter = null),
                       ),
-                      Expanded(
-                        child: TextFormField(
-                          key: ValueKey(_selectedChapter?.id),
-                          controller: _chapterTitleCtrl,
-                          decoration: InputDecoration(labelText: t('chapterTitleLabel')),
-                          onChanged: (val) {
-                            _selectedChapter = Chapter(
-                              id: _selectedChapter!.id,
-                              novelId: _selectedChapter!.novelId,
-                              title: val,
-                              content: _chapterCtrl.text,
-                              sortOrder: _selectedChapter!.sortOrder,
-                            );
-                            DatabaseService.saveChapter(chapter: _selectedChapter!);
-                          },
+                    Expanded(
+                      child: TextFormField(
+                        key: ValueKey(_selectedChapter?.id),
+                        controller: _chapterTitleCtrl,
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                        decoration: InputDecoration(
+                          labelText: t('chapterTitleLabel'),
+                          isDense: true,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                          border: const OutlineInputBorder(),
                         ),
+                        onChanged: (val) {
+                          _selectedChapter = Chapter(
+                            id: _selectedChapter!.id,
+                            novelId: _selectedChapter!.novelId,
+                            title: val,
+                            content: _chapterCtrl.text,
+                            sortOrder: _selectedChapter!.sortOrder,
+                          );
+                          DatabaseService.saveChapter(chapter: _selectedChapter!);
+                        },
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 4,
-                    runSpacing: 4,
-                    children: [
-                      OutlinedButton.icon(
-                        onPressed: () => _exportDocument('txt'),
-                        icon: const Icon(Icons.article, size: 14),
-                        label: Text(t('exportTxtBtn'), style: const TextStyle(fontSize: 11)),
-                      ),
-                      OutlinedButton.icon(
-                        onPressed: () => _exportDocument('docx'),
-                        icon: const Icon(Icons.description, size: 14),
-                        label: Text(t('exportDocxBtn'), style: const TextStyle(fontSize: 11)),
-                      ),
-                      IconButton(
-                        onPressed: () => _deleteChapter(_selectedChapter!),
-                        icon: Icon(Icons.delete, color: Theme.of(context).colorScheme.error, size: 20),
-                      ),
-                      ElevatedButton.icon(
-                        onPressed: () => _saveActiveContent(showToast: true),
-                        icon: const Icon(Icons.save, size: 16),
-                        label: Text(t('save')),
-                      ),
-                    ],
-                  ),
-                ] else ...[
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: TextFormField(
-                          key: ValueKey(_selectedChapter?.id),
-                          controller: _chapterTitleCtrl,
-                          decoration: InputDecoration(labelText: t('chapterTitleLabel')),
-                          onChanged: (val) {
-                            _selectedChapter = Chapter(
-                              id: _selectedChapter!.id,
-                              novelId: _selectedChapter!.novelId,
-                              title: val,
-                              content: _chapterCtrl.text,
-                              sortOrder: _selectedChapter!.sortOrder,
-                            );
-                            DatabaseService.saveChapter(chapter: _selectedChapter!);
-                          },
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Align(
+                  alignment: AlignmentDirectional.centerEnd,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: AlignmentDirectional.centerEnd,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ElevatedButton.icon(
+                          onPressed: () => _saveActiveContent(showToast: true),
+                          icon: const Icon(Icons.save, size: 16),
+                          label: Text(t('save')),
                         ),
-                      ),
-                      const SizedBox(width: 16),
-                      Row(
-                        children: [
-                          OutlinedButton.icon(
-                            onPressed: () => _exportDocument('txt'),
-                            icon: const Icon(Icons.article),
-                            label: Text(t('exportTxtBtn')),
-                          ),
-                          const SizedBox(width: 8),
-                          OutlinedButton.icon(
-                            onPressed: () => _exportDocument('docx'),
-                            icon: const Icon(Icons.description),
-                            label: Text(t('exportDocxBtn')),
-                          ),
-                          const SizedBox(width: 8),
-                          IconButton(
-                            onPressed: () => _deleteChapter(_selectedChapter!),
-                            icon: Icon(Icons.delete, color: Theme.of(context).colorScheme.error),
-                          ),
-                          const SizedBox(width: 8),
-                          ElevatedButton.icon(
-                            onPressed: () => _saveActiveContent(showToast: true),
-                            icon: const Icon(Icons.save),
-                            label: Text(t('save')),
-                          ),
-                        ],
-                      )
-                    ],
+                        const SizedBox(width: 6),
+                        OutlinedButton.icon(
+                          onPressed: () => _exportDocument('txt'),
+                          icon: const Icon(Icons.article, size: 16),
+                          label: Text(t('exportTxtBtn')),
+                        ),
+                        const SizedBox(width: 6),
+                        OutlinedButton.icon(
+                          onPressed: () => _exportDocument('docx'),
+                          icon: const Icon(Icons.description, size: 16),
+                          label: Text(t('exportDocxBtn')),
+                        ),
+                        const SizedBox(width: 4),
+                        IconButton(
+                          onPressed: () => _deleteChapter(_selectedChapter!),
+                          icon: Icon(Icons.delete, color: Theme.of(context).colorScheme.error),
+                          tooltip: t('delete'),
+                        ),
+                      ],
+                    ),
                   ),
-                ],
+                ),
                 const SizedBox(height: 12),
                 Expanded(
                   child: Card(
@@ -3093,6 +3037,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
                     child: NativeTextEditor(
                       controller: _chapterCtrl,
                       wordCountLabel: t('words'),
+                      isRtl: widget.language == 'ar',
                     ),
                   ),
                 )
@@ -3104,19 +3049,31 @@ class _WorkspacePageState extends State<WorkspacePage> {
       return _selectedChapter == null ? listPane : detailPane;
     }
 
-    return Row(
-      children: [
-        SizedBox(width: _listPaneWidth, child: listPane),
-        _buildResizeDivider(
-          onDrag: (details) {
-            setState(() {
-              final delta = widget.language == 'ar' ? -details.delta.dx : details.delta.dx;
-              _listPaneWidth = (_listPaneWidth + delta).clamp(200.0, 550.0);
-            });
-          },
-        ),
-        Expanded(child: detailPane),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final maxListWidth = (constraints.maxWidth - 460.0).clamp(200.0, 360.0);
+        final effectiveListWidth = _listPaneWidth.clamp(200.0, maxListWidth);
+
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(width: effectiveListWidth, child: listPane),
+            _buildResizeDivider(
+              onDrag: (details) {
+                setState(() {
+                  final delta = widget.language == 'ar' ? -details.delta.dx : details.delta.dx;
+                  _listPaneWidth = (_listPaneWidth + delta).clamp(200.0, maxListWidth);
+                });
+              },
+            ),
+            Expanded(
+              child: ClipRect(
+                child: detailPane,
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

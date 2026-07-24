@@ -29,10 +29,11 @@ dependencies:
   super_editor: ^0.3.0-dev.40
   flutter_quill: ^11.4.2
   path_provider: ^2.1.2
-  file_picker: ^8.0.0
+  file_picker: ^10.2.0
   dynamic_color: ^1.8.1
   sqflite: ^2.3.0
   sqflite_common_ffi: ^2.3.0
+  appflowy_editor: ^6.2.0
 
 dev_dependencies:
   flutter_test:
