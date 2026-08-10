@@ -703,7 +703,14 @@ class _WorkspacePageState extends State<WorkspacePage> {
                         onChanged: (val) => setDialogState(() => selectedPovId = val),
                       ),
                       TextField(controller: settingCtrl, decoration: InputDecoration(labelText: t('sceneSettingLabel'))),
-                      TextField(controller: plotCtrl, decoration: InputDecoration(labelText: t('scenePlotLabel'))),
+                      TextField(
+                        controller: plotCtrl,
+                        decoration: InputDecoration(
+                          labelText: t('scenePlotLabel'),
+                          helperText: t('scenePlotHelper'),
+                          helperMaxLines: 2,
+                        ),
+                      ),
                       TextField(controller: expWordsCtrl, keyboardType: TextInputType.number, decoration: InputDecoration(labelText: t('sceneExpectedWordsLabel'))),
                     ],
                   ),
@@ -1274,6 +1281,15 @@ class _WorkspacePageState extends State<WorkspacePage> {
           onDeleteScene: _deleteScene,
           onOpenSceneMetadataDialog: _openSceneMetadataDialog,
           onListPaneWidthChanged: (w) => setState(() => _listPaneWidth = w),
+          onReorderScenes: (reordered) async {
+            setState(() {
+              _scenes = reordered;
+            });
+            await _sceneRepo.reorderScenes(reordered);
+          },
+          onSaveScene: (scn) async {
+            await _saveScene(scn);
+          },
           t: t,
           language: widget.language,
           isMobile: isMobile,
