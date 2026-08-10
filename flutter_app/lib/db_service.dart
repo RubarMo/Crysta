@@ -1,9 +1,30 @@
 import 'dart:io';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'models.dart';
+import 'repositories/novel_repository.dart';
+import 'repositories/step_repository.dart';
+import 'repositories/character_repository.dart';
+import 'repositories/scene_repository.dart';
+import 'repositories/chapter_repository.dart';
 
 class DatabaseService {
   static Database? _db;
+
+  static Database get database {
+    if (_db == null) {
+      throw StateError('Database is not initialized. Call DatabaseService.openProject() first.');
+    }
+    return _db!;
+  }
+
+  static Database? get db => _db;
+
+  // Domain Repositories
+  static final NovelRepository novelRepository = NovelRepository();
+  static final StepRepository stepRepository = StepRepository();
+  static final CharacterRepository characterRepository = CharacterRepository();
+  static final SceneRepository sceneRepository = SceneRepository();
+  static final ChapterRepository chapterRepository = ChapterRepository();
 
   static void init() {
     if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
@@ -91,36 +112,23 @@ class DatabaseService {
 
     await _db!.execute('PRAGMA foreign_keys = ON;');
 
-    final novelsMaps = await _db!.query('novels', orderBy: 'id ASC');
-    if (novelsMaps.isEmpty) {
-      final id = await _db!.insert('novels', {
-        'title': 'New Novel',
-        'genre': 'Fiction',
-        'target_audience': 'General',
-        'target_word_count': 50000,
-        'current_word_count': 0,
-      });
-
-      final newNovelMap = await _db!.query('novels', where: 'id = ?', whereArgs: [id]);
-      return Novel.fromMap(newNovelMap.first);
+    final novels = await novelRepository.getNovels();
+    if (novels.isEmpty) {
+      final id = await novelRepository.createNovel(
+        title: 'New Novel',
+        genre: 'Fiction',
+        targetAudience: 'General',
+        targetWordCount: 50000,
+      );
+      final newNovel = await novelRepository.getNovelById(id);
+      return newNovel!;
     }
 
-    final novel = Novel.fromMap(novelsMaps.first);
+    final novel = novels.first;
 
-    // Recalculate word count from chapters
-    final chapterMaps = await _db!.query('chapters', where: 'novel_id = ?', whereArgs: [novel.id]);
-    int totalWords = 0;
-    for (var c in chapterMaps) {
-      final content = c['content'] as String? ?? '';
-      totalWords += _countWords(content);
-    }
-
-    await _db!.update(
-      'novels',
-      {'current_word_count': totalWords},
-      where: 'id = ?',
-      whereArgs: [novel.id],
-    );
+    // Recalculate word count from chapters using ChapterRepository
+    final totalWords = await chapterRepository.calculateTotalWordCount(novelId: novel.id!);
+    await novelRepository.updateWordCount(novel.id!, totalWords);
 
     return Novel(
       id: novel.id,
@@ -140,160 +148,59 @@ class DatabaseService {
     }
   }
 
-  static Future<List<Novel>> getNovels() async {
-    if (_db == null) return [];
-    final maps = await _db!.query('novels', orderBy: 'id ASC');
-    return maps.map((m) => Novel.fromMap(m)).toList();
-  }
-
+  // Delegated static helpers for seamless backward compatibility
+  static Future<List<Novel>> getNovels() => novelRepository.getNovels();
   static Future<int> createNovel({
     required String title,
     required String genre,
     required String targetAudience,
     required int targetWordCount,
-  }) async {
-    if (_db == null) return 0;
-    return await _db!.insert('novels', {
-      'title': title,
-      'genre': genre,
-      'target_audience': targetAudience,
-      'target_word_count': targetWordCount,
-      'current_word_count': 0,
-    });
-  }
-
+  }) => novelRepository.createNovel(
+    title: title,
+    genre: genre,
+    targetAudience: targetAudience,
+    targetWordCount: targetWordCount,
+  );
   static Future<void> updateNovel({
     required int id,
     required String title,
     required String genre,
     required String targetAudience,
     required int targetWordCount,
-  }) async {
-    if (_db == null) return;
-    await _db!.update(
-      'novels',
-      {
-        'title': title,
-        'genre': genre,
-        'target_audience': targetAudience,
-        'target_word_count': targetWordCount,
-      },
-      where: 'id = ?',
-      whereArgs: [id],
-    );
-  }
+  }) => novelRepository.updateNovel(
+    id: id,
+    title: title,
+    genre: genre,
+    targetAudience: targetAudience,
+    targetWordCount: targetWordCount,
+  );
+  static Future<void> deleteNovel({required int id}) => novelRepository.deleteNovel(id);
 
-  static Future<void> deleteNovel({required int id}) async {
-    if (_db == null) return;
-    await _db!.delete('novels', where: 'id = ?', whereArgs: [id]);
-  }
+  static Future<List<StepProgress>> getStepsProgress({required int novelId}) =>
+      stepRepository.getStepsProgress(novelId: novelId);
+  static Future<void> saveStepProgress({required StepProgress progress}) =>
+      stepRepository.saveStepProgress(progress: progress);
 
-  static Future<List<StepProgress>> getStepsProgress({required int novelId}) async {
-    if (_db == null) return [];
-    final maps = await _db!.query('steps_progress', where: 'novel_id = ?', whereArgs: [novelId], orderBy: 'step_number ASC');
-    return maps.map((m) => StepProgress.fromMap(m)).toList();
-  }
+  static Future<List<Character>> getCharacters({required int novelId}) =>
+      characterRepository.getCharacters(novelId: novelId);
+  static Future<int> saveCharacter({required Character character}) =>
+      characterRepository.saveCharacter(character: character);
+  static Future<void> deleteCharacter({required int id}) =>
+      characterRepository.deleteCharacter(id: id);
 
-  static Future<void> saveStepProgress({required StepProgress progress}) async {
-    if (_db == null) return;
-    final existing = await _db!.query(
-      'steps_progress',
-      where: 'novel_id = ? AND step_number = ?',
-      whereArgs: [progress.novelId, progress.stepNumber],
-    );
+  static Future<List<Scene>> getScenes({required int novelId}) =>
+      sceneRepository.getScenes(novelId: novelId);
+  static Future<int> saveScene({required Scene scene}) =>
+      sceneRepository.saveScene(scene: scene);
+  static Future<void> deleteScene({required int id, required int novelId}) =>
+      sceneRepository.deleteScene(id: id, novelId: novelId);
 
-    if (existing.isNotEmpty) {
-      await _db!.update(
-        'steps_progress',
-        {
-          'content_text': progress.contentText,
-          'is_completed': progress.isCompleted ? 1 : 0,
-        },
-        where: 'novel_id = ? AND step_number = ?',
-        whereArgs: [progress.novelId, progress.stepNumber],
-      );
-    } else {
-      await _db!.insert('steps_progress', progress.toMap());
-    }
-  }
-
-  static Future<List<Character>> getCharacters({required int novelId}) async {
-    if (_db == null) return [];
-    final maps = await _db!.query('characters', where: 'novel_id = ?', whereArgs: [novelId], orderBy: 'id ASC');
-    return maps.map((m) => Character.fromMap(m)).toList();
-  }
-
-  static Future<int> saveCharacter({required Character character}) async {
-    if (_db == null) return 0;
-    if (character.id != null) {
-      await _db!.update(
-        'characters',
-        character.toMap(),
-        where: 'id = ?',
-        whereArgs: [character.id],
-      );
-      return character.id!;
-    } else {
-      return await _db!.insert('characters', character.toMap());
-    }
-  }
-
-  static Future<void> deleteCharacter({required int id}) async {
-    if (_db == null) return;
-    await _db!.delete('characters', where: 'id = ?', whereArgs: [id]);
-  }
-
-  static Future<List<Scene>> getScenes({required int novelId}) async {
-    if (_db == null) return [];
-    final maps = await _db!.query('scenes', where: 'novel_id = ?', whereArgs: [novelId], orderBy: 'id ASC');
-    return maps.map((m) => Scene.fromMap(m)).toList();
-  }
-
-  static Future<int> saveScene({required Scene scene}) async {
-    if (_db == null) return 0;
-    if (scene.id != null) {
-      await _db!.update(
-        'scenes',
-        scene.toMap(),
-        where: 'id = ?',
-        whereArgs: [scene.id],
-      );
-      return scene.id!;
-    } else {
-      return await _db!.insert('scenes', scene.toMap());
-    }
-  }
-
-  static Future<void> deleteScene({required int id, required int novelId}) async {
-    if (_db == null) return;
-    await _db!.delete('scenes', where: 'id = ? AND novel_id = ?', whereArgs: [id, novelId]);
-  }
-
-  static Future<List<Chapter>> getChapters({required int novelId}) async {
-    if (_db == null) return [];
-    final maps = await _db!.query('chapters', where: 'novel_id = ?', whereArgs: [novelId], orderBy: 'sort_order ASC');
-    return maps.map((m) => Chapter.fromMap(m)).toList();
-  }
-
-  static Future<int> saveChapter({required Chapter chapter}) async {
-    if (_db == null) return 0;
-    if (chapter.id != null) {
-      await _db!.update(
-        'chapters',
-        chapter.toMap(),
-        where: 'id = ?',
-        whereArgs: [chapter.id],
-      );
-      return chapter.id!;
-    } else {
-      return await _db!.insert('chapters', chapter.toMap());
-    }
-  }
-
-  static Future<void> deleteChapter({required int id}) async {
-    if (_db == null) return;
-    await _db!.delete('chapters', where: 'id = ?', whereArgs: [id]);
-  }
+  static Future<List<Chapter>> getChapters({required int novelId}) =>
+      chapterRepository.getChapters(novelId: novelId);
+  static Future<int> saveChapter({required Chapter chapter}) =>
+      chapterRepository.saveChapter(chapter: chapter);
+  static Future<void> deleteChapter({required int id}) =>
+      chapterRepository.deleteChapter(id: id);
 
   static Future<String> exportToTxt({required List<String> titles, required List<String> contents}) async {
     final StringBuffer sb = StringBuffer();
@@ -308,11 +215,5 @@ class DatabaseService {
     final txtContent = await exportToTxt(titles: titles, contents: contents);
     final file = File(path);
     await file.writeAsString(txtContent);
-  }
-
-  static int _countWords(String text) {
-    final clean = text.trim();
-    if (clean.isEmpty) return 0;
-    return clean.split(RegExp(r'\s+')).length;
   }
 }

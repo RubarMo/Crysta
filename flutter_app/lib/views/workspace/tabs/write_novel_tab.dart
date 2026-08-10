@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../../models.dart';
-import '../../../db_service.dart';
 import '../../../widgets/native_text_editor.dart';
 
 class WriteNovelTab extends StatefulWidget {
@@ -134,7 +133,7 @@ class _WriteNovelTabState extends State<WriteNovelTab> {
                             content: widget.chapterCtrl.text,
                             sortOrder: widget.selectedChapter!.sortOrder,
                           );
-                          DatabaseService.saveChapter(chapter: updated);
+                          widget.onSaveChapter(updated);
                           widget.onChanged?.call(val);
                         },
                       ),
