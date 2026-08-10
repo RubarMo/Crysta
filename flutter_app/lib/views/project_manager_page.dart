@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import '../locales.dart';
 import '../models.dart';
 import '../db_service.dart';
+import '../services/backup_service.dart';
 import '../widgets/theme_settings_dialog.dart';
 import 'workspace/workspace_page.dart';
 
@@ -124,6 +125,14 @@ class _ProjectManagerPageState extends State<ProjectManagerPage> {
       try {
         final novel = await DatabaseService.openProject(path: path);
         await _addRecentProject(path);
+
+        // Auto-create session start snapshot (throttled to 30 mins)
+        await BackupService.createSnapshot(
+          projectPath: path,
+          novelTitle: novel.title,
+          throttle: true,
+        );
+
         setState(() {
           _currentNovel = novel;
           _projectPath = path;
@@ -132,6 +141,187 @@ class _ProjectManagerPageState extends State<ProjectManagerPage> {
         _showError('${t('failedToOpenProject')}: $e');
       }
     }
+  }
+
+  Future<void> _removeRecentProject(String path) async {
+    _recentProjects.remove(path);
+    try {
+      final file = await _getRecentConfigFile();
+      await file.writeAsString(jsonEncode(_recentProjects));
+    } catch (_) {}
+    setState(() {});
+  }
+
+  String _formatDateTime(DateTime dt) {
+    final y = dt.year;
+    final m = dt.month.toString().padLeft(2, '0');
+    final d = dt.day.toString().padLeft(2, '0');
+    final h = dt.hour.toString().padLeft(2, '0');
+    final min = dt.minute.toString().padLeft(2, '0');
+    return '$y-$m-$d $h:$min';
+  }
+
+  Future<void> _showSnapshotsDialog(String projectPath) async {
+    final snapshots = await BackupService.listSnapshots(projectPath);
+    final projectName = projectPath.split(Platform.pathSeparator).last;
+
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => Directionality(
+          textDirection: widget.language == 'ar' ? TextDirection.rtl : TextDirection.ltr,
+          child: AlertDialog(
+            title: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    '${t('backupsTitle')} — $projectName',
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.folder_open),
+                  tooltip: t('openBackupsFolder'),
+                  onPressed: () => BackupService.openBackupsFolder(projectPath),
+                ),
+              ],
+            ),
+            content: SizedBox(
+              width: 580,
+              height: 380,
+              child: snapshots.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.history_toggle_off, size: 48, color: Theme.of(context).colorScheme.outline),
+                          const SizedBox(height: 12),
+                          Text(
+                            t('noBackupsFound'),
+                            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    )
+                  : ListView.separated(
+                      itemCount: snapshots.length,
+                      separatorBuilder: (context, index) => const Divider(height: 1),
+                      itemBuilder: (context, index) {
+                        final s = snapshots[index];
+                        return ListTile(
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          leading: CircleAvatar(
+                            radius: 16,
+                            backgroundColor: s.isManual
+                                ? Theme.of(context).colorScheme.primaryContainer
+                                : Theme.of(context).colorScheme.surfaceContainerHighest,
+                            child: Icon(
+                              s.isManual ? Icons.camera_alt : Icons.history,
+                              size: 16,
+                              color: s.isManual
+                                  ? Theme.of(context).colorScheme.primary
+                                  : Theme.of(context).colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                          title: Text(
+                            s.customLabel != null && s.customLabel!.isNotEmpty
+                                ? '${s.customLabel} (${_formatDateTime(s.timestamp)})'
+                                : _formatDateTime(s.timestamp),
+                            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          subtitle: Text(
+                            '${s.formattedSize} • ${s.isManual ? t('manualSnapshotTag') : t('autoSnapshotTag')}',
+                            style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              OutlinedButton.icon(
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  visualDensity: VisualDensity.compact,
+                                ),
+                                icon: const Icon(Icons.restore, size: 14),
+                                label: Text(t('restoreBackupBtn'), style: const TextStyle(fontSize: 11)),
+                                onPressed: () => _confirmRestore(s.filePath, projectPath),
+                              ),
+                              const SizedBox(width: 4),
+                              IconButton(
+                                icon: Icon(Icons.delete_outline, size: 18, color: Theme.of(context).colorScheme.error),
+                                onPressed: () async {
+                                  await BackupService.deleteSnapshot(s.filePath);
+                                  final updated = await BackupService.listSnapshots(projectPath);
+                                  setDialogState(() {
+                                    snapshots.clear();
+                                    snapshots.addAll(updated);
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(t('close')),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _confirmRestore(String backupPath, String targetProjectPath) {
+    showDialog(
+      context: context,
+      builder: (context) => Directionality(
+        textDirection: widget.language == 'ar' ? TextDirection.rtl : TextDirection.ltr,
+        child: AlertDialog(
+          title: Text(t('restoreConfirmTitle'), style: const TextStyle(fontWeight: FontWeight.bold)),
+          content: Text(t('restoreConfirmDesc')),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(t('cancel')),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                foregroundColor: Theme.of(context).colorScheme.onPrimary,
+              ),
+              onPressed: () async {
+                final messenger = ScaffoldMessenger.of(context);
+                Navigator.pop(context); // Close confirm dialog
+                Navigator.pop(context); // Close snapshots dialog
+
+                final success = await BackupService.restoreSnapshot(
+                  backupPath: backupPath,
+                  targetProjectPath: targetProjectPath,
+                );
+
+                if (success) {
+                  messenger.showSnackBar(
+                    SnackBar(content: Text(t('backupRestoredSuccess')), backgroundColor: Colors.green),
+                  );
+                  await _openProjectFile(targetProjectPath);
+                }
+              },
+              child: Text(t('restoreBackupBtn')),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   void _showError(String message) {
@@ -351,6 +541,21 @@ class _ProjectManagerPageState extends State<ProjectManagerPage> {
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                   subtitle: Text(p, style: const TextStyle(fontSize: 11), overflow: TextOverflow.ellipsis),
+                                  trailing: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      IconButton(
+                                        icon: const Icon(Icons.history, size: 20),
+                                        tooltip: t('backupsTitle'),
+                                        onPressed: () => _showSnapshotsDialog(p),
+                                      ),
+                                      IconButton(
+                                        icon: Icon(Icons.close, size: 18, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                                        tooltip: t('delete'),
+                                        onPressed: () => _removeRecentProject(p),
+                                      ),
+                                    ],
+                                  ),
                                   onTap: () => _openProjectFile(p),
                                 );
                               },

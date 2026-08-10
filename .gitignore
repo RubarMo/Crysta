@@ -8,6 +8,8 @@
 # Local SQLite databases & temporary data files
 *.db
 *.crysta
+*.bak
+*_backups/
 snowflake_data.db
 
 # Flutter, Dart & Pub build artifacts
