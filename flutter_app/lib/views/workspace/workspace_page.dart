@@ -7,6 +7,7 @@ import 'package:file_picker/file_picker.dart';
 import '../../locales.dart';
 import '../../models.dart';
 import '../../db_service.dart';
+import '../../services/backup_service.dart';
 import '../../widgets/theme_settings_dialog.dart';
 
 import 'tabs/dashboard_tab.dart';
@@ -391,12 +392,79 @@ class _WorkspacePageState extends State<WorkspacePage> {
       await _saveActiveContent(showToast: false);
     });
   }
-
   Future<void> _flushPendingAutoSave() async {
     if (_autoSaveDebounceTimer?.isActive ?? false) {
       _autoSaveDebounceTimer?.cancel();
       await _saveActiveContent(showToast: false);
     }
+  }
+
+  void _showTakeSnapshotDialog() {
+    final labelCtrl = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => Directionality(
+        textDirection: widget.language == 'ar' ? TextDirection.rtl : TextDirection.ltr,
+        child: AlertDialog(
+          title: Text(t('takeSnapshotDialogTitle'), style: const TextStyle(fontWeight: FontWeight.bold)),
+          content: SizedBox(
+            width: 480,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextField(
+                  controller: labelCtrl,
+                  decoration: InputDecoration(
+                    labelText: t('snapshotLabelHint'),
+                    border: const OutlineInputBorder(),
+                    isDense: false,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(t('cancel')),
+            ),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.camera_alt, size: 16),
+              label: Text(t('takeSnapshotBtn')),
+              onPressed: () async {
+                final messenger = ScaffoldMessenger.of(context);
+                Navigator.pop(context);
+                await _flushPendingAutoSave();
+                await _saveActiveContent(showToast: false);
+                final snapshot = await BackupService.createSnapshot(
+                  projectPath: widget.projectPath,
+                  novelTitle: _activeNovel.title,
+                  customLabel: labelCtrl.text.trim(),
+                  isManual: true,
+                );
+                if (snapshot != null) {
+                  messenger.showSnackBar(
+                    SnackBar(
+                      content: Row(
+                        children: [
+                          const Icon(Icons.check_circle, color: Colors.white, size: 18),
+                          const SizedBox(width: 8),
+                          Text(t('snapshotCreatedSuccess')),
+                        ],
+                      ),
+                      backgroundColor: Colors.teal,
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                }
+              },
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   void _confirmDeleteDialog({
@@ -1333,6 +1401,11 @@ class _WorkspacePageState extends State<WorkspacePage> {
           ),
           actions: [
             IconButton(
+              onPressed: _showTakeSnapshotDialog,
+              icon: const Icon(Icons.camera_alt_outlined),
+              tooltip: t('takeSnapshotBtn'),
+            ),
+            IconButton(
               onPressed: _showHelpModal,
               icon: const Icon(Icons.help_outline),
               tooltip: t('helpGuideBtn'),
@@ -1350,6 +1423,12 @@ class _WorkspacePageState extends State<WorkspacePage> {
               onPressed: () async {
                 await _flushPendingAutoSave();
                 await _saveActiveContent(showToast: false);
+                // Create session end backup
+                await BackupService.createSnapshot(
+                  projectPath: widget.projectPath,
+                  novelTitle: _activeNovel.title,
+                  isManual: false,
+                );
                 widget.onClose();
               },
               icon: const Icon(Icons.close),
