@@ -14,21 +14,37 @@
 
 ## 2. Architecture & Codebase Design
 
-Crysta is built using **Flutter & Dart** with a zero-native-toolchain, clean architectural layout:
+Crysta is built using **Flutter & Dart** with a clean, domain-driven modular architecture:
 
 ```
 Crysta/
-├── GEMINI.md              # Project instructions & guidelines for AI assistants
-├── README.md              # Project overview and build instructions
-└── flutter_app/           # Main Flutter application package
+├── GEMINI.md                  # Project instructions & guidelines for AI assistants
+├── README.md                  # Project overview and build instructions
+└── flutter_app/               # Main Flutter application package
     ├── lib/
-    │   ├── main.dart      # Master UI layout, Navigation Drawer, Master-Detail views & Snowflake tab builders
-    │   ├── db_service.dart# Local SQLite database service (sqflite on mobile, sqflite_common_ffi on desktop)
-    │   ├── models.dart    # Core data structures (Novel, Character, Scene, Chapter, StepProgress)
-    │   └── locales.dart   # Bilingual localization dictionary (Arabic RTL & English LTR)
-    ├── android/           # Android platform target
-    ├── windows/           # Windows platform target
-    └── pubspec.yaml       # Dependencies & Flutter configuration
+    │   ├── main.dart          # App entry point, MaterialApp, Theme & Locale state (~80 LOC)
+    │   ├── db_service.dart    # Local SQLite database service (sqflite on mobile, sqflite_common_ffi on desktop)
+    │   ├── models.dart        # Core data structures (Novel, Character, Scene, Chapter, StepProgress)
+    │   ├── locales.dart       # Bilingual localization dictionary (Arabic RTL & English LTR)
+    │   │
+    │   ├── widgets/           # Reusable UI components
+    │   │   ├── native_text_editor.dart    # Native rich text editor with live word count & RTL arrow key handling
+    │   │   └── theme_settings_dialog.dart # Theme customization dialog & helper
+    │   │
+    │   └── views/             # Screen views and workspace tab builders
+    │       ├── project_manager_page.dart  # Project creation, opening, and recent files list
+    │       └── workspace/
+    │           ├── workspace_page.dart    # Main workspace shell, drawer, sidebar, and DB synchronization
+    │           └── tabs/                  # Focused Snowflake step builder tabs
+    │               ├── dashboard_tab.dart         # Novel metrics dashboard (Step 0)
+    │               ├── step_editor_tab.dart       # Generic text step editor & StepHeaderActions (Steps 1, 2, 4, 6)
+    │               ├── character_bios_tab.dart    # Character sheets (Steps 3, 5, 7)
+    │               ├── scene_matrix_tab.dart      # Scene list & outlines (Steps 8, 9)
+    │               ├── export_tab.dart            # Complete outline export view (Step 10)
+    │               └── write_novel_tab.dart       # Full chapter drafting and export view
+    ├── android/               # Android platform target
+    ├── windows/               # Windows platform target
+    └── pubspec.yaml           # Dependencies & Flutter configuration
 ```
 
 ### Technical Design Patterns:
@@ -36,7 +52,7 @@ Crysta/
   - **Mobile**: Touch-optimized adaptive Navigation Drawer, stacked metrics, drill-down editors with back-navigation.
   - **Desktop**: Multi-pane split workspace with resizable sidebars.
 - **Database Architecture**: `db_service.dart` handles database initialization and schema migration, utilizing `sqflite` on mobile devices and `sqflite_common_ffi` on desktop OS targets.
-- **Rich Text & Metrics**: Integrated rich text editing with real-time word counting and goal progress bars.
+- **Native Text Editing & Metrics**: Integrated native text editor with real-time word counting, responsive toolbar/footer, and goal progress bars.
 
 ---
 
