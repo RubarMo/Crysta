@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../models.dart';
 import '../../../widgets/native_text_editor.dart';
+import '../zen_mode_view.dart';
 import 'step_editor_tab.dart';
 
 class CharacterBiosTab extends StatefulWidget {
@@ -132,6 +133,19 @@ class _CharacterBiosTabState extends State<CharacterBiosTab> {
                 isDone: widget.isDone,
                 onToggleDone: widget.onToggleDone,
                 onSave: widget.onSave,
+                onOpenZenMode: widget.selectedCharacter != null
+                    ? () {
+                        ZenModeView.show(
+                          context,
+                          title: '${widget.selectedCharacter!.name} (${widget.t('step3Title')})',
+                          controller: widget.summaryCtrl,
+                          t: widget.t,
+                          language: widget.language,
+                          onChanged: widget.onChanged,
+                          onSave: widget.onSave,
+                        );
+                      }
+                    : null,
                 t: t,
                 isMobile: isMobile,
               ),
@@ -192,6 +206,18 @@ class _CharacterBiosTabState extends State<CharacterBiosTab> {
                             wordCountLabel: t('words'),
                             isRtl: widget.language == 'ar',
                             onChanged: widget.onChanged,
+                            onOpenZenMode: () {
+                              ZenModeView.show(
+                                context,
+                                title: '${widget.selectedCharacter!.name} (${widget.t('step3Title')})',
+                                controller: widget.summaryCtrl,
+                                t: widget.t,
+                                language: widget.language,
+                                onChanged: widget.onChanged,
+                                onSave: widget.onSave,
+                              );
+                            },
+                            zenModeTooltip: t('zenModeBtn'),
                           ),
                         ),
                       )
@@ -276,6 +302,7 @@ class CharacterPovSynopsesTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final char = selectedCharacter;
     Widget listPane = Card(
       margin: isMobile ? EdgeInsets.zero : const EdgeInsets.all(16),
       child: Column(
@@ -301,17 +328,17 @@ class CharacterPovSynopsesTab extends StatelessWidget {
                 : ListView.builder(
                     itemCount: characters.length,
                     itemBuilder: (context, index) {
-                      final char = characters[index];
-                      final isSelected = selectedCharacter?.id == char.id;
+                      final c = characters[index];
+                      final isSelected = char?.id == c.id;
                       return ListTile(
                         leading: CircleAvatar(
                           backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                          child: Text(char.name.isNotEmpty ? char.name[0].toUpperCase() : '?'),
+                          child: Text(c.name.isNotEmpty ? c.name[0].toUpperCase() : '?'),
                         ),
-                        title: Text(char.name, style: const TextStyle(fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
-                        subtitle: Text(char.motivation, maxLines: 1, overflow: TextOverflow.ellipsis),
+                        title: Text(c.name, style: const TextStyle(fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
+                        subtitle: Text(c.motivation, maxLines: 1, overflow: TextOverflow.ellipsis),
                         selected: isSelected,
-                        onTap: () => onSelectCharacter(char),
+                        onTap: () => onSelectCharacter(c),
                       );
                     },
                   ),
@@ -344,26 +371,39 @@ class CharacterPovSynopsesTab extends StatelessWidget {
                 isDone: isDone,
                 onToggleDone: onToggleDone,
                 onSave: onSave,
+                onOpenZenMode: char != null
+                    ? () {
+                        ZenModeView.show(
+                          context,
+                          title: '${char.name} (${t('step5Title')})',
+                          controller: synopsisCtrl,
+                          t: t,
+                          language: language,
+                          onChanged: onChanged,
+                          onSave: onSave,
+                        );
+                      }
+                    : null,
                 t: t,
                 isMobile: isMobile,
               ),
             ],
           ),
           const SizedBox(height: 12),
-          selectedCharacter == null
+          char == null
               ? Center(child: Padding(padding: const EdgeInsets.all(40), child: Text(t('selectCharPlaceholder'))))
               : Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Text(
-                        '${selectedCharacter!.name} - ${t('charExtendedSynopsisLabel')}',
+                        '${char.name} - ${t('charExtendedSynopsisLabel')}',
                         style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 8),
                       ExpansionTile(
                         leading: Icon(Icons.person, color: Theme.of(context).colorScheme.primary),
-                        title: Text('${selectedCharacter!.name} (${t('charRefBioLabel')} Step 3)', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                        title: Text('${char.name} (${t('charRefBioLabel')} Step 3)', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
                         children: [
                           ConstrainedBox(
                             constraints: const BoxConstraints(maxHeight: 140),
@@ -372,12 +412,12 @@ class CharacterPovSynopsesTab extends StatelessWidget {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text('${t('charMotivationLabel')}: ${selectedCharacter!.motivation}'),
-                                  Text('${t('charGoalLabel')}: ${selectedCharacter!.goal}'),
-                                  Text('${t('charConflictLabel')}: ${selectedCharacter!.conflict}'),
-                                  Text('${t('charEpiphanyLabel')}: ${selectedCharacter!.epiphany}'),
+                                  Text('${t('charMotivationLabel')}: ${char.motivation}'),
+                                  Text('${t('charGoalLabel')}: ${char.goal}'),
+                                  Text('${t('charConflictLabel')}: ${char.conflict}'),
+                                  Text('${t('charEpiphanyLabel')}: ${char.epiphany}'),
                                   const SizedBox(height: 4),
-                                  Text('${t('charSummaryLabel')}: ${cleanText(selectedCharacter!.oneParagraphSummary)}'),
+                                  Text('${t('charSummaryLabel')}: ${cleanText(char.oneParagraphSummary)}'),
                                 ],
                               ),
                             ),
@@ -393,6 +433,18 @@ class CharacterPovSynopsesTab extends StatelessWidget {
                             wordCountLabel: t('words'),
                             isRtl: language == 'ar',
                             onChanged: onChanged,
+                            onOpenZenMode: () {
+                              ZenModeView.show(
+                                context,
+                                title: '${char.name} (${t('step5Title')})',
+                                controller: synopsisCtrl,
+                                t: t,
+                                language: language,
+                                onChanged: onChanged,
+                                onSave: onSave,
+                              );
+                            },
+                            zenModeTooltip: t('zenModeBtn'),
                           ),
                         ),
                       )
@@ -404,7 +456,7 @@ class CharacterPovSynopsesTab extends StatelessWidget {
     );
 
     if (isMobile) {
-      return selectedCharacter == null ? listPane : detailPane;
+      return char == null ? listPane : detailPane;
     }
 
     return Row(
@@ -427,7 +479,7 @@ class CharacterPovSynopsesTab extends StatelessWidget {
                   width: 2,
                   height: 32,
                   decoration: BoxDecoration(
-                    color: Theme.of(context).dividerColor,
+                    color: Theme.of(context).dividerColor.withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(1),
                   ),
                 ),
@@ -435,7 +487,7 @@ class CharacterPovSynopsesTab extends StatelessWidget {
             ),
           ),
         ),
-        Expanded(child: ClipRect(child: detailPane)),
+        Expanded(child: detailPane),
       ],
     );
   }
@@ -477,6 +529,7 @@ class DetailedCharacterChartsTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final char = selectedCharacter;
     Widget listPane = Card(
       margin: isMobile ? EdgeInsets.zero : const EdgeInsets.all(16),
       child: Column(
@@ -502,17 +555,17 @@ class DetailedCharacterChartsTab extends StatelessWidget {
                 : ListView.builder(
                     itemCount: characters.length,
                     itemBuilder: (context, index) {
-                      final char = characters[index];
-                      final isSelected = selectedCharacter?.id == char.id;
+                      final c = characters[index];
+                      final isSelected = char?.id == c.id;
                       return ListTile(
                         leading: CircleAvatar(
                           backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                          child: Text(char.name.isNotEmpty ? char.name[0].toUpperCase() : '?'),
+                          child: Text(c.name.isNotEmpty ? c.name[0].toUpperCase() : '?'),
                         ),
-                        title: Text(char.name, style: const TextStyle(fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
-                        subtitle: Text(char.motivation, maxLines: 1, overflow: TextOverflow.ellipsis),
+                        title: Text(c.name, style: const TextStyle(fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
+                        subtitle: Text(c.motivation, maxLines: 1, overflow: TextOverflow.ellipsis),
                         selected: isSelected,
-                        onTap: () => onSelectCharacter(char),
+                        onTap: () => onSelectCharacter(c),
                       );
                     },
                   ),
@@ -545,26 +598,39 @@ class DetailedCharacterChartsTab extends StatelessWidget {
                 isDone: isDone,
                 onToggleDone: onToggleDone,
                 onSave: onSave,
+                onOpenZenMode: char != null
+                    ? () {
+                        ZenModeView.show(
+                          context,
+                          title: '${char.name} (${t('step7Title')})',
+                          controller: chartCtrl,
+                          t: t,
+                          language: language,
+                          onChanged: onChanged,
+                          onSave: onSave,
+                        );
+                      }
+                    : null,
                 t: t,
                 isMobile: isMobile,
               ),
             ],
           ),
           const SizedBox(height: 12),
-          selectedCharacter == null
+          char == null
               ? Center(child: Padding(padding: const EdgeInsets.all(40), child: Text(t('selectCharPlaceholder'))))
               : Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Text(
-                        '${selectedCharacter!.name} - ${t('charChartsTitle')}',
+                        '${char.name} - ${t('charChartsTitle')}',
                         style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 8),
                       ExpansionTile(
                         leading: Icon(Icons.badge, color: Theme.of(context).colorScheme.primary),
-                        title: Text('${selectedCharacter!.name} (${t('charRefBioLabel')} Step 3)', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                        title: Text('${char.name} (${t('charRefBioLabel')} Step 3)', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
                         children: [
                           ConstrainedBox(
                             constraints: const BoxConstraints(maxHeight: 140),
@@ -573,12 +639,12 @@ class DetailedCharacterChartsTab extends StatelessWidget {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text('${t('charMotivationLabel')}: ${selectedCharacter!.motivation}'),
-                                  Text('${t('charGoalLabel')}: ${selectedCharacter!.goal}'),
-                                  Text('${t('charConflictLabel')}: ${selectedCharacter!.conflict}'),
-                                  Text('${t('charEpiphanyLabel')}: ${selectedCharacter!.epiphany}'),
+                                  Text('${t('charMotivationLabel')}: ${char.motivation}'),
+                                  Text('${t('charGoalLabel')}: ${char.goal}'),
+                                  Text('${t('charConflictLabel')}: ${char.conflict}'),
+                                  Text('${t('charEpiphanyLabel')}: ${char.epiphany}'),
                                   const SizedBox(height: 4),
-                                  Text('${t('charSummaryLabel')}: ${cleanText(selectedCharacter!.oneParagraphSummary)}'),
+                                  Text('${t('charSummaryLabel')}: ${cleanText(char.oneParagraphSummary)}'),
                                 ],
                               ),
                             ),
@@ -594,6 +660,18 @@ class DetailedCharacterChartsTab extends StatelessWidget {
                             wordCountLabel: t('words'),
                             isRtl: language == 'ar',
                             onChanged: onChanged,
+                            onOpenZenMode: () {
+                              ZenModeView.show(
+                                context,
+                                title: '${char.name} (${t('step7Title')})',
+                                controller: chartCtrl,
+                                t: t,
+                                language: language,
+                                onChanged: onChanged,
+                                onSave: onSave,
+                              );
+                            },
+                            zenModeTooltip: t('zenModeBtn'),
                           ),
                         ),
                       )
@@ -605,7 +683,7 @@ class DetailedCharacterChartsTab extends StatelessWidget {
     );
 
     if (isMobile) {
-      return selectedCharacter == null ? listPane : detailPane;
+      return char == null ? listPane : detailPane;
     }
 
     return Row(
@@ -628,7 +706,7 @@ class DetailedCharacterChartsTab extends StatelessWidget {
                   width: 2,
                   height: 32,
                   decoration: BoxDecoration(
-                    color: Theme.of(context).dividerColor,
+                    color: Theme.of(context).dividerColor.withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(1),
                   ),
                 ),
@@ -636,7 +714,7 @@ class DetailedCharacterChartsTab extends StatelessWidget {
             ),
           ),
         ),
-        Expanded(child: ClipRect(child: detailPane)),
+        Expanded(child: detailPane),
       ],
     );
   }
