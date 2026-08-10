@@ -138,6 +138,7 @@ class Scene {
   final String whatHappens;
   final int expectedWordCount;
   final int actualWordCount;
+  final int sortOrder;
 
   const Scene({
     this.id,
@@ -148,6 +149,7 @@ class Scene {
     required this.whatHappens,
     required this.expectedWordCount,
     required this.actualWordCount,
+    this.sortOrder = 0,
   });
 
   factory Scene.fromMap(Map<String, dynamic> map) {
@@ -160,6 +162,7 @@ class Scene {
       whatHappens: map['what_happens'] as String? ?? '',
       expectedWordCount: map['expected_word_count'] as int? ?? 0,
       actualWordCount: map['actual_word_count'] as int? ?? 0,
+      sortOrder: map['sort_order'] as int? ?? 0,
     );
   }
 
@@ -173,7 +176,32 @@ class Scene {
       'what_happens': whatHappens,
       'expected_word_count': expectedWordCount,
       'actual_word_count': actualWordCount,
+      'sort_order': sortOrder,
     };
+  }
+
+  Scene copyWith({
+    int? id,
+    int? novelId,
+    int? povCharacterId,
+    String? setting,
+    String? plotThread,
+    String? whatHappens,
+    int? expectedWordCount,
+    int? actualWordCount,
+    int? sortOrder,
+  }) {
+    return Scene(
+      id: id ?? this.id,
+      novelId: novelId ?? this.novelId,
+      povCharacterId: povCharacterId ?? this.povCharacterId,
+      setting: setting ?? this.setting,
+      plotThread: plotThread ?? this.plotThread,
+      whatHappens: whatHappens ?? this.whatHappens,
+      expectedWordCount: expectedWordCount ?? this.expectedWordCount,
+      actualWordCount: actualWordCount ?? this.actualWordCount,
+      sortOrder: sortOrder ?? this.sortOrder,
+    );
   }
 }
 

@@ -93,6 +93,7 @@ class DatabaseService {
             what_happens TEXT NOT NULL,
             expected_word_count INTEGER NOT NULL,
             actual_word_count INTEGER NOT NULL,
+            sort_order INTEGER NOT NULL DEFAULT 0,
             FOREIGN KEY (novel_id) REFERENCES novels(id) ON DELETE CASCADE
           )
         ''');
@@ -111,6 +112,11 @@ class DatabaseService {
     );
 
     await _db!.execute('PRAGMA foreign_keys = ON;');
+
+    // Non-destructive schema migration for existing project databases
+    try {
+      await _db!.execute('ALTER TABLE scenes ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0;');
+    } catch (_) {}
 
     final novels = await novelRepository.getNovels();
     if (novels.isEmpty) {

@@ -15,7 +15,7 @@ class SceneRepository {
       'scenes',
       where: 'novel_id = ?',
       whereArgs: [novelId],
-      orderBy: 'id ASC',
+      orderBy: 'sort_order ASC, id ASC',
     );
     return maps.map((m) => Scene.fromMap(m)).toList();
   }
@@ -32,6 +32,22 @@ class SceneRepository {
     } else {
       return await _db.insert('scenes', scene.toMap());
     }
+  }
+
+  Future<void> reorderScenes(List<Scene> scenes) async {
+    final batch = _db.batch();
+    for (int i = 0; i < scenes.length; i++) {
+      final scn = scenes[i];
+      if (scn.id != null) {
+        batch.update(
+          'scenes',
+          {'sort_order': i},
+          where: 'id = ?',
+          whereArgs: [scn.id],
+        );
+      }
+    }
+    await batch.commit(noResult: true);
   }
 
   Future<void> deleteScene({required int id, required int novelId}) async {
