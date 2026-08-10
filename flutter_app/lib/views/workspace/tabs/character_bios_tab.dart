@@ -18,6 +18,7 @@ class CharacterBiosTab extends StatefulWidget {
   final String Function(String) t;
   final String language;
   final bool isMobile;
+  final ValueChanged<String>? onChanged;
 
   const CharacterBiosTab({
     super.key,
@@ -35,6 +36,7 @@ class CharacterBiosTab extends StatefulWidget {
     required this.t,
     required this.language,
     required this.isMobile,
+    this.onChanged,
   });
 
   @override
@@ -189,6 +191,7 @@ class _CharacterBiosTabState extends State<CharacterBiosTab> {
                             controller: widget.summaryCtrl,
                             wordCountLabel: t('words'),
                             isRtl: widget.language == 'ar',
+                            onChanged: widget.onChanged,
                           ),
                         ),
                       )
@@ -251,6 +254,7 @@ class CharacterPovSynopsesTab extends StatelessWidget {
   final String language;
   final bool isMobile;
   final String Function(String) cleanText;
+  final ValueChanged<String>? onChanged;
 
   const CharacterPovSynopsesTab({
     super.key,
@@ -267,6 +271,7 @@ class CharacterPovSynopsesTab extends StatelessWidget {
     required this.language,
     required this.isMobile,
     required this.cleanText,
+    this.onChanged,
   });
 
   @override
@@ -387,6 +392,7 @@ class CharacterPovSynopsesTab extends StatelessWidget {
                             controller: synopsisCtrl,
                             wordCountLabel: t('words'),
                             isRtl: language == 'ar',
+                            onChanged: onChanged,
                           ),
                         ),
                       )
@@ -449,6 +455,7 @@ class DetailedCharacterChartsTab extends StatelessWidget {
   final String language;
   final bool isMobile;
   final String Function(String) cleanText;
+  final ValueChanged<String>? onChanged;
 
   const DetailedCharacterChartsTab({
     super.key,
@@ -465,6 +472,7 @@ class DetailedCharacterChartsTab extends StatelessWidget {
     required this.language,
     required this.isMobile,
     required this.cleanText,
+    this.onChanged,
   });
 
   @override
@@ -585,6 +593,7 @@ class DetailedCharacterChartsTab extends StatelessWidget {
                             controller: chartCtrl,
                             wordCountLabel: t('words'),
                             isRtl: language == 'ar',
+                            onChanged: onChanged,
                           ),
                         ),
                       )

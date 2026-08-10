@@ -20,6 +20,7 @@ class WriteNovelTab extends StatefulWidget {
   final String language;
   final bool isMobile;
   final String Function(String) cleanText;
+  final ValueChanged<String>? onChanged;
 
   const WriteNovelTab({
     super.key,
@@ -39,6 +40,7 @@ class WriteNovelTab extends StatefulWidget {
     required this.language,
     required this.isMobile,
     required this.cleanText,
+    this.onChanged,
   });
 
   @override
@@ -133,6 +135,7 @@ class _WriteNovelTabState extends State<WriteNovelTab> {
                             sortOrder: widget.selectedChapter!.sortOrder,
                           );
                           DatabaseService.saveChapter(chapter: updated);
+                          widget.onChanged?.call(val);
                         },
                       ),
                     ),
@@ -182,6 +185,7 @@ class _WriteNovelTabState extends State<WriteNovelTab> {
                       controller: widget.chapterCtrl,
                       wordCountLabel: t('words'),
                       isRtl: widget.language == 'ar',
+                      onChanged: widget.onChanged,
                     ),
                   ),
                 )
