@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:file_picker/file_picker.dart';
 
 import '../../locales.dart';
@@ -13,6 +14,7 @@ import '../../repositories/character_repository.dart';
 import '../../repositories/scene_repository.dart';
 import '../../repositories/chapter_repository.dart';
 import '../../services/backup_service.dart';
+import '../../widgets/command_palette_dialog.dart';
 import '../../widgets/theme_settings_dialog.dart';
 
 import 'tabs/dashboard_tab.dart';
@@ -21,6 +23,7 @@ import 'tabs/character_bios_tab.dart';
 import 'tabs/scene_matrix_tab.dart';
 import 'tabs/export_tab.dart';
 import 'tabs/write_novel_tab.dart';
+import 'zen_mode_view.dart';
 
 enum SaveStatus { idle, saving, saved, error }
 
@@ -408,6 +411,126 @@ class _WorkspacePageState extends State<WorkspacePage> {
     }
   }
 
+  void _showBackupsHistoryDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return Directionality(
+            textDirection: widget.language == 'ar' ? TextDirection.rtl : TextDirection.ltr,
+            child: AlertDialog(
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.history, color: Theme.of(context).colorScheme.primary),
+                      const SizedBox(width: 8),
+                      Text(t('backupsTitle'), style: const TextStyle(fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                  TextButton.icon(
+                    icon: const Icon(Icons.folder_open, size: 16),
+                    label: Text(t('openBackupsFolder')),
+                    onPressed: () => BackupService.openBackupsFolder(widget.projectPath),
+                  ),
+                ],
+              ),
+              content: SizedBox(
+                width: 600,
+                height: 420,
+                child: FutureBuilder<List<SnapshotInfo>>(
+                  future: BackupService.listSnapshots(widget.projectPath),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    final list = snapshot.data ?? [];
+                    if (list.isEmpty) {
+                      return Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.history_toggle_off, size: 48, color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5)),
+                            const SizedBox(height: 12),
+                            Text(t('noBackupsFound')),
+                          ],
+                        ),
+                      );
+                    }
+                    return ListView.separated(
+                      itemCount: list.length,
+                      separatorBuilder: (ctx, i) => const Divider(height: 1),
+                      itemBuilder: (context, index) {
+                        final item = list[index];
+                        return ListTile(
+                          dense: true,
+                          leading: Icon(
+                            item.isManual ? Icons.bookmark : Icons.schedule,
+                            color: item.isManual ? Colors.amber.shade700 : Colors.teal,
+                          ),
+                          title: Text(item.customLabel?.isNotEmpty == true ? item.customLabel! : item.fileName, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                          subtitle: Text('${item.timestamp.toLocal().toString().split('.').first} • ${item.formattedSize}'),
+                          trailing: ElevatedButton(
+                            child: Text(t('restoreBackupBtn')),
+                            onPressed: () async {
+                              final nav = Navigator.of(context);
+                              final messenger = ScaffoldMessenger.of(context);
+                              final confirm = await showDialog<bool>(
+                                context: context,
+                                builder: (ctx) => Directionality(
+                                  textDirection: widget.language == 'ar' ? TextDirection.rtl : TextDirection.ltr,
+                                  child: AlertDialog(
+                                    title: Text(t('restoreConfirmTitle')),
+                                    content: Text(t('restoreConfirmDesc')),
+                                    actions: [
+                                      TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(t('cancel'))),
+                                      ElevatedButton(
+                                        onPressed: () => Navigator.pop(ctx, true),
+                                        style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.error, foregroundColor: Colors.white),
+                                        child: Text(t('restoreBackupBtn')),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                              if (confirm == true) {
+                                await BackupService.restoreSnapshot(backupPath: item.filePath, targetProjectPath: widget.projectPath);
+                                nav.pop();
+                                _refreshAllData();
+                                messenger.showSnackBar(
+                                  SnackBar(content: Text(t('backupRestoredSuccess')), backgroundColor: Colors.teal),
+                                );
+                              }
+                            },
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(t('close')),
+                ),
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.camera_alt, size: 16),
+                  label: Text(t('takeSnapshotBtn')),
+                  onPressed: () {
+                    Navigator.pop(context);
+                    _showTakeSnapshotDialog();
+                  },
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   void _showTakeSnapshotDialog() {
     final labelCtrl = TextEditingController();
     showDialog(
@@ -415,7 +538,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
       builder: (context) => Directionality(
         textDirection: widget.language == 'ar' ? TextDirection.rtl : TextDirection.ltr,
         child: AlertDialog(
-          title: Text(t('takeSnapshotDialogTitle'), style: const TextStyle(fontWeight: FontWeight.bold)),
+          title: Text(t('takeSnapshotBtn'), style: const TextStyle(fontWeight: FontWeight.bold)),
           content: SizedBox(
             width: 480,
             child: Column(
@@ -986,6 +1109,197 @@ class _WorkspacePageState extends State<WorkspacePage> {
     );
   }
 
+  Future<void> _navigateToTab(int index, {Character? character, Scene? scene, Chapter? chapter}) async {
+    await _flushPendingAutoSave();
+    await _saveActiveContent(showToast: false);
+    setState(() {
+      _selectedTabIndex = index;
+      if (character != null) {
+        _selectedCharacter = character;
+        if (index == 3) {
+          _step3SummaryCtrl.text = _cleanText(character.oneParagraphSummary);
+        } else if (index == 5) {
+          _step5SynopsisCtrl.text = _cleanText(character.fullSynopsis);
+        }
+      }
+      if (scene != null) {
+        _selectedScene = scene;
+        if (index == 8) {
+          _step8SceneCtrl.text = _cleanText(scene.whatHappens);
+        }
+      }
+      if (chapter != null) {
+        _selectedChapter = chapter;
+        if (index == 11) {
+          _chapterTitleCtrl.text = chapter.title;
+          _chapterCtrl.text = _cleanText(chapter.content);
+        }
+      }
+    });
+    _loadTabContent(index);
+  }
+
+  void _openCommandPalette() {
+    CommandPaletteDialog.show(
+      context: context,
+      language: widget.language,
+      t: t,
+      characters: _characters,
+      scenes: _scenes,
+      chapters: _chapters,
+      onNavigate: (tabIndex, {character, scene, chapter}) {
+        _navigateToTab(tabIndex, character: character, scene: scene, chapter: chapter);
+      },
+      onTriggerAction: (actionId) {
+        _handlePaletteAction(actionId);
+      },
+    );
+  }
+
+  void _handlePaletteAction(String actionId) {
+    switch (actionId) {
+      case 'save':
+        _saveActiveContent(showToast: true);
+        break;
+      case 'snapshots':
+        _showBackupsHistoryDialog();
+        break;
+      case 'toggle_sidebar':
+        _toggleSidebar();
+        break;
+      case 'zen_mode':
+        _openActiveZenMode();
+        break;
+      case 'theme':
+        showThemeSettingsDialog(context, widget.currentThemeMode, widget.currentSeedColor, widget.useDynamicColor, widget.onThemeSettingsChanged, t);
+        break;
+      case 'language':
+        widget.onLanguageToggle();
+        break;
+      case 'export_docx':
+        _exportDocument('docx');
+        break;
+      case 'export_txt':
+        _exportDocument('txt');
+        break;
+      case 'help':
+        _showHelpModal();
+        break;
+      case 'shortcuts':
+        KeyboardShortcutsHelpDialog.show(context, widget.language, t);
+        break;
+      case 'new_character':
+        _openCharacterDialog();
+        break;
+      case 'new_scene':
+        _openSceneMetadataDialog();
+        break;
+      case 'new_chapter':
+        _addNewChapterQuick();
+        break;
+    }
+  }
+
+  void _toggleSidebar() {
+    setState(() {
+      _sidebarWidth = _sidebarWidth > 0 ? 0.0 : 260.0;
+    });
+  }
+
+  void _handleContextAwareNew() {
+    if (_selectedTabIndex == 3 || _selectedTabIndex == 5 || _selectedTabIndex == 7) {
+      _openCharacterDialog();
+    } else if (_selectedTabIndex == 8 || _selectedTabIndex == 9) {
+      _openSceneMetadataDialog();
+    } else if (_selectedTabIndex == 11) {
+      _addNewChapterQuick();
+    } else {
+      _openCommandPalette();
+    }
+  }
+
+  Future<void> _addNewChapterQuick() async {
+    final nextNum = _chapters.length + 1;
+    final newChap = Chapter(
+      novelId: _activeNovel.id!,
+      title: '${t('chapterTitleLabel')} $nextNum',
+      content: '',
+      sortOrder: nextNum,
+    );
+    await _saveChapter(newChap);
+    _navigateToTab(11, chapter: newChap);
+  }
+
+  void _openActiveZenMode() {
+    TextEditingController? ctrl;
+    String title = _activeNovel.title;
+
+    switch (_selectedTabIndex) {
+      case 1:
+        ctrl = _step1Ctrl;
+        title = t('step1Title');
+        break;
+      case 2:
+        ctrl = _step2Ctrl;
+        title = t('step2Title');
+        break;
+      case 3:
+        if (_selectedCharacter != null) {
+          ctrl = _step3SummaryCtrl;
+          title = '${_selectedCharacter!.name} (${t('step3Title')})';
+        }
+        break;
+      case 4:
+        ctrl = _step4Ctrl;
+        title = t('step4Title');
+        break;
+      case 5:
+        if (_selectedCharacter != null) {
+          ctrl = _step5SynopsisCtrl;
+          title = '${_selectedCharacter!.name} (${t('step5Title')})';
+        }
+        break;
+      case 6:
+        ctrl = _step6Ctrl;
+        title = t('step6Title');
+        break;
+      case 7:
+        if (_selectedCharacter != null) {
+          ctrl = _step7ChartCtrl;
+          title = '${_selectedCharacter!.name} (${t('step7Title')})';
+        }
+        break;
+      case 8:
+        if (_selectedScene != null) {
+          ctrl = _step8SceneCtrl;
+          title = _selectedScene!.setting.isNotEmpty ? _selectedScene!.setting : t('step8Title');
+        }
+        break;
+      case 9:
+        if (_selectedScene != null) {
+          ctrl = _step9SceneCtrl;
+          title = _selectedScene!.setting.isNotEmpty ? _selectedScene!.setting : t('step9Title');
+        }
+        break;
+      case 11:
+        ctrl = _chapterCtrl;
+        title = _selectedChapter?.title.isNotEmpty == true ? _selectedChapter!.title : t('writeNovelTitle');
+        break;
+    }
+
+    if (ctrl != null) {
+      ZenModeView.show(
+        context,
+        title: title,
+        controller: ctrl,
+        t: t,
+        language: widget.language,
+        onChanged: (val) => _handleContentChanged(),
+        onSave: () => _saveActiveContent(showToast: true),
+      );
+    }
+  }
+
   Widget _buildSidebarTile(int index, String title, IconData icon, {Color? color, bool isMobile = false}) {
     final isSelected = _selectedTabIndex == index;
     return ListTile(
@@ -997,16 +1311,11 @@ class _WorkspacePageState extends State<WorkspacePage> {
         style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal, fontSize: 12),
         overflow: TextOverflow.visible,
       ),
-      onTap: () async {
+      onTap: () {
         if (isMobile) {
           Navigator.pop(context);
         }
-        await _flushPendingAutoSave();
-        await _saveActiveContent(showToast: false);
-        setState(() {
-          _selectedTabIndex = index;
-        });
-        _loadTabContent(index);
+        _navigateToTab(index);
       },
     );
   }
@@ -1029,16 +1338,11 @@ class _WorkspacePageState extends State<WorkspacePage> {
         overflow: TextOverflow.visible,
       ),
       trailing: isDone ? Icon(Icons.check_circle, color: Theme.of(context).colorScheme.primary, size: 16) : null,
-      onTap: () async {
+      onTap: () {
         if (isMobile) {
           Navigator.pop(context);
         }
-        await _flushPendingAutoSave();
-        await _saveActiveContent(showToast: false);
-        setState(() {
-          _selectedTabIndex = index;
-        });
-        _loadTabContent(index);
+        _navigateToTab(index);
       },
     );
   }
@@ -1386,110 +1690,191 @@ class _WorkspacePageState extends State<WorkspacePage> {
 
     return Directionality(
       textDirection: textDir,
-      child: Scaffold(
-        drawer: !isExpanded ? Drawer(child: SafeArea(child: _buildSidebarContent(isMobile: true))) : null,
-        appBar: AppBar(
-          leading: !isExpanded
-              ? Builder(
-                  builder: (ctx) => IconButton(
-                    icon: const Icon(Icons.menu),
-                    tooltip: t('completedSteps'),
-                    onPressed: () => Scaffold.of(ctx).openDrawer(),
-                  ),
-                )
-              : null,
-          title: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Flexible(
-                child: Text(
-                  _activeNovel.title,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              const SizedBox(width: 8),
-              _buildSaveStatusIndicator(isCompact: isCompact),
-              if (!isCompact) ...[
-                const SizedBox(width: 8),
-                Chip(
-                  label: Text(
-                    widget.projectPath.split(Platform.pathSeparator).last,
-                    style: const TextStyle(fontSize: 10),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  padding: EdgeInsets.zero,
-                  visualDensity: VisualDensity.compact,
-                ),
-              ],
-            ],
-          ),
-          actions: [
-            IconButton(
-              onPressed: _showTakeSnapshotDialog,
-              icon: const Icon(Icons.camera_alt_outlined),
-              tooltip: t('takeSnapshotBtn'),
-            ),
-            IconButton(
-              onPressed: _showHelpModal,
-              icon: const Icon(Icons.help_outline),
-              tooltip: t('helpGuideBtn'),
-            ),
-            IconButton(
-              onPressed: widget.onLanguageToggle,
-              icon: const Icon(Icons.language),
-              tooltip: widget.language == 'ar' ? 'English' : 'العربية',
-            ),
-            IconButton(
-              onPressed: () => showThemeSettingsDialog(context, widget.currentThemeMode, widget.currentSeedColor, widget.useDynamicColor, widget.onThemeSettingsChanged, t),
-              icon: const Icon(Icons.palette),
-            ),
-            IconButton(
-              onPressed: () async {
-                await _flushPendingAutoSave();
-                await _saveActiveContent(showToast: false);
-                // Create session end backup
-                await BackupService.createSnapshot(
-                  projectPath: widget.projectPath,
-                  novelTitle: _activeNovel.title,
-                  isManual: false,
-                );
-                widget.onClose();
-              },
-              icon: const Icon(Icons.close),
-              color: Theme.of(context).colorScheme.error,
-              tooltip: t('close'),
-            ),
-            const SizedBox(width: 4),
-          ],
-        ),
-        body: isCompact
-            ? (_isLoadingStep
-                ? const Center(child: CircularProgressIndicator())
-                : _buildTabContent(isMobile: true))
-            : Row(
+      child: CallbackShortcuts(
+        bindings: {
+          // Ctrl+K or Ctrl+P -> Open Command Palette
+          const SingleActivator(LogicalKeyboardKey.keyK, control: true): _openCommandPalette,
+          const SingleActivator(LogicalKeyboardKey.keyP, control: true): _openCommandPalette,
+          const SingleActivator(LogicalKeyboardKey.keyK, meta: true): _openCommandPalette,
+          const SingleActivator(LogicalKeyboardKey.keyP, meta: true): _openCommandPalette,
+
+          // Ctrl+S / Cmd+S -> Force save
+          const SingleActivator(LogicalKeyboardKey.keyS, control: true): () => _saveActiveContent(showToast: true),
+          const SingleActivator(LogicalKeyboardKey.keyS, meta: true): () => _saveActiveContent(showToast: true),
+
+          // Ctrl+B / Cmd+B -> Snapshots
+          const SingleActivator(LogicalKeyboardKey.keyB, control: true): _showBackupsHistoryDialog,
+          const SingleActivator(LogicalKeyboardKey.keyB, meta: true): _showBackupsHistoryDialog,
+
+          // Ctrl+J / Cmd+J -> Toggle Sidebar
+          const SingleActivator(LogicalKeyboardKey.keyJ, control: true): _toggleSidebar,
+          const SingleActivator(LogicalKeyboardKey.keyJ, meta: true): _toggleSidebar,
+
+          // Ctrl+N / Cmd+N -> Context-Aware New
+          const SingleActivator(LogicalKeyboardKey.keyN, control: true): _handleContextAwareNew,
+          const SingleActivator(LogicalKeyboardKey.keyN, meta: true): _handleContextAwareNew,
+
+          // Ctrl+/ or Cmd+/ -> Shortcuts cheat sheet
+          const SingleActivator(LogicalKeyboardKey.slash, control: true): () => KeyboardShortcutsHelpDialog.show(context, widget.language, t),
+          const SingleActivator(LogicalKeyboardKey.slash, meta: true): () => KeyboardShortcutsHelpDialog.show(context, widget.language, t),
+
+          // F1 -> Help guide
+          const SingleActivator(LogicalKeyboardKey.f1): _showHelpModal,
+
+          // F11 -> Zen Mode on active step
+          const SingleActivator(LogicalKeyboardKey.f11): _openActiveZenMode,
+
+          // Ctrl+0 -> Step 0 (Dashboard)
+          const SingleActivator(LogicalKeyboardKey.digit0, control: true): () => _navigateToTab(0),
+          const SingleActivator(LogicalKeyboardKey.digit0, meta: true): () => _navigateToTab(0),
+
+          // Ctrl+1 through Ctrl+9 -> Steps 1-9
+          const SingleActivator(LogicalKeyboardKey.digit1, control: true): () => _navigateToTab(1),
+          const SingleActivator(LogicalKeyboardKey.digit2, control: true): () => _navigateToTab(2),
+          const SingleActivator(LogicalKeyboardKey.digit3, control: true): () => _navigateToTab(3),
+          const SingleActivator(LogicalKeyboardKey.digit4, control: true): () => _navigateToTab(4),
+          const SingleActivator(LogicalKeyboardKey.digit5, control: true): () => _navigateToTab(5),
+          const SingleActivator(LogicalKeyboardKey.digit6, control: true): () => _navigateToTab(6),
+          const SingleActivator(LogicalKeyboardKey.digit7, control: true): () => _navigateToTab(7),
+          const SingleActivator(LogicalKeyboardKey.digit8, control: true): () => _navigateToTab(8),
+          const SingleActivator(LogicalKeyboardKey.digit9, control: true): () => _navigateToTab(9),
+          const SingleActivator(LogicalKeyboardKey.digit1, meta: true): () => _navigateToTab(1),
+          const SingleActivator(LogicalKeyboardKey.digit2, meta: true): () => _navigateToTab(2),
+          const SingleActivator(LogicalKeyboardKey.digit3, meta: true): () => _navigateToTab(3),
+          const SingleActivator(LogicalKeyboardKey.digit4, meta: true): () => _navigateToTab(4),
+          const SingleActivator(LogicalKeyboardKey.digit5, meta: true): () => _navigateToTab(5),
+          const SingleActivator(LogicalKeyboardKey.digit6, meta: true): () => _navigateToTab(6),
+          const SingleActivator(LogicalKeyboardKey.digit7, meta: true): () => _navigateToTab(7),
+          const SingleActivator(LogicalKeyboardKey.digit8, meta: true): () => _navigateToTab(8),
+          const SingleActivator(LogicalKeyboardKey.digit9, meta: true): () => _navigateToTab(9),
+
+          // Ctrl+Shift+E -> Export (Step 10)
+          const SingleActivator(LogicalKeyboardKey.keyE, control: true, shift: true): () => _navigateToTab(10),
+          const SingleActivator(LogicalKeyboardKey.keyE, meta: true, shift: true): () => _navigateToTab(10),
+
+          // Ctrl+Shift+W -> Write Novel (Step 11)
+          const SingleActivator(LogicalKeyboardKey.keyW, control: true, shift: true): () => _navigateToTab(11),
+          const SingleActivator(LogicalKeyboardKey.keyW, meta: true, shift: true): () => _navigateToTab(11),
+        },
+        child: Focus(
+          autofocus: true,
+          child: Scaffold(
+            drawer: !isExpanded ? Drawer(child: SafeArea(child: _buildSidebarContent(isMobile: true))) : null,
+            appBar: AppBar(
+              leading: !isExpanded
+                  ? Builder(
+                      builder: (ctx) => IconButton(
+                        icon: const Icon(Icons.menu),
+                        tooltip: t('completedSteps'),
+                        onPressed: () => Scaffold.of(ctx).openDrawer(),
+                      ),
+                    )
+                  : null,
+              title: Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (isExpanded) ...[
-                    SizedBox(
-                      width: _sidebarWidth,
-                      child: _buildSidebarContent(isMobile: false),
+                  Flexible(
+                    child: Text(
+                      _activeNovel.title,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    _buildResizeDivider(
-                      onDrag: (details) {
-                        setState(() {
-                          final delta = widget.language == 'ar' ? -details.delta.dx : details.delta.dx;
-                          _sidebarWidth = (_sidebarWidth + delta).clamp(200.0, 340.0);
-                        });
-                      },
+                  ),
+                  const SizedBox(width: 8),
+                  _buildSaveStatusIndicator(isCompact: isCompact),
+                  if (!isCompact) ...[
+                    const SizedBox(width: 8),
+                    Chip(
+                      label: Text(
+                        widget.projectPath.split(Platform.pathSeparator).last,
+                        style: const TextStyle(fontSize: 10),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      padding: EdgeInsets.zero,
+                      visualDensity: VisualDensity.compact,
                     ),
                   ],
-                  Expanded(
-                    child: _isLoadingStep
-                        ? const Center(child: CircularProgressIndicator())
-                        : _buildTabContent(isMobile: false),
-                  ),
                 ],
               ),
+              actions: [
+                IconButton(
+                  onPressed: _openCommandPalette,
+                  icon: const Icon(Icons.search),
+                  tooltip: '${t('commandPaletteTitle')} (Ctrl+K)',
+                ),
+                IconButton(
+                  onPressed: _showBackupsHistoryDialog,
+                  icon: const Icon(Icons.history),
+                  tooltip: '${t('backupsTitle')} (Ctrl+B)',
+                ),
+                IconButton(
+                  onPressed: () => KeyboardShortcutsHelpDialog.show(context, widget.language, t),
+                  icon: const Icon(Icons.keyboard_outlined),
+                  tooltip: '${t('shortcutsTitle')} (Ctrl+/)',
+                ),
+                IconButton(
+                  onPressed: _showHelpModal,
+                  icon: const Icon(Icons.help_outline),
+                  tooltip: '${t('helpModalTitle')} (F1)',
+                ),
+                IconButton(
+                  onPressed: widget.onLanguageToggle,
+                  icon: const Icon(Icons.language),
+                  tooltip: widget.language == 'ar' ? 'English' : 'العربية',
+                ),
+                IconButton(
+                  onPressed: () => showThemeSettingsDialog(context, widget.currentThemeMode, widget.currentSeedColor, widget.useDynamicColor, widget.onThemeSettingsChanged, t),
+                  icon: const Icon(Icons.palette),
+                  tooltip: t('appearance'),
+                ),
+                IconButton(
+                  onPressed: () async {
+                    await _flushPendingAutoSave();
+                    await _saveActiveContent(showToast: false);
+                    // Create session end backup
+                    await BackupService.createSnapshot(
+                      projectPath: widget.projectPath,
+                      novelTitle: _activeNovel.title,
+                      isManual: false,
+                    );
+                    widget.onClose();
+                  },
+                  icon: const Icon(Icons.close),
+                  color: Theme.of(context).colorScheme.error,
+                  tooltip: t('close'),
+                ),
+                const SizedBox(width: 4),
+              ],
+            ),
+            body: isCompact
+                ? (_isLoadingStep
+                    ? const Center(child: CircularProgressIndicator())
+                    : _buildTabContent(isMobile: true))
+                : Row(
+                    children: [
+                      if (isExpanded && _sidebarWidth > 0) ...[
+                        SizedBox(
+                          width: _sidebarWidth,
+                          child: _buildSidebarContent(isMobile: false),
+                        ),
+                        _buildResizeDivider(
+                          onDrag: (details) {
+                            setState(() {
+                              final delta = widget.language == 'ar' ? -details.delta.dx : details.delta.dx;
+                              _sidebarWidth = (_sidebarWidth + delta).clamp(180.0, 340.0);
+                            });
+                          },
+                        ),
+                      ],
+                      Expanded(
+                        child: _isLoadingStep
+                            ? const Center(child: CircularProgressIndicator())
+                            : _buildTabContent(isMobile: false),
+                      ),
+                    ],
+                  ),
+          ),
+        ),
       ),
     );
   }
