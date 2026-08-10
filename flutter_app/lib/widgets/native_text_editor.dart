@@ -7,6 +7,8 @@ class NativeTextEditor extends StatefulWidget {
   final String placeholder;
   final bool isRtl;
   final ValueChanged<String>? onChanged;
+  final VoidCallback? onOpenZenMode;
+  final String? zenModeTooltip;
 
   const NativeTextEditor({
     super.key,
@@ -15,6 +17,8 @@ class NativeTextEditor extends StatefulWidget {
     this.placeholder = '',
     this.isRtl = false,
     this.onChanged,
+    this.onOpenZenMode,
+    this.zenModeTooltip,
   });
 
   @override
@@ -152,17 +156,32 @@ class _NativeTextEditorState extends State<NativeTextEditor> {
                 ),
               ),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Icon(Icons.text_snippet_outlined, size: 14, color: theme.colorScheme.onSurfaceVariant),
-                  const SizedBox(width: 6),
-                  Text(
-                    '$wordCount ${widget.wordCountLabel}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
+                  if (widget.onOpenZenMode != null)
+                    IconButton(
+                      icon: const Icon(Icons.self_improvement, size: 16),
+                      tooltip: widget.zenModeTooltip ?? 'Zen Mode',
+                      visualDensity: VisualDensity.compact,
+                      padding: EdgeInsets.zero,
+                      onPressed: widget.onOpenZenMode,
+                    )
+                  else
+                    const SizedBox.shrink(),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.text_snippet_outlined, size: 14, color: theme.colorScheme.onSurfaceVariant),
+                      const SizedBox(width: 6),
+                      Text(
+                        '$wordCount ${widget.wordCountLabel}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

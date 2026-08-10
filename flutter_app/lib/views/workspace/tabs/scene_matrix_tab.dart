@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../models.dart';
 import '../../../widgets/native_text_editor.dart';
+import '../zen_mode_view.dart';
 import 'step_editor_tab.dart';
 
 class SceneListMasterDetailTab extends StatefulWidget {
@@ -146,6 +147,22 @@ class _SceneListMasterDetailTabState extends State<SceneListMasterDetailTab> {
                 isDone: widget.isDone,
                 onToggleDone: widget.onToggleDone,
                 onSave: widget.onSave,
+                onOpenZenMode: widget.selectedScene != null
+                    ? () {
+                        final sceneTitle = widget.selectedScene!.setting.isNotEmpty
+                            ? widget.selectedScene!.setting
+                            : widget.t('step8Title');
+                        ZenModeView.show(
+                          context,
+                          title: sceneTitle,
+                          controller: widget.step8SceneCtrl,
+                          t: widget.t,
+                          language: widget.language,
+                          onChanged: widget.onChanged,
+                          onSave: widget.onSave,
+                        );
+                      }
+                    : null,
                 t: t,
                 isMobile: isMobile,
               ),
@@ -214,6 +231,21 @@ class _SceneListMasterDetailTabState extends State<SceneListMasterDetailTab> {
                             wordCountLabel: t('words'),
                             isRtl: widget.language == 'ar',
                             onChanged: widget.onChanged,
+                            onOpenZenMode: () {
+                              final sceneTitle = widget.selectedScene != null && widget.selectedScene!.setting.isNotEmpty
+                                  ? widget.selectedScene!.setting
+                                  : widget.t('step8Title');
+                              ZenModeView.show(
+                                context,
+                                title: sceneTitle,
+                                controller: widget.step8SceneCtrl,
+                                t: widget.t,
+                                language: widget.language,
+                                onChanged: widget.onChanged,
+                                onSave: widget.onSave,
+                              );
+                            },
+                            zenModeTooltip: t('zenModeBtn'),
                           ),
                         ),
                       )
@@ -364,6 +396,22 @@ class SceneNarrativeOutlinesTab extends StatelessWidget {
                 isDone: isDone,
                 onToggleDone: onToggleDone,
                 onSave: onSave,
+                onOpenZenMode: selectedScene != null
+                    ? () {
+                        final sceneTitle = selectedScene!.setting.isNotEmpty
+                            ? selectedScene!.setting
+                            : t('step9Title');
+                        ZenModeView.show(
+                          context,
+                          title: sceneTitle,
+                          controller: step9SceneCtrl,
+                          t: t,
+                          language: language,
+                          onChanged: onChanged,
+                          onSave: onSave,
+                        );
+                      }
+                    : null,
                 t: t,
                 isMobile: isMobile,
               ),
@@ -416,6 +464,21 @@ class SceneNarrativeOutlinesTab extends StatelessWidget {
                             wordCountLabel: t('words'),
                             isRtl: language == 'ar',
                             onChanged: onChanged,
+                            onOpenZenMode: () {
+                              final sceneTitle = selectedScene != null && selectedScene!.setting.isNotEmpty
+                                  ? selectedScene!.setting
+                                  : t('step9Title');
+                              ZenModeView.show(
+                                context,
+                                title: sceneTitle,
+                                controller: step9SceneCtrl,
+                                t: t,
+                                language: language,
+                                onChanged: onChanged,
+                                onSave: onSave,
+                              );
+                            },
+                            zenModeTooltip: t('zenModeBtn'),
                           ),
                         ),
                       )

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../models.dart';
 import '../../../widgets/native_text_editor.dart';
+import '../zen_mode_view.dart';
 
 class WriteNovelTab extends StatefulWidget {
   final Novel activeNovel;
@@ -149,6 +150,24 @@ class _WriteNovelTabState extends State<WriteNovelTab> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        IconButton(
+                          icon: const Icon(Icons.self_improvement, size: 20),
+                          tooltip: t('zenModeBtn'),
+                          onPressed: () {
+                            ZenModeView.show(
+                              context,
+                              title: widget.chapterTitleCtrl.text.isNotEmpty
+                                  ? widget.chapterTitleCtrl.text
+                                  : t('writeNovelTitle'),
+                              controller: widget.chapterCtrl,
+                              t: t,
+                              language: widget.language,
+                              onChanged: widget.onChanged,
+                              onSave: widget.onSaveActiveContent,
+                            );
+                          },
+                        ),
+                        const SizedBox(width: 4),
                         ElevatedButton.icon(
                           onPressed: () => widget.onSaveActiveContent(),
                           icon: const Icon(Icons.save, size: 16),
@@ -185,6 +204,20 @@ class _WriteNovelTabState extends State<WriteNovelTab> {
                       wordCountLabel: t('words'),
                       isRtl: widget.language == 'ar',
                       onChanged: widget.onChanged,
+                      onOpenZenMode: () {
+                        ZenModeView.show(
+                          context,
+                          title: widget.chapterTitleCtrl.text.isNotEmpty
+                              ? widget.chapterTitleCtrl.text
+                              : t('writeNovelTitle'),
+                          controller: widget.chapterCtrl,
+                          t: t,
+                          language: widget.language,
+                          onChanged: widget.onChanged,
+                          onSave: widget.onSaveActiveContent,
+                        );
+                      },
+                      zenModeTooltip: t('zenModeBtn'),
                     ),
                   ),
                 )

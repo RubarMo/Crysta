@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import '../../../widgets/native_text_editor.dart';
+import '../zen_mode_view.dart';
 
 class StepHeaderActions extends StatelessWidget {
   final bool isDone;
   final ValueChanged<bool> onToggleDone;
   final VoidCallback onSave;
+  final VoidCallback? onOpenZenMode;
   final String Function(String) t;
   final bool isMobile;
 
@@ -13,6 +15,7 @@ class StepHeaderActions extends StatelessWidget {
     required this.isDone,
     required this.onToggleDone,
     required this.onSave,
+    this.onOpenZenMode,
     required this.t,
     required this.isMobile,
   });
@@ -25,6 +28,12 @@ class StepHeaderActions extends StatelessWidget {
       spacing: 8,
       runSpacing: 4,
       children: [
+        if (onOpenZenMode != null)
+          IconButton(
+            onPressed: onOpenZenMode,
+            icon: const Icon(Icons.self_improvement, size: 20),
+            tooltip: t('zenModeBtn'),
+          ),
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -81,6 +90,18 @@ class StepEditorTab extends StatelessWidget {
     this.onChanged,
   });
 
+  void _openZenMode(BuildContext context) {
+    ZenModeView.show(
+      context,
+      title: title,
+      controller: controller,
+      t: t,
+      language: language,
+      onChanged: onChanged,
+      onSave: onSave,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -98,6 +119,7 @@ class StepEditorTab extends StatelessWidget {
               isDone: isDone,
               onToggleDone: onToggleDone,
               onSave: onSave,
+              onOpenZenMode: () => _openZenMode(context),
               t: t,
               isMobile: true,
             ),
@@ -116,6 +138,7 @@ class StepEditorTab extends StatelessWidget {
                   isDone: isDone,
                   onToggleDone: onToggleDone,
                   onSave: onSave,
+                  onOpenZenMode: () => _openZenMode(context),
                   t: t,
                   isMobile: false,
                 ),
@@ -149,6 +172,8 @@ class StepEditorTab extends StatelessWidget {
                 wordCountLabel: t('words'),
                 isRtl: language == 'ar',
                 onChanged: onChanged,
+                onOpenZenMode: () => _openZenMode(context),
+                zenModeTooltip: t('zenModeBtn'),
               ),
             ),
           )
