@@ -132,7 +132,7 @@ class DashboardTab extends StatelessWidget {
                         createdAt: activeNovel.createdAt,
                       );
                       onNovelUpdated(updated);
-                      DatabaseService.updateNovel(
+                      DatabaseService.novelRepository.updateNovel(
                         id: updated.id!,
                         title: updated.title,
                         genre: updated.genre,
@@ -159,7 +159,7 @@ class DashboardTab extends StatelessWidget {
                                   createdAt: activeNovel.createdAt,
                                 );
                                 onNovelUpdated(updated);
-                                DatabaseService.updateNovel(
+                                DatabaseService.novelRepository.updateNovel(
                                   id: updated.id!,
                                   title: updated.title,
                                   genre: updated.genre,
@@ -183,7 +183,7 @@ class DashboardTab extends StatelessWidget {
                                   createdAt: activeNovel.createdAt,
                                 );
                                 onNovelUpdated(updated);
-                                DatabaseService.updateNovel(
+                                DatabaseService.novelRepository.updateNovel(
                                   id: updated.id!,
                                   title: updated.title,
                                   genre: updated.genre,
@@ -211,7 +211,7 @@ class DashboardTab extends StatelessWidget {
                                     createdAt: activeNovel.createdAt,
                                   );
                                   onNovelUpdated(updated);
-                                  DatabaseService.updateNovel(
+                                  DatabaseService.novelRepository.updateNovel(
                                     id: updated.id!,
                                     title: updated.title,
                                     genre: updated.genre,
@@ -237,7 +237,7 @@ class DashboardTab extends StatelessWidget {
                                     createdAt: activeNovel.createdAt,
                                   );
                                   onNovelUpdated(updated);
-                                  DatabaseService.updateNovel(
+                                  DatabaseService.novelRepository.updateNovel(
                                     id: updated.id!,
                                     title: updated.title,
                                     genre: updated.genre,
@@ -265,7 +265,7 @@ class DashboardTab extends StatelessWidget {
                         createdAt: activeNovel.createdAt,
                       );
                       onNovelUpdated(updated);
-                      DatabaseService.updateNovel(
+                      DatabaseService.novelRepository.updateNovel(
                         id: updated.id!,
                         title: updated.title,
                         genre: updated.genre,
@@ -277,7 +277,7 @@ class DashboardTab extends StatelessWidget {
                   const SizedBox(height: 20),
                   ElevatedButton.icon(
                     onPressed: () async {
-                      await DatabaseService.updateNovel(
+                      await DatabaseService.novelRepository.updateNovel(
                         id: activeNovel.id!,
                         title: activeNovel.title,
                         genre: activeNovel.genre,

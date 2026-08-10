@@ -7,6 +7,11 @@ import 'package:file_picker/file_picker.dart';
 import '../../locales.dart';
 import '../../models.dart';
 import '../../db_service.dart';
+import '../../repositories/novel_repository.dart';
+import '../../repositories/step_repository.dart';
+import '../../repositories/character_repository.dart';
+import '../../repositories/scene_repository.dart';
+import '../../repositories/chapter_repository.dart';
 import '../../services/backup_service.dart';
 import '../../widgets/theme_settings_dialog.dart';
 
@@ -50,6 +55,13 @@ class WorkspacePage extends StatefulWidget {
 class _WorkspacePageState extends State<WorkspacePage> {
   int _selectedTabIndex = 0;
   late Novel _activeNovel;
+
+  // Domain Repositories
+  final NovelRepository _novelRepo = DatabaseService.novelRepository;
+  final StepRepository _stepRepo = DatabaseService.stepRepository;
+  final CharacterRepository _characterRepo = DatabaseService.characterRepository;
+  final SceneRepository _sceneRepo = DatabaseService.sceneRepository;
+  final ChapterRepository _chapterRepo = DatabaseService.chapterRepository;
 
   // Interactive Resizable Panes State
   double _sidebarWidth = 260.0;
@@ -121,7 +133,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
 
   Future<void> _loadStepsProgress() async {
     try {
-      final list = await DatabaseService.getStepsProgress(novelId: _activeNovel.id!);
+      final list = await _stepRepo.getStepsProgress(novelId: _activeNovel.id!);
       setState(() {
         _allStepsProgress = list;
       });
@@ -153,7 +165,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
         contentText: existing.contentText,
         isCompleted: isCompleted,
       );
-      await DatabaseService.saveStepProgress(progress: updated);
+      await _stepRepo.saveStepProgress(progress: updated);
       await _loadStepsProgress();
     } catch (_) {}
   }
@@ -232,13 +244,10 @@ class _WorkspacePageState extends State<WorkspacePage> {
           content: _chapterCtrl.text,
           sortOrder: _selectedChapter!.sortOrder,
         );
-        await DatabaseService.saveChapter(chapter: updated);
+        await _chapterRepo.saveChapter(chapter: updated);
         await _loadChapters();
 
-        int totalWords = 0;
-        for (var c in _chapters) {
-          totalWords += _countWordsFromText(c.content);
-        }
+        final totalWords = await _chapterRepo.calculateTotalWordCount(novelId: _activeNovel.id!);
         _activeNovel = Novel(
           id: _activeNovel.id,
           title: _activeNovel.title,
@@ -248,7 +257,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
           currentWordCount: totalWords,
           createdAt: _activeNovel.createdAt,
         );
-        await DatabaseService.updateNovel(
+        await _novelRepo.updateNovel(
           id: _activeNovel.id!,
           title: _activeNovel.title,
           genre: _activeNovel.genre,
@@ -260,12 +269,12 @@ class _WorkspacePageState extends State<WorkspacePage> {
         final currentDone = _isStepDone(stepNum);
 
         if (stepNum == 1) {
-          await DatabaseService.saveStepProgress(
+          await _stepRepo.saveStepProgress(
             progress: StepProgress(novelId: _activeNovel.id!, stepNumber: 1, contentText: _step1Ctrl.text, isCompleted: currentDone),
           );
           await _loadStepsProgress();
         } else if (stepNum == 2) {
-          await DatabaseService.saveStepProgress(
+          await _stepRepo.saveStepProgress(
             progress: StepProgress(novelId: _activeNovel.id!, stepNumber: 2, contentText: _step2Ctrl.text, isCompleted: currentDone),
           );
           await _loadStepsProgress();
@@ -281,10 +290,10 @@ class _WorkspacePageState extends State<WorkspacePage> {
             oneParagraphSummary: _step3SummaryCtrl.text,
             fullSynopsis: _selectedCharacter!.fullSynopsis,
           );
-          await DatabaseService.saveCharacter(character: updated);
+          await _characterRepo.saveCharacter(character: updated);
           await _loadCharacters();
         } else if (stepNum == 4) {
-          await DatabaseService.saveStepProgress(
+          await _stepRepo.saveStepProgress(
             progress: StepProgress(novelId: _activeNovel.id!, stepNumber: 4, contentText: _step4Ctrl.text, isCompleted: currentDone),
           );
           await _loadStepsProgress();
@@ -300,15 +309,15 @@ class _WorkspacePageState extends State<WorkspacePage> {
             oneParagraphSummary: _selectedCharacter!.oneParagraphSummary,
             fullSynopsis: _step5SynopsisCtrl.text,
           );
-          await DatabaseService.saveCharacter(character: updated);
+          await _characterRepo.saveCharacter(character: updated);
           await _loadCharacters();
         } else if (stepNum == 6) {
-          await DatabaseService.saveStepProgress(
+          await _stepRepo.saveStepProgress(
             progress: StepProgress(novelId: _activeNovel.id!, stepNumber: 6, contentText: _step6Ctrl.text, isCompleted: currentDone),
           );
           await _loadStepsProgress();
         } else if (stepNum == 7 && _selectedCharacter != null) {
-          await DatabaseService.saveStepProgress(
+          await _stepRepo.saveStepProgress(
             progress: StepProgress(
               novelId: _activeNovel.id!,
               stepNumber: 7000 + _selectedCharacter!.id!,
@@ -330,11 +339,11 @@ class _WorkspacePageState extends State<WorkspacePage> {
             expectedWordCount: _selectedScene!.expectedWordCount,
             actualWordCount: actualWords,
           );
-          await DatabaseService.saveScene(scene: updated);
+          await _sceneRepo.saveScene(scene: updated);
           await _loadScenes();
         } else if (stepNum == 9 && _selectedScene != null) {
           final text = _step9SceneCtrl.text;
-          await DatabaseService.saveStepProgress(
+          await _stepRepo.saveStepProgress(
             progress: StepProgress(
               novelId: _activeNovel.id!,
               stepNumber: 9000 + _selectedScene!.id!,
@@ -548,7 +557,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
 
   Future<void> _loadCharacters() async {
     try {
-      final list = await DatabaseService.getCharacters(novelId: _activeNovel.id!);
+      final list = await _characterRepo.getCharacters(novelId: _activeNovel.id!);
       setState(() {
         _characters = list;
       });
@@ -557,7 +566,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
 
   Future<void> _saveCharacter(Character char) async {
     try {
-      await DatabaseService.saveCharacter(character: char);
+      await _characterRepo.saveCharacter(character: char);
       await _loadCharacters();
     } catch (_) {}
   }
@@ -568,7 +577,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
       itemName: char.name,
       onConfirm: () async {
         try {
-          await DatabaseService.deleteCharacter(id: char.id!);
+          await _characterRepo.deleteCharacter(id: char.id!);
           await _loadCharacters();
           setState(() {
             _selectedCharacter = null;
@@ -636,7 +645,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
 
   Future<void> _loadScenes() async {
     try {
-      final list = await DatabaseService.getScenes(novelId: _activeNovel.id!);
+      final list = await _sceneRepo.getScenes(novelId: _activeNovel.id!);
       setState(() {
         _scenes = list;
       });
@@ -645,7 +654,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
 
   Future<void> _saveScene(Scene scene) async {
     try {
-      await DatabaseService.saveScene(scene: scene);
+      await _sceneRepo.saveScene(scene: scene);
       await _loadScenes();
     } catch (_) {}
   }
@@ -656,7 +665,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
       itemName: scn.setting.isNotEmpty ? scn.setting : 'Scene #${scn.id}',
       onConfirm: () async {
         try {
-          await DatabaseService.deleteScene(id: scn.id!, novelId: _activeNovel.id!);
+          await _sceneRepo.deleteScene(id: scn.id!, novelId: _activeNovel.id!);
           await _loadScenes();
           setState(() {
             _selectedScene = null;
@@ -729,7 +738,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
 
   Future<void> _loadChapters() async {
     try {
-      final list = await DatabaseService.getChapters(novelId: _activeNovel.id!);
+      final list = await _chapterRepo.getChapters(novelId: _activeNovel.id!);
       setState(() {
         _chapters = list;
       });
@@ -738,7 +747,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
 
   Future<void> _saveChapter(Chapter chap) async {
     try {
-      await DatabaseService.saveChapter(chapter: chap);
+      await _chapterRepo.saveChapter(chapter: chap);
       await _loadChapters();
     } catch (_) {}
   }
@@ -749,7 +758,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
       itemName: chap.title,
       onConfirm: () async {
         try {
-          await DatabaseService.deleteChapter(id: chap.id!);
+          await _chapterRepo.deleteChapter(id: chap.id!);
           await _loadChapters();
           setState(() {
             _selectedChapter = null;
