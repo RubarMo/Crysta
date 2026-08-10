@@ -20,6 +20,8 @@ class Locales {
       'appearance': 'الوضع (مضيء / ليلي)',
       'seedColor': 'اللون الأساسي (التصميم)',
       'useSystemTheme': 'استخدام لون النظام الديناميكي',
+      'statusSaving': 'جاري الحفظ...',
+      'statusSaved': 'تم الحفظ ✓',
 
       // Official Snowflake Steps Titles
       'step0Title': 'لوحة التحكم',
@@ -207,6 +209,8 @@ class Locales {
       'appearance': 'Appearance',
       'seedColor': 'Theme Color',
       'useSystemTheme': 'Use System Theme Color',
+      'statusSaving': 'Saving...',
+      'statusSaved': 'Saved ✓',
 
       // Official Snowflake Steps Titles
       'step0Title': 'Dashboard',

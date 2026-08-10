@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -14,6 +15,8 @@ import 'tabs/character_bios_tab.dart';
 import 'tabs/scene_matrix_tab.dart';
 import 'tabs/export_tab.dart';
 import 'tabs/write_novel_tab.dart';
+
+enum SaveStatus { idle, saving, saved, error }
 
 class WorkspacePage extends StatefulWidget {
   final Novel novel;
@@ -50,6 +53,10 @@ class _WorkspacePageState extends State<WorkspacePage> {
   // Interactive Resizable Panes State
   double _sidebarWidth = 260.0;
   double _listPaneWidth = 300.0;
+
+  // Auto-Save State
+  Timer? _autoSaveDebounceTimer;
+  SaveStatus _saveStatus = SaveStatus.idle;
 
   // Dedicated controllers for every single step and view
   final TextEditingController _step1Ctrl = TextEditingController();
@@ -88,6 +95,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
 
   @override
   void dispose() {
+    _autoSaveDebounceTimer?.cancel();
     _step1Ctrl.dispose();
     _step2Ctrl.dispose();
     _step3SummaryCtrl.dispose();
@@ -352,12 +360,42 @@ class _WorkspacePageState extends State<WorkspacePage> {
           ),
         );
       }
+
+      if (mounted) {
+        setState(() {
+          _saveStatus = SaveStatus.saved;
+        });
+      }
     } catch (e) {
+      if (mounted) {
+        setState(() {
+          _saveStatus = SaveStatus.error;
+        });
+      }
       if (showToast && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Save error: $e'), backgroundColor: Theme.of(context).colorScheme.error),
         );
       }
+    }
+  }
+
+  void _handleContentChanged() {
+    if (_saveStatus != SaveStatus.saving) {
+      setState(() {
+        _saveStatus = SaveStatus.saving;
+      });
+    }
+    _autoSaveDebounceTimer?.cancel();
+    _autoSaveDebounceTimer = Timer(const Duration(milliseconds: 700), () async {
+      await _saveActiveContent(showToast: false);
+    });
+  }
+
+  Future<void> _flushPendingAutoSave() async {
+    if (_autoSaveDebounceTimer?.isActive ?? false) {
+      _autoSaveDebounceTimer?.cancel();
+      await _saveActiveContent(showToast: false);
     }
   }
 
@@ -879,6 +917,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
         if (isMobile) {
           Navigator.pop(context);
         }
+        await _flushPendingAutoSave();
         await _saveActiveContent(showToast: false);
         setState(() {
           _selectedTabIndex = index;
@@ -910,12 +949,69 @@ class _WorkspacePageState extends State<WorkspacePage> {
         if (isMobile) {
           Navigator.pop(context);
         }
+        await _flushPendingAutoSave();
         await _saveActiveContent(showToast: false);
         setState(() {
           _selectedTabIndex = index;
         });
         _loadTabContent(index);
       },
+    );
+  }
+
+  Widget _buildSaveStatusIndicator({required bool isCompact}) {
+    if (_saveStatus == SaveStatus.idle) return const SizedBox.shrink();
+
+    final isSaving = _saveStatus == SaveStatus.saving;
+    final isError = _saveStatus == SaveStatus.error;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 250),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: isSaving
+            ? colorScheme.primaryContainer.withValues(alpha: 0.6)
+            : isError
+                ? colorScheme.errorContainer.withValues(alpha: 0.6)
+                : colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (isSaving)
+            SizedBox(
+              width: 11,
+              height: 11,
+              child: CircularProgressIndicator(
+                strokeWidth: 1.5,
+                color: colorScheme.primary,
+              ),
+            )
+          else if (isError)
+            Icon(Icons.error_outline, size: 13, color: colorScheme.error)
+          else
+            Icon(Icons.check_circle_outline, size: 13, color: colorScheme.primary),
+          const SizedBox(width: 5),
+          Text(
+            isSaving
+                ? t('statusSaving')
+                : isError
+                    ? 'Save error'
+                    : t('statusSaved'),
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: isSaving
+                  ? colorScheme.primary
+                  : isError
+                      ? colorScheme.error
+                      : colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -945,6 +1041,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
           t: t,
           language: widget.language,
           isMobile: isMobile,
+          onChanged: (val) => _handleContentChanged(),
         );
       case 2:
         return StepEditorTab(
@@ -960,6 +1057,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
           t: t,
           language: widget.language,
           isMobile: isMobile,
+          onChanged: (val) => _handleContentChanged(),
         );
       case 3:
         return CharacterBiosTab(
@@ -971,6 +1069,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
           onToggleDone: (val) => _toggleStepCompleted(3, val),
           onSave: () => _saveActiveContent(showToast: true),
           onSelectCharacter: (char) async {
+            await _flushPendingAutoSave();
             await _saveActiveContent(showToast: false);
             setState(() {
               _selectedCharacter = char;
@@ -985,6 +1084,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
           t: t,
           language: widget.language,
           isMobile: isMobile,
+          onChanged: (val) => _handleContentChanged(),
         );
       case 4:
         return StepEditorTab(
@@ -1000,6 +1100,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
           t: t,
           language: widget.language,
           isMobile: isMobile,
+          onChanged: (val) => _handleContentChanged(),
         );
       case 5:
         return CharacterPovSynopsesTab(
@@ -1011,6 +1112,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
           onToggleDone: (val) => _toggleStepCompleted(5, val),
           onSave: () => _saveActiveContent(showToast: true),
           onSelectCharacter: (char) async {
+            await _flushPendingAutoSave();
             await _saveActiveContent(showToast: false);
             setState(() {
               _selectedCharacter = char;
@@ -1024,6 +1126,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
           language: widget.language,
           isMobile: isMobile,
           cleanText: _cleanText,
+          onChanged: (val) => _handleContentChanged(),
         );
       case 6:
         return StepEditorTab(
@@ -1039,6 +1142,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
           t: t,
           language: widget.language,
           isMobile: isMobile,
+          onChanged: (val) => _handleContentChanged(),
         );
       case 7:
         return DetailedCharacterChartsTab(
@@ -1050,6 +1154,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
           onToggleDone: (val) => _toggleStepCompleted(7, val),
           onSave: () => _saveActiveContent(showToast: true),
           onSelectCharacter: (char) async {
+            await _flushPendingAutoSave();
             await _saveActiveContent(showToast: false);
             setState(() {
               _selectedCharacter = char;
@@ -1067,6 +1172,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
           language: widget.language,
           isMobile: isMobile,
           cleanText: _cleanText,
+          onChanged: (val) => _handleContentChanged(),
         );
       case 8:
         return SceneListMasterDetailTab(
@@ -1079,6 +1185,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
           onToggleDone: (val) => _toggleStepCompleted(8, val),
           onSave: () => _saveActiveContent(showToast: true),
           onSelectScene: (scn) async {
+            await _flushPendingAutoSave();
             await _saveActiveContent(showToast: false);
             setState(() {
               _selectedScene = scn;
@@ -1094,6 +1201,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
           language: widget.language,
           isMobile: isMobile,
           cleanText: _cleanText,
+          onChanged: (val) => _handleContentChanged(),
         );
       case 9:
         return SceneNarrativeOutlinesTab(
@@ -1106,6 +1214,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
           onToggleDone: (val) => _toggleStepCompleted(9, val),
           onSave: () => _saveActiveContent(showToast: true),
           onSelectScene: (scn) async {
+            await _flushPendingAutoSave();
             await _saveActiveContent(showToast: false);
             setState(() {
               _selectedScene = scn;
@@ -1123,6 +1232,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
           language: widget.language,
           isMobile: isMobile,
           cleanText: _cleanText,
+          onChanged: (val) => _handleContentChanged(),
         );
       case 10:
         return ExportTab(
@@ -1150,6 +1260,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
           onSaveChapter: _saveChapter,
           onDeleteChapter: _deleteChapter,
           onSelectChapter: (chap) async {
+            await _flushPendingAutoSave();
             await _saveActiveContent(showToast: false);
             setState(() {
               _selectedChapter = chap;
@@ -1166,6 +1277,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
           language: widget.language,
           isMobile: isMobile,
           cleanText: _cleanText,
+          onChanged: (val) => _handleContentChanged(),
         );
       default:
         return const Center(child: Text('Unknown tab'));
@@ -1203,6 +1315,8 @@ class _WorkspacePageState extends State<WorkspacePage> {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
+              const SizedBox(width: 8),
+              _buildSaveStatusIndicator(isCompact: isCompact),
               if (!isCompact) ...[
                 const SizedBox(width: 8),
                 Chip(
@@ -1234,6 +1348,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
             ),
             IconButton(
               onPressed: () async {
+                await _flushPendingAutoSave();
                 await _saveActiveContent(showToast: false);
                 widget.onClose();
               },

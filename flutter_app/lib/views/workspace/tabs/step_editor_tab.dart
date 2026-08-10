@@ -62,6 +62,7 @@ class StepEditorTab extends StatelessWidget {
   final String Function(String) t;
   final String language;
   final bool isMobile;
+  final ValueChanged<String>? onChanged;
 
   const StepEditorTab({
     super.key,
@@ -77,6 +78,7 @@ class StepEditorTab extends StatelessWidget {
     required this.t,
     required this.language,
     required this.isMobile,
+    this.onChanged,
   });
 
   @override
@@ -146,6 +148,7 @@ class StepEditorTab extends StatelessWidget {
                 controller: controller,
                 wordCountLabel: t('words'),
                 isRtl: language == 'ar',
+                onChanged: onChanged,
               ),
             ),
           )

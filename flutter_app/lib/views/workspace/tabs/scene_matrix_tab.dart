@@ -20,6 +20,7 @@ class SceneListMasterDetailTab extends StatefulWidget {
   final String language;
   final bool isMobile;
   final String Function(String) cleanText;
+  final ValueChanged<String>? onChanged;
 
   const SceneListMasterDetailTab({
     super.key,
@@ -39,6 +40,7 @@ class SceneListMasterDetailTab extends StatefulWidget {
     required this.language,
     required this.isMobile,
     required this.cleanText,
+    this.onChanged,
   });
 
   @override
@@ -211,6 +213,7 @@ class _SceneListMasterDetailTabState extends State<SceneListMasterDetailTab> {
                             controller: widget.step8SceneCtrl,
                             wordCountLabel: t('words'),
                             isRtl: widget.language == 'ar',
+                            onChanged: widget.onChanged,
                           ),
                         ),
                       )
@@ -274,6 +277,7 @@ class SceneNarrativeOutlinesTab extends StatelessWidget {
   final String language;
   final bool isMobile;
   final String Function(String) cleanText;
+  final ValueChanged<String>? onChanged;
 
   const SceneNarrativeOutlinesTab({
     super.key,
@@ -291,6 +295,7 @@ class SceneNarrativeOutlinesTab extends StatelessWidget {
     required this.language,
     required this.isMobile,
     required this.cleanText,
+    this.onChanged,
   });
 
   @override
@@ -410,6 +415,7 @@ class SceneNarrativeOutlinesTab extends StatelessWidget {
                             controller: step9SceneCtrl,
                             wordCountLabel: t('words'),
                             isRtl: language == 'ar',
+                            onChanged: onChanged,
                           ),
                         ),
                       )
