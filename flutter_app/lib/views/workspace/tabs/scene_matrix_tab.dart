@@ -20,7 +20,7 @@ class SceneListMasterDetailTab extends StatefulWidget {
   final ValueChanged<Scene?> onSelectScene;
   final ValueChanged<Scene> onDeleteScene;
   final Function([Scene?]) onOpenSceneMetadataDialog;
-  final ValueChanged<double> onListPaneWidthChanged;
+  final ValueChanged<DragUpdateDetails> onListPaneDrag;
   final Future<void> Function(List<Scene>) onReorderScenes;
   final Future<void> Function(Scene) onSaveScene;
   final String Function(String) t;
@@ -42,7 +42,7 @@ class SceneListMasterDetailTab extends StatefulWidget {
     required this.onSelectScene,
     required this.onDeleteScene,
     required this.onOpenSceneMetadataDialog,
-    required this.onListPaneWidthChanged,
+    required this.onListPaneDrag,
     required this.onReorderScenes,
     required this.onSaveScene,
     required this.t,
@@ -183,11 +183,11 @@ class _SceneListMasterDetailTabState extends State<SceneListMasterDetailTab> {
     final isMobile = widget.isMobile;
 
     Widget listPane = Card(
-      margin: isMobile ? EdgeInsets.zero : const EdgeInsets.only(bottom: 0),
+      margin: isMobile ? EdgeInsets.zero : const EdgeInsets.all(8),
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             child: Row(
               children: [
                 Expanded(
@@ -196,20 +196,21 @@ class _SceneListMasterDetailTabState extends State<SceneListMasterDetailTab> {
                     children: [
                       Text(
                         '${t('scenesTitle')} (${widget.scenes.length})',
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                         overflow: TextOverflow.ellipsis,
                       ),
                       Text(
                         t('dragToReorderHint'),
-                        style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                        style: TextStyle(fontSize: 10, color: Theme.of(context).colorScheme.onSurfaceVariant),
                       ),
                     ],
                   ),
                 ),
                 IconButton(
                   onPressed: () => widget.onOpenSceneMetadataDialog(),
-                  icon: Icon(Icons.add_circle, color: Theme.of(context).colorScheme.primary),
+                  icon: Icon(Icons.add_circle, color: Theme.of(context).colorScheme.primary, size: 20),
                   tooltip: t('addSceneBtn'),
+                  visualDensity: VisualDensity.compact,
                 ),
               ],
             ),
@@ -221,7 +222,7 @@ class _SceneListMasterDetailTabState extends State<SceneListMasterDetailTab> {
                     child: Text(
                       t('noScenesYet'),
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                      style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant),
                     ),
                   )
                 : ReorderableListView.builder(
@@ -242,6 +243,8 @@ class _SceneListMasterDetailTabState extends State<SceneListMasterDetailTab> {
                       return ListTile(
                         key: ValueKey(scn.id ?? index),
                         dense: true,
+                        visualDensity: VisualDensity.compact,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                         selected: isSelected,
                         leading: CircleAvatar(
                           radius: 12,
@@ -261,7 +264,7 @@ class _SceneListMasterDetailTabState extends State<SceneListMasterDetailTab> {
                         ),
                         title: Text(
                           scn.setting.isNotEmpty ? scn.setting : t('sceneNotPlanned'),
-                          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                          style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.w600, fontSize: 12),
                           overflow: TextOverflow.ellipsis,
                         ),
                         subtitle: Text(
@@ -271,8 +274,9 @@ class _SceneListMasterDetailTabState extends State<SceneListMasterDetailTab> {
                           style: const TextStyle(fontSize: 11),
                         ),
                         trailing: IconButton(
-                          icon: Icon(Icons.delete_outline, color: Theme.of(context).colorScheme.error, size: 18),
+                          icon: Icon(Icons.delete_outline, color: Theme.of(context).colorScheme.error, size: 16),
                           onPressed: () => widget.onDeleteScene(scn),
+                          visualDensity: VisualDensity.compact,
                         ),
                         onTap: () => widget.onSelectScene(scn),
                       );
@@ -391,25 +395,18 @@ class _SceneListMasterDetailTabState extends State<SceneListMasterDetailTab> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SizedBox(width: widget.listPaneWidth, child: listPane),
-        GestureDetector(
-          behavior: HitTestBehavior.translucent,
-          onHorizontalDragUpdate: (details) {
-            final delta = widget.language == 'ar' ? -details.delta.dx : details.delta.dx;
-            widget.onListPaneWidthChanged((widget.listPaneWidth + delta).clamp(220.0, 420.0));
-          },
-          child: MouseRegion(
-            cursor: SystemMouseCursors.resizeColumn,
+        MouseRegion(
+          cursor: SystemMouseCursors.resizeColumn,
+          child: GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onHorizontalDragUpdate: widget.onListPaneDrag,
             child: Container(
-              width: 12,
+              width: 8,
               color: Colors.transparent,
               child: Center(
                 child: Container(
                   width: 2,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).dividerColor,
-                    borderRadius: BorderRadius.circular(1),
-                  ),
+                  color: Theme.of(context).dividerColor.withValues(alpha: 0.5),
                 ),
               ),
             ),
@@ -1027,7 +1024,7 @@ class SceneNarrativeOutlinesTab extends StatelessWidget {
   final ValueChanged<bool> onToggleDone;
   final VoidCallback onSave;
   final ValueChanged<Scene?> onSelectScene;
-  final ValueChanged<double> onListPaneWidthChanged;
+  final ValueChanged<DragUpdateDetails> onListPaneDrag;
   final String Function(String) t;
   final String language;
   final bool isMobile;
@@ -1045,7 +1042,7 @@ class SceneNarrativeOutlinesTab extends StatelessWidget {
     required this.onToggleDone,
     required this.onSave,
     required this.onSelectScene,
-    required this.onListPaneWidthChanged,
+    required this.onListPaneDrag,
     required this.t,
     required this.language,
     required this.isMobile,
@@ -1056,14 +1053,14 @@ class SceneNarrativeOutlinesTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Widget listPane = Card(
-      margin: isMobile ? EdgeInsets.zero : const EdgeInsets.all(16),
+      margin: isMobile ? EdgeInsets.zero : const EdgeInsets.all(8),
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             child: Text(
               t('scenesListLabel'),
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -1074,7 +1071,7 @@ class SceneNarrativeOutlinesTab extends StatelessWidget {
                     child: Text(
                       t('pleaseAddScenesFirst'),
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                      style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant),
                     ),
                   )
                 : ListView.builder(
@@ -1083,8 +1080,39 @@ class SceneNarrativeOutlinesTab extends StatelessWidget {
                       final scn = scenes[index];
                       final isSelected = selectedScene?.id == scn.id;
                       return ListTile(
-                        title: Text('${t('sceneNumber')} #${index + 1}: ${scn.setting.isNotEmpty ? scn.setting : t('sceneNotPlanned')}', overflow: TextOverflow.ellipsis),
-                        subtitle: Text(scn.plotThread, maxLines: 1, overflow: TextOverflow.ellipsis),
+                        dense: true,
+                        visualDensity: VisualDensity.compact,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        leading: CircleAvatar(
+                          radius: 12,
+                          backgroundColor: isSelected
+                              ? Theme.of(context).colorScheme.primary
+                              : Theme.of(context).colorScheme.surfaceContainerHighest,
+                          child: Text(
+                            '${index + 1}',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: isSelected
+                                  ? Theme.of(context).colorScheme.onPrimary
+                                  : Theme.of(context).colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
+                        title: Text(
+                          '${t('sceneNumber')} #${index + 1}: ${scn.setting.isNotEmpty ? scn.setting : t('sceneNotPlanned')}',
+                          style: TextStyle(
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                            fontSize: 12,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        subtitle: Text(
+                          scn.plotThread.isNotEmpty ? scn.plotThread : t('uncategorized'),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontSize: 11),
+                        ),
                         selected: isSelected,
                         onTap: () => onSelectScene(scn),
                       );
@@ -1221,25 +1249,18 @@ class SceneNarrativeOutlinesTab extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SizedBox(width: listPaneWidth, child: listPane),
-        GestureDetector(
-          behavior: HitTestBehavior.translucent,
-          onHorizontalDragUpdate: (details) {
-            final delta = language == 'ar' ? -details.delta.dx : details.delta.dx;
-            onListPaneWidthChanged((listPaneWidth + delta).clamp(200.0, 360.0));
-          },
-          child: MouseRegion(
-            cursor: SystemMouseCursors.resizeColumn,
+        MouseRegion(
+          cursor: SystemMouseCursors.resizeColumn,
+          child: GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onHorizontalDragUpdate: onListPaneDrag,
             child: Container(
-              width: 12,
+              width: 8,
               color: Colors.transparent,
               child: Center(
                 child: Container(
                   width: 2,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).dividerColor,
-                    borderRadius: BorderRadius.circular(1),
-                  ),
+                  color: Theme.of(context).dividerColor.withValues(alpha: 0.5),
                 ),
               ),
             ),

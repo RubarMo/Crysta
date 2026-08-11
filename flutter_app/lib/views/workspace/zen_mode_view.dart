@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:crysta/widgets/web_editor/universal_web_editor.dart';
 
 enum ZenTheme { dark, sepia, light, navy }
 enum ZenWidth { narrow, medium, wide, full }
@@ -193,33 +194,20 @@ class _ZenModeViewState extends State<ZenModeView> {
               children: [
                 // Centered Manuscript Writing Area
                 Positioned.fill(
-                  child: Center(
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(maxWidth: _getMaxWidth()),
+                  child: Align(
+                    alignment: Alignment.topCenter,
+                    child: SizedBox(
+                      width: _getMaxWidth(),
+                      height: double.infinity,
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 80),
-                        child: TextField(
+                        child: UniversalWebEditor(
                           controller: widget.controller,
-                          focusNode: _focusNode,
-                          maxLines: null,
-                          expands: true,
-                          keyboardType: TextInputType.multiline,
-                          textAlign: isRtl ? TextAlign.right : TextAlign.left,
-                          textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
-                          style: TextStyle(
-                            color: textColor,
-                            fontSize: _fontSize,
-                            height: 1.8,
-                            fontFamily: isRtl ? 'Cairo' : 'Segoe UI',
-                          ),
-                          decoration: InputDecoration(
-                            border: InputBorder.none,
-                            hintText: '...',
-                            hintStyle: TextStyle(
-                              color: textColor.withValues(alpha: 0.3),
-                              fontSize: _fontSize,
-                            ),
-                          ),
+                          placeholder: '...',
+                          isRtl: isRtl,
+                          backgroundColor: bgColor,
+                          textColor: textColor,
+                          fontSize: _fontSize,
                           onChanged: (val) {
                             _onUserActivity();
                             widget.onChanged?.call(val);
