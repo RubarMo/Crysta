@@ -123,6 +123,11 @@ class Locales {
       'markAsCompleted': 'تعليم كـ مكتملة',
       'referenceToStep': 'مرجع للخطوة',
       'noReferenceYet': 'لم تتم كتابة الخطوة المرجعية بعد.',
+      'clickToExpand': 'انقر لعرض المرجع',
+      'clickToCollapse': 'انقر لإخفاء المرجع',
+      'copyReference': 'نسخ نص المرجع',
+      'referenceEmpty': 'لم تتم كتابة أي محتوى في هذه الخطوة بعد.',
+      'referenceCopied': 'تم نسخ نص المرجع إلى الحافظة!',
       'writeHerePlaceholder': 'اكتب هنا... التغييرات تحفظ تلقائياً.',
 
       // Step Descs
@@ -372,6 +377,11 @@ class Locales {
       'markAsCompleted': 'Mark as Completed',
       'referenceToStep': 'Reference to Step',
       'noReferenceYet': 'The reference step has not been written yet.',
+      'clickToExpand': 'Click to view reference',
+      'clickToCollapse': 'Click to hide reference',
+      'copyReference': 'Copy reference text',
+      'referenceEmpty': 'No content written in this step yet.',
+      'referenceCopied': 'Reference copied to clipboard!',
       'writeHerePlaceholder': 'Write here... Changes auto-save on change.',
 
       // Step Descs

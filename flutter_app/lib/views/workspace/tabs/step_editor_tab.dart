@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../widgets/native_text_editor.dart';
+import '../../../widgets/step_reference_card.dart';
 import '../zen_mode_view.dart';
 
 class StepHeaderActions extends StatelessWidget {
@@ -149,18 +150,11 @@ class StepEditorTab extends StatelessWidget {
           Text(instruction, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
           const SizedBox(height: 12),
           if (referenceStepNum > 0) ...[
-            ExpansionTile(
-              leading: Icon(Icons.auto_stories, color: Theme.of(context).colorScheme.primary),
-              title: Text('${t('referenceToStep')} $referenceStepNum', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-              children: [
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxHeight: 140),
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(16),
-                    child: Text(referenceText, style: const TextStyle(fontSize: 12, height: 1.5)),
-                  ),
-                ),
-              ],
+            StepReferenceCard(
+              title: '${t('referenceToStep')} $referenceStepNum: ${t('step${referenceStepNum}Title')}',
+              referenceText: referenceText,
+              language: language,
+              t: t,
             ),
             const SizedBox(height: 12),
           ],
