@@ -92,6 +92,34 @@ class _CommandPaletteDialogState extends State<CommandPaletteDialog> {
     _buildAllItems();
     _filteredItems = List.from(_allItems);
     _searchCtrl.addListener(_onSearchChanged);
+    _searchFocusNode.onKeyEvent = (node, event) {
+      if (event is! KeyDownEvent) return KeyEventResult.ignored;
+
+      if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+        if (_filteredItems.isNotEmpty) {
+          setState(() {
+            _selectedIndex = (_selectedIndex + 1) % _filteredItems.length;
+          });
+          _scrollToSelected();
+          return KeyEventResult.handled;
+        }
+      } else if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+        if (_filteredItems.isNotEmpty) {
+          setState(() {
+            _selectedIndex = (_selectedIndex - 1 + _filteredItems.length) % _filteredItems.length;
+          });
+          _scrollToSelected();
+          return KeyEventResult.handled;
+        }
+      } else if (event.logicalKey == LogicalKeyboardKey.enter) {
+        _executeSelected();
+        return KeyEventResult.handled;
+      } else if (event.logicalKey == LogicalKeyboardKey.escape) {
+        Navigator.of(context).pop();
+        return KeyEventResult.handled;
+      }
+      return KeyEventResult.ignored;
+    };
   }
 
   @override
@@ -308,30 +336,6 @@ class _CommandPaletteDialogState extends State<CommandPaletteDialog> {
     });
   }
 
-  void _handleKeyEvent(KeyEvent event) {
-    if (event is! KeyDownEvent) return;
-
-    if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
-      if (_filteredItems.isNotEmpty) {
-        setState(() {
-          _selectedIndex = (_selectedIndex + 1) % _filteredItems.length;
-        });
-        _scrollToSelected();
-      }
-    } else if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
-      if (_filteredItems.isNotEmpty) {
-        setState(() {
-          _selectedIndex = (_selectedIndex - 1 + _filteredItems.length) % _filteredItems.length;
-        });
-        _scrollToSelected();
-      }
-    } else if (event.logicalKey == LogicalKeyboardKey.enter) {
-      _executeSelected();
-    } else if (event.logicalKey == LogicalKeyboardKey.escape) {
-      Navigator.of(context).pop();
-    }
-  }
-
   void _scrollToSelected() {
     if (!_scrollCtrl.hasClients) return;
     const itemHeight = 56.0;
@@ -391,18 +395,15 @@ class _CommandPaletteDialogState extends State<CommandPaletteDialog> {
 
     return Directionality(
       textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
-      child: KeyboardListener(
-        focusNode: FocusNode()..requestFocus(),
-        onKeyEvent: _handleKeyEvent,
-        child: Dialog(
-          insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
-          alignment: Alignment.topCenter,
-          backgroundColor: theme.colorScheme.surface,
-          elevation: 12,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: BorderSide(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5)),
-          ),
+      child: Dialog(
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+        alignment: Alignment.topCenter,
+        backgroundColor: theme.colorScheme.surface,
+        elevation: 12,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5)),
+        ),
           child: ConstrainedBox(
             constraints: const BoxConstraints(
               maxWidth: 680,
@@ -608,8 +609,7 @@ class _CommandPaletteDialogState extends State<CommandPaletteDialog> {
             ),
           ),
         ),
-      ),
-    );
+      );
   }
 
   Widget _buildKeyCue(String key, String label, ThemeData theme) {

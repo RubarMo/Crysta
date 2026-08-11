@@ -99,6 +99,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
 
   List<Chapter> _chapters = [];
   Chapter? _selectedChapter;
+  bool _isModalDialogOpen = false;
 
   String t(String key) => Locales.t(key, widget.language);
 
@@ -107,10 +108,12 @@ class _WorkspacePageState extends State<WorkspacePage> {
     super.initState();
     _activeNovel = widget.novel;
     _refreshAllData();
+    HardwareKeyboard.instance.addHandler(_handleGlobalHardwareKey);
   }
 
   @override
   void dispose() {
+    HardwareKeyboard.instance.removeHandler(_handleGlobalHardwareKey);
     _autoSaveDebounceTimer?.cancel();
     _step1Ctrl.dispose();
     _step2Ctrl.dispose();
@@ -124,6 +127,98 @@ class _WorkspacePageState extends State<WorkspacePage> {
     _chapterCtrl.dispose();
     _chapterTitleCtrl.dispose();
     super.dispose();
+  }
+
+  bool _handleGlobalHardwareKey(KeyEvent event) {
+    if (event is! KeyDownEvent) return false;
+    if (_isModalDialogOpen) return false;
+
+    final isCtrl = HardwareKeyboard.instance.isControlPressed;
+    final isMeta = HardwareKeyboard.instance.isMetaPressed;
+    final isControlOrMeta = isCtrl || isMeta;
+    final isShift = HardwareKeyboard.instance.isShiftPressed;
+    final key = event.logicalKey;
+
+    // Ctrl+K or Ctrl+P -> Open Command Palette
+    if (isControlOrMeta && !isShift && (key == LogicalKeyboardKey.keyK || key == LogicalKeyboardKey.keyP)) {
+      _openCommandPalette();
+      return true;
+    }
+
+    // Ctrl+S -> Force Save
+    if (isControlOrMeta && !isShift && key == LogicalKeyboardKey.keyS) {
+      _saveActiveContent(showToast: true);
+      return true;
+    }
+
+    // Ctrl+B -> Snapshots
+    if (isControlOrMeta && !isShift && key == LogicalKeyboardKey.keyB) {
+      _showBackupsHistoryDialog();
+      return true;
+    }
+
+    // Ctrl+J -> Toggle Sidebar
+    if (isControlOrMeta && !isShift && key == LogicalKeyboardKey.keyJ) {
+      _toggleSidebar();
+      return true;
+    }
+
+    // Ctrl+N -> Context-Aware New
+    if (isControlOrMeta && !isShift && key == LogicalKeyboardKey.keyN) {
+      _handleContextAwareNew();
+      return true;
+    }
+
+    // Ctrl+/ or Ctrl+Shift+Slash -> Shortcuts Sheet
+    if (isControlOrMeta && (key == LogicalKeyboardKey.slash || key == LogicalKeyboardKey.question)) {
+      _showShortcutsModal();
+      return true;
+    }
+
+    // F1 -> Help Guide
+    if (key == LogicalKeyboardKey.f1) {
+      _showHelpModal();
+      return true;
+    }
+
+    // F11 -> Zen Mode on Active Step
+    if (key == LogicalKeyboardKey.f11) {
+      _openActiveZenMode();
+      return true;
+    }
+
+    // Ctrl+0 -> Step 0 (Dashboard)
+    if (isControlOrMeta && !isShift && key == LogicalKeyboardKey.digit0) {
+      _navigateToTab(0);
+      return true;
+    }
+
+    // Ctrl+1 through Ctrl+9 -> Steps 1-9
+    if (isControlOrMeta && !isShift) {
+      if (key == LogicalKeyboardKey.digit1) { _navigateToTab(1); return true; }
+      if (key == LogicalKeyboardKey.digit2) { _navigateToTab(2); return true; }
+      if (key == LogicalKeyboardKey.digit3) { _navigateToTab(3); return true; }
+      if (key == LogicalKeyboardKey.digit4) { _navigateToTab(4); return true; }
+      if (key == LogicalKeyboardKey.digit5) { _navigateToTab(5); return true; }
+      if (key == LogicalKeyboardKey.digit6) { _navigateToTab(6); return true; }
+      if (key == LogicalKeyboardKey.digit7) { _navigateToTab(7); return true; }
+      if (key == LogicalKeyboardKey.digit8) { _navigateToTab(8); return true; }
+      if (key == LogicalKeyboardKey.digit9) { _navigateToTab(9); return true; }
+    }
+
+    // Ctrl+Shift+E -> Export (Step 10)
+    if (isControlOrMeta && isShift && key == LogicalKeyboardKey.keyE) {
+      _navigateToTab(10);
+      return true;
+    }
+
+    // Ctrl+Shift+W -> Write Novel (Step 11)
+    if (isControlOrMeta && isShift && key == LogicalKeyboardKey.keyW) {
+      _navigateToTab(11);
+      return true;
+    }
+
+    return false;
   }
 
   Future<void> _refreshAllData() async {
@@ -412,6 +507,8 @@ class _WorkspacePageState extends State<WorkspacePage> {
   }
 
   void _showBackupsHistoryDialog() {
+    if (_isModalDialogOpen) return;
+    _isModalDialogOpen = true;
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
@@ -528,7 +625,9 @@ class _WorkspacePageState extends State<WorkspacePage> {
           );
         },
       ),
-    );
+    ).then((_) {
+      _isModalDialogOpen = false;
+    });
   }
 
   void _showTakeSnapshotDialog() {
@@ -596,7 +695,9 @@ class _WorkspacePageState extends State<WorkspacePage> {
           ],
         ),
       ),
-    );
+    ).then((_) {
+      _isModalDialogOpen = false;
+    });
   }
 
   void _confirmDeleteDialog({
@@ -604,6 +705,8 @@ class _WorkspacePageState extends State<WorkspacePage> {
     required String itemName,
     required VoidCallback onConfirm,
   }) {
+    if (_isModalDialogOpen) return;
+    _isModalDialogOpen = true;
     showDialog(
       context: context,
       builder: (context) => Directionality(
@@ -640,7 +743,9 @@ class _WorkspacePageState extends State<WorkspacePage> {
           ],
         ),
       ),
-    );
+    ).then((_) {
+      _isModalDialogOpen = false;
+    });
   }
 
   int _getStepNumberForTab(int tabIndex) {
@@ -711,6 +816,8 @@ class _WorkspacePageState extends State<WorkspacePage> {
   }
 
   void _openCharacterDialog([Character? existing]) {
+    if (_isModalDialogOpen) return;
+    _isModalDialogOpen = true;
     final nameCtrl = TextEditingController(text: existing?.name ?? '');
     final motCtrl = TextEditingController(text: existing?.motivation ?? '');
     final goalCtrl = TextEditingController(text: existing?.goal ?? '');
@@ -763,7 +870,9 @@ class _WorkspacePageState extends State<WorkspacePage> {
           ),
         );
       },
-    );
+    ).then((_) {
+      _isModalDialogOpen = false;
+    });
   }
 
   Future<void> _loadScenes() async {
@@ -799,6 +908,8 @@ class _WorkspacePageState extends State<WorkspacePage> {
   }
 
   void _openSceneMetadataDialog([Scene? existing]) {
+    if (_isModalDialogOpen) return;
+    _isModalDialogOpen = true;
     int? selectedPovId = existing?.povCharacterId;
     final settingCtrl = TextEditingController(text: existing?.setting ?? '');
     final plotCtrl = TextEditingController(text: existing?.plotThread ?? '');
@@ -962,6 +1073,8 @@ class _WorkspacePageState extends State<WorkspacePage> {
   }
 
   void _showHelpModal() {
+    if (_isModalDialogOpen) return;
+    _isModalDialogOpen = true;
     showDialog(
       context: context,
       builder: (context) => Directionality(
@@ -998,7 +1111,9 @@ class _WorkspacePageState extends State<WorkspacePage> {
           ],
         ),
       ),
-    );
+    ).then((_) {
+      _isModalDialogOpen = false;
+    });
   }
 
   Widget _buildHelpStepItem(String titleKey, String descKey) {
@@ -1140,6 +1255,8 @@ class _WorkspacePageState extends State<WorkspacePage> {
   }
 
   void _openCommandPalette() {
+    if (_isModalDialogOpen) return;
+    _isModalDialogOpen = true;
     CommandPaletteDialog.show(
       context: context,
       language: widget.language,
@@ -1153,7 +1270,17 @@ class _WorkspacePageState extends State<WorkspacePage> {
       onTriggerAction: (actionId) {
         _handlePaletteAction(actionId);
       },
-    );
+    ).then((_) {
+      _isModalDialogOpen = false;
+    });
+  }
+
+  void _showShortcutsModal() {
+    if (_isModalDialogOpen) return;
+    _isModalDialogOpen = true;
+    KeyboardShortcutsHelpDialog.show(context, widget.language, t).then((_) {
+      _isModalDialogOpen = false;
+    });
   }
 
   void _handlePaletteAction(String actionId) {
@@ -1171,7 +1298,11 @@ class _WorkspacePageState extends State<WorkspacePage> {
         _openActiveZenMode();
         break;
       case 'theme':
-        showThemeSettingsDialog(context, widget.currentThemeMode, widget.currentSeedColor, widget.useDynamicColor, widget.onThemeSettingsChanged, t);
+        if (_isModalDialogOpen) return;
+        _isModalDialogOpen = true;
+        showThemeSettingsDialog(context, widget.currentThemeMode, widget.currentSeedColor, widget.useDynamicColor, widget.onThemeSettingsChanged, t).then((_) {
+          _isModalDialogOpen = false;
+        });
         break;
       case 'language':
         widget.onLanguageToggle();
@@ -1186,7 +1317,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
         _showHelpModal();
         break;
       case 'shortcuts':
-        KeyboardShortcutsHelpDialog.show(context, widget.language, t);
+        _showShortcutsModal();
         break;
       case 'new_character':
         _openCharacterDialog();
@@ -1288,6 +1419,8 @@ class _WorkspacePageState extends State<WorkspacePage> {
     }
 
     if (ctrl != null) {
+      if (_isModalDialogOpen) return;
+      _isModalDialogOpen = true;
       ZenModeView.show(
         context,
         title: title,
@@ -1296,7 +1429,9 @@ class _WorkspacePageState extends State<WorkspacePage> {
         language: widget.language,
         onChanged: (val) => _handleContentChanged(),
         onSave: () => _saveActiveContent(showToast: true),
-      );
+      ).then((_) {
+        _isModalDialogOpen = false;
+      });
     }
   }
 
@@ -1690,191 +1825,127 @@ class _WorkspacePageState extends State<WorkspacePage> {
 
     return Directionality(
       textDirection: textDir,
-      child: CallbackShortcuts(
-        bindings: {
-          // Ctrl+K or Ctrl+P -> Open Command Palette
-          const SingleActivator(LogicalKeyboardKey.keyK, control: true): _openCommandPalette,
-          const SingleActivator(LogicalKeyboardKey.keyP, control: true): _openCommandPalette,
-          const SingleActivator(LogicalKeyboardKey.keyK, meta: true): _openCommandPalette,
-          const SingleActivator(LogicalKeyboardKey.keyP, meta: true): _openCommandPalette,
-
-          // Ctrl+S / Cmd+S -> Force save
-          const SingleActivator(LogicalKeyboardKey.keyS, control: true): () => _saveActiveContent(showToast: true),
-          const SingleActivator(LogicalKeyboardKey.keyS, meta: true): () => _saveActiveContent(showToast: true),
-
-          // Ctrl+B / Cmd+B -> Snapshots
-          const SingleActivator(LogicalKeyboardKey.keyB, control: true): _showBackupsHistoryDialog,
-          const SingleActivator(LogicalKeyboardKey.keyB, meta: true): _showBackupsHistoryDialog,
-
-          // Ctrl+J / Cmd+J -> Toggle Sidebar
-          const SingleActivator(LogicalKeyboardKey.keyJ, control: true): _toggleSidebar,
-          const SingleActivator(LogicalKeyboardKey.keyJ, meta: true): _toggleSidebar,
-
-          // Ctrl+N / Cmd+N -> Context-Aware New
-          const SingleActivator(LogicalKeyboardKey.keyN, control: true): _handleContextAwareNew,
-          const SingleActivator(LogicalKeyboardKey.keyN, meta: true): _handleContextAwareNew,
-
-          // Ctrl+/ or Cmd+/ -> Shortcuts cheat sheet
-          const SingleActivator(LogicalKeyboardKey.slash, control: true): () => KeyboardShortcutsHelpDialog.show(context, widget.language, t),
-          const SingleActivator(LogicalKeyboardKey.slash, meta: true): () => KeyboardShortcutsHelpDialog.show(context, widget.language, t),
-
-          // F1 -> Help guide
-          const SingleActivator(LogicalKeyboardKey.f1): _showHelpModal,
-
-          // F11 -> Zen Mode on active step
-          const SingleActivator(LogicalKeyboardKey.f11): _openActiveZenMode,
-
-          // Ctrl+0 -> Step 0 (Dashboard)
-          const SingleActivator(LogicalKeyboardKey.digit0, control: true): () => _navigateToTab(0),
-          const SingleActivator(LogicalKeyboardKey.digit0, meta: true): () => _navigateToTab(0),
-
-          // Ctrl+1 through Ctrl+9 -> Steps 1-9
-          const SingleActivator(LogicalKeyboardKey.digit1, control: true): () => _navigateToTab(1),
-          const SingleActivator(LogicalKeyboardKey.digit2, control: true): () => _navigateToTab(2),
-          const SingleActivator(LogicalKeyboardKey.digit3, control: true): () => _navigateToTab(3),
-          const SingleActivator(LogicalKeyboardKey.digit4, control: true): () => _navigateToTab(4),
-          const SingleActivator(LogicalKeyboardKey.digit5, control: true): () => _navigateToTab(5),
-          const SingleActivator(LogicalKeyboardKey.digit6, control: true): () => _navigateToTab(6),
-          const SingleActivator(LogicalKeyboardKey.digit7, control: true): () => _navigateToTab(7),
-          const SingleActivator(LogicalKeyboardKey.digit8, control: true): () => _navigateToTab(8),
-          const SingleActivator(LogicalKeyboardKey.digit9, control: true): () => _navigateToTab(9),
-          const SingleActivator(LogicalKeyboardKey.digit1, meta: true): () => _navigateToTab(1),
-          const SingleActivator(LogicalKeyboardKey.digit2, meta: true): () => _navigateToTab(2),
-          const SingleActivator(LogicalKeyboardKey.digit3, meta: true): () => _navigateToTab(3),
-          const SingleActivator(LogicalKeyboardKey.digit4, meta: true): () => _navigateToTab(4),
-          const SingleActivator(LogicalKeyboardKey.digit5, meta: true): () => _navigateToTab(5),
-          const SingleActivator(LogicalKeyboardKey.digit6, meta: true): () => _navigateToTab(6),
-          const SingleActivator(LogicalKeyboardKey.digit7, meta: true): () => _navigateToTab(7),
-          const SingleActivator(LogicalKeyboardKey.digit8, meta: true): () => _navigateToTab(8),
-          const SingleActivator(LogicalKeyboardKey.digit9, meta: true): () => _navigateToTab(9),
-
-          // Ctrl+Shift+E -> Export (Step 10)
-          const SingleActivator(LogicalKeyboardKey.keyE, control: true, shift: true): () => _navigateToTab(10),
-          const SingleActivator(LogicalKeyboardKey.keyE, meta: true, shift: true): () => _navigateToTab(10),
-
-          // Ctrl+Shift+W -> Write Novel (Step 11)
-          const SingleActivator(LogicalKeyboardKey.keyW, control: true, shift: true): () => _navigateToTab(11),
-          const SingleActivator(LogicalKeyboardKey.keyW, meta: true, shift: true): () => _navigateToTab(11),
-        },
-        child: Focus(
-          autofocus: true,
-          child: Scaffold(
-            drawer: !isExpanded ? Drawer(child: SafeArea(child: _buildSidebarContent(isMobile: true))) : null,
-            appBar: AppBar(
-              leading: !isExpanded
-                  ? Builder(
-                      builder: (ctx) => IconButton(
-                        icon: const Icon(Icons.menu),
-                        tooltip: t('completedSteps'),
-                        onPressed: () => Scaffold.of(ctx).openDrawer(),
-                      ),
-                    )
-                  : null,
-              title: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Flexible(
-                    child: Text(
-                      _activeNovel.title,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                      overflow: TextOverflow.ellipsis,
-                    ),
+      child: Scaffold(
+        drawer: !isExpanded ? Drawer(child: SafeArea(child: _buildSidebarContent(isMobile: true))) : null,
+        appBar: AppBar(
+          leading: !isExpanded
+              ? Builder(
+                  builder: (ctx) => IconButton(
+                    icon: const Icon(Icons.menu),
+                    tooltip: t('completedSteps'),
+                    onPressed: () => Scaffold.of(ctx).openDrawer(),
                   ),
-                  const SizedBox(width: 8),
-                  _buildSaveStatusIndicator(isCompact: isCompact),
-                  if (!isCompact) ...[
-                    const SizedBox(width: 8),
-                    Chip(
-                      label: Text(
-                        widget.projectPath.split(Platform.pathSeparator).last,
-                        style: const TextStyle(fontSize: 10),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      padding: EdgeInsets.zero,
-                      visualDensity: VisualDensity.compact,
+                )
+              : null,
+          title: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Flexible(
+                child: Text(
+                  _activeNovel.title,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 8),
+              _buildSaveStatusIndicator(isCompact: isCompact),
+              if (!isCompact) ...[
+                const SizedBox(width: 8),
+                Chip(
+                  label: Text(
+                    widget.projectPath.split(Platform.pathSeparator).last,
+                    style: const TextStyle(fontSize: 10),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  padding: EdgeInsets.zero,
+                  visualDensity: VisualDensity.compact,
+                ),
+              ],
+            ],
+          ),
+          actions: [
+            IconButton(
+              onPressed: _openCommandPalette,
+              icon: const Icon(Icons.search),
+              tooltip: '${t('commandPaletteTitle')} (Ctrl+K)',
+            ),
+            IconButton(
+              onPressed: _showBackupsHistoryDialog,
+              icon: const Icon(Icons.history),
+              tooltip: '${t('backupsTitle')} (Ctrl+B)',
+            ),
+            IconButton(
+              onPressed: _showShortcutsModal,
+              icon: const Icon(Icons.keyboard_outlined),
+              tooltip: '${t('shortcutsTitle')} (Ctrl+/)',
+            ),
+            IconButton(
+              onPressed: _showHelpModal,
+              icon: const Icon(Icons.help_outline),
+              tooltip: '${t('helpModalTitle')} (F1)',
+            ),
+            IconButton(
+              onPressed: widget.onLanguageToggle,
+              icon: const Icon(Icons.language),
+              tooltip: widget.language == 'ar' ? 'English' : 'العربية',
+            ),
+            IconButton(
+              onPressed: () {
+                if (_isModalDialogOpen) return;
+                _isModalDialogOpen = true;
+                showThemeSettingsDialog(context, widget.currentThemeMode, widget.currentSeedColor, widget.useDynamicColor, widget.onThemeSettingsChanged, t).then((_) {
+                  _isModalDialogOpen = false;
+                });
+              },
+              icon: const Icon(Icons.palette),
+              tooltip: t('appearance'),
+            ),
+            IconButton(
+              onPressed: () async {
+                await _flushPendingAutoSave();
+                await _saveActiveContent(showToast: false);
+                // Create session end backup
+                await BackupService.createSnapshot(
+                  projectPath: widget.projectPath,
+                  novelTitle: _activeNovel.title,
+                  isManual: false,
+                );
+                widget.onClose();
+              },
+              icon: const Icon(Icons.close),
+              color: Theme.of(context).colorScheme.error,
+              tooltip: t('close'),
+            ),
+            const SizedBox(width: 4),
+          ],
+        ),
+        body: isCompact
+            ? (_isLoadingStep
+                ? const Center(child: CircularProgressIndicator())
+                : _buildTabContent(isMobile: true))
+            : Row(
+                children: [
+                  if (isExpanded && _sidebarWidth > 0) ...[
+                    SizedBox(
+                      width: _sidebarWidth,
+                      child: _buildSidebarContent(isMobile: false),
+                    ),
+                    _buildResizeDivider(
+                      onDrag: (details) {
+                        setState(() {
+                          final delta = widget.language == 'ar' ? -details.delta.dx : details.delta.dx;
+                          _sidebarWidth = (_sidebarWidth + delta).clamp(180.0, 340.0);
+                        });
+                      },
                     ),
                   ],
+                  Expanded(
+                    child: _isLoadingStep
+                        ? const Center(child: CircularProgressIndicator())
+                        : _buildTabContent(isMobile: false),
+                  ),
                 ],
               ),
-              actions: [
-                IconButton(
-                  onPressed: _openCommandPalette,
-                  icon: const Icon(Icons.search),
-                  tooltip: '${t('commandPaletteTitle')} (Ctrl+K)',
-                ),
-                IconButton(
-                  onPressed: _showBackupsHistoryDialog,
-                  icon: const Icon(Icons.history),
-                  tooltip: '${t('backupsTitle')} (Ctrl+B)',
-                ),
-                IconButton(
-                  onPressed: () => KeyboardShortcutsHelpDialog.show(context, widget.language, t),
-                  icon: const Icon(Icons.keyboard_outlined),
-                  tooltip: '${t('shortcutsTitle')} (Ctrl+/)',
-                ),
-                IconButton(
-                  onPressed: _showHelpModal,
-                  icon: const Icon(Icons.help_outline),
-                  tooltip: '${t('helpModalTitle')} (F1)',
-                ),
-                IconButton(
-                  onPressed: widget.onLanguageToggle,
-                  icon: const Icon(Icons.language),
-                  tooltip: widget.language == 'ar' ? 'English' : 'العربية',
-                ),
-                IconButton(
-                  onPressed: () => showThemeSettingsDialog(context, widget.currentThemeMode, widget.currentSeedColor, widget.useDynamicColor, widget.onThemeSettingsChanged, t),
-                  icon: const Icon(Icons.palette),
-                  tooltip: t('appearance'),
-                ),
-                IconButton(
-                  onPressed: () async {
-                    await _flushPendingAutoSave();
-                    await _saveActiveContent(showToast: false);
-                    // Create session end backup
-                    await BackupService.createSnapshot(
-                      projectPath: widget.projectPath,
-                      novelTitle: _activeNovel.title,
-                      isManual: false,
-                    );
-                    widget.onClose();
-                  },
-                  icon: const Icon(Icons.close),
-                  color: Theme.of(context).colorScheme.error,
-                  tooltip: t('close'),
-                ),
-                const SizedBox(width: 4),
-              ],
-            ),
-            body: isCompact
-                ? (_isLoadingStep
-                    ? const Center(child: CircularProgressIndicator())
-                    : _buildTabContent(isMobile: true))
-                : Row(
-                    children: [
-                      if (isExpanded && _sidebarWidth > 0) ...[
-                        SizedBox(
-                          width: _sidebarWidth,
-                          child: _buildSidebarContent(isMobile: false),
-                        ),
-                        _buildResizeDivider(
-                          onDrag: (details) {
-                            setState(() {
-                              final delta = widget.language == 'ar' ? -details.delta.dx : details.delta.dx;
-                              _sidebarWidth = (_sidebarWidth + delta).clamp(180.0, 340.0);
-                            });
-                          },
-                        ),
-                      ],
-                      Expanded(
-                        child: _isLoadingStep
-                            ? const Center(child: CircularProgressIndicator())
-                            : _buildTabContent(isMobile: false),
-                      ),
-                    ],
-                  ),
-          ),
-        ),
       ),
     );
   }
