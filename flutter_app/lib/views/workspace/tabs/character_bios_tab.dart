@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../models.dart';
 import '../../../widgets/native_text_editor.dart';
+import '../../../widgets/step_reference_card.dart';
 import '../zen_mode_view.dart';
 import 'step_editor_tab.dart';
 
@@ -401,28 +402,12 @@ class CharacterPovSynopsesTab extends StatelessWidget {
                         style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 8),
-                      ExpansionTile(
-                        leading: Icon(Icons.person, color: Theme.of(context).colorScheme.primary),
-                        title: Text('${char.name} (${t('charRefBioLabel')} Step 3)', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-                        children: [
-                          ConstrainedBox(
-                            constraints: const BoxConstraints(maxHeight: 140),
-                            child: SingleChildScrollView(
-                              padding: const EdgeInsets.all(16),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('${t('charMotivationLabel')}: ${char.motivation}'),
-                                  Text('${t('charGoalLabel')}: ${char.goal}'),
-                                  Text('${t('charConflictLabel')}: ${char.conflict}'),
-                                  Text('${t('charEpiphanyLabel')}: ${char.epiphany}'),
-                                  const SizedBox(height: 4),
-                                  Text('${t('charSummaryLabel')}: ${cleanText(char.oneParagraphSummary)}'),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
+                      StepReferenceCard(
+                        leadingIcon: Icons.person,
+                        title: '${char.name} (${t('charRefBioLabel')} Step 3)',
+                        language: language,
+                        t: t,
+                        child: _buildCharacterBioPreviewContent(char: char, theme: Theme.of(context), t: t, cleanText: cleanText),
                       ),
                       const SizedBox(height: 12),
                       Expanded(
@@ -628,28 +613,12 @@ class DetailedCharacterChartsTab extends StatelessWidget {
                         style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 8),
-                      ExpansionTile(
-                        leading: Icon(Icons.badge, color: Theme.of(context).colorScheme.primary),
-                        title: Text('${char.name} (${t('charRefBioLabel')} Step 3)', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-                        children: [
-                          ConstrainedBox(
-                            constraints: const BoxConstraints(maxHeight: 140),
-                            child: SingleChildScrollView(
-                              padding: const EdgeInsets.all(16),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('${t('charMotivationLabel')}: ${char.motivation}'),
-                                  Text('${t('charGoalLabel')}: ${char.goal}'),
-                                  Text('${t('charConflictLabel')}: ${char.conflict}'),
-                                  Text('${t('charEpiphanyLabel')}: ${char.epiphany}'),
-                                  const SizedBox(height: 4),
-                                  Text('${t('charSummaryLabel')}: ${cleanText(char.oneParagraphSummary)}'),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
+                      StepReferenceCard(
+                        leadingIcon: Icons.badge,
+                        title: '${char.name} (${t('charRefBioLabel')} Step 3)',
+                        language: language,
+                        t: t,
+                        child: _buildCharacterBioPreviewContent(char: char, theme: Theme.of(context), t: t, cleanText: cleanText),
                       ),
                       const SizedBox(height: 12),
                       Expanded(
@@ -718,4 +687,56 @@ class DetailedCharacterChartsTab extends StatelessWidget {
       ],
     );
   }
+}
+
+Widget _buildCharacterBioPreviewContent({
+  required Character char,
+  required ThemeData theme,
+  required String Function(String) t,
+  required String Function(String) cleanText,
+}) {
+  final rows = <Widget>[];
+  if (char.motivation.isNotEmpty) {
+    rows.add(_buildBioFieldRow(t('charMotivationLabel'), char.motivation, theme));
+  }
+  if (char.goal.isNotEmpty) {
+    rows.add(_buildBioFieldRow(t('charGoalLabel'), char.goal, theme));
+  }
+  if (char.conflict.isNotEmpty) {
+    rows.add(_buildBioFieldRow(t('charConflictLabel'), char.conflict, theme));
+  }
+  if (char.epiphany.isNotEmpty) {
+    rows.add(_buildBioFieldRow(t('charEpiphanyLabel'), char.epiphany, theme));
+  }
+  if (char.oneParagraphSummary.isNotEmpty) {
+    rows.add(const SizedBox(height: 4));
+    rows.add(_buildBioFieldRow(t('charSummaryLabel'), cleanText(char.oneParagraphSummary), theme));
+  }
+
+  if (rows.isEmpty) {
+    return Text(
+      t('referenceEmpty'),
+      style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
+    );
+  }
+
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: rows,
+  );
+}
+
+Widget _buildBioFieldRow(String label, String value, ThemeData theme) {
+  return Padding(
+    padding: const EdgeInsets.only(bottom: 6),
+    child: RichText(
+      text: TextSpan(
+        style: TextStyle(fontSize: 12, height: 1.5, color: theme.colorScheme.onSurface),
+        children: [
+          TextSpan(text: '$label: ', style: const TextStyle(fontWeight: FontWeight.bold)),
+          TextSpan(text: value),
+        ],
+      ),
+    ),
+  );
 }
