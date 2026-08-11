@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-void showThemeSettingsDialog(
+Future<T?> showThemeSettingsDialog<T>(
   BuildContext context,
   ThemeMode currentMode,
   Color currentColor,
@@ -8,7 +8,7 @@ void showThemeSettingsDialog(
   Function(ThemeMode, Color, bool) onChanged,
   String Function(String) t,
 ) {
-  showDialog(
+  return showDialog<T>(
     context: context,
     builder: (context) {
       return ThemeSettingsDialog(
