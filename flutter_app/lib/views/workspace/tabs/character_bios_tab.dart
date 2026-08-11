@@ -16,7 +16,7 @@ class CharacterBiosTab extends StatefulWidget {
   final ValueChanged<Character?> onSelectCharacter;
   final ValueChanged<Character> onDeleteCharacter;
   final Function([Character?]) onOpenCharacterDialog;
-  final ValueChanged<double> onListPaneWidthChanged;
+  final ValueChanged<DragUpdateDetails> onListPaneDrag;
   final String Function(String) t;
   final String language;
   final bool isMobile;
@@ -34,7 +34,7 @@ class CharacterBiosTab extends StatefulWidget {
     required this.onSelectCharacter,
     required this.onDeleteCharacter,
     required this.onOpenCharacterDialog,
-    required this.onListPaneWidthChanged,
+    required this.onListPaneDrag,
     required this.t,
     required this.language,
     required this.isMobile,
@@ -52,24 +52,25 @@ class _CharacterBiosTabState extends State<CharacterBiosTab> {
     final isMobile = widget.isMobile;
 
     Widget listPane = Card(
-      margin: isMobile ? EdgeInsets.zero : const EdgeInsets.all(16),
+      margin: isMobile ? EdgeInsets.zero : const EdgeInsets.all(8),
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             child: Row(
               children: [
                 Expanded(
                   child: Text(
                     t('charactersTitle'),
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 IconButton(
                   onPressed: () => widget.onOpenCharacterDialog(),
-                  icon: Icon(Icons.add_circle, color: Theme.of(context).colorScheme.primary),
+                  icon: Icon(Icons.add_circle, color: Theme.of(context).colorScheme.primary, size: 20),
                   tooltip: t('addCharacterBtn'),
+                  visualDensity: VisualDensity.compact,
                 ),
               ],
             ),
@@ -81,7 +82,7 @@ class _CharacterBiosTabState extends State<CharacterBiosTab> {
                     child: Text(
                       t('noCharactersYet'),
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                      style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant),
                     ),
                   )
                 : ListView.builder(
@@ -90,16 +91,41 @@ class _CharacterBiosTabState extends State<CharacterBiosTab> {
                       final char = widget.characters[index];
                       final isSelected = widget.selectedCharacter?.id == char.id;
                       return ListTile(
+                        dense: true,
+                        visualDensity: VisualDensity.compact,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                         leading: CircleAvatar(
-                          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                          child: Text(char.name.isNotEmpty ? char.name[0].toUpperCase() : '?'),
+                          radius: 12,
+                          backgroundColor: isSelected
+                              ? Theme.of(context).colorScheme.primary
+                              : Theme.of(context).colorScheme.primaryContainer,
+                          child: Text(
+                            char.name.isNotEmpty ? char.name[0].toUpperCase() : '?',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: isSelected
+                                  ? Theme.of(context).colorScheme.onPrimary
+                                  : Theme.of(context).colorScheme.onPrimaryContainer,
+                            ),
+                          ),
                         ),
-                        title: Text(char.name, style: const TextStyle(fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
-                        subtitle: Text(char.motivation, maxLines: 1, overflow: TextOverflow.ellipsis),
+                        title: Text(
+                          char.name,
+                          style: TextStyle(
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                            fontSize: 12,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        subtitle: char.motivation.isNotEmpty
+                            ? Text(char.motivation, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 11))
+                            : null,
                         selected: isSelected,
                         trailing: IconButton(
-                          icon: Icon(Icons.delete_outline, color: Theme.of(context).colorScheme.error, size: 18),
+                          icon: Icon(Icons.delete_outline, color: Theme.of(context).colorScheme.error, size: 16),
                           onPressed: () => widget.onDeleteCharacter(char),
+                          visualDensity: VisualDensity.compact,
                         ),
                         onTap: () => widget.onSelectCharacter(char),
                       );
@@ -237,25 +263,18 @@ class _CharacterBiosTabState extends State<CharacterBiosTab> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SizedBox(width: widget.listPaneWidth, child: listPane),
-        GestureDetector(
-          behavior: HitTestBehavior.translucent,
-          onHorizontalDragUpdate: (details) {
-            final delta = widget.language == 'ar' ? -details.delta.dx : details.delta.dx;
-            widget.onListPaneWidthChanged((widget.listPaneWidth + delta).clamp(200.0, 360.0));
-          },
-          child: MouseRegion(
-            cursor: SystemMouseCursors.resizeColumn,
+        MouseRegion(
+          cursor: SystemMouseCursors.resizeColumn,
+          child: GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onHorizontalDragUpdate: widget.onListPaneDrag,
             child: Container(
-              width: 12,
+              width: 8,
               color: Colors.transparent,
               child: Center(
                 child: Container(
                   width: 2,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).dividerColor,
-                    borderRadius: BorderRadius.circular(1),
-                  ),
+                  color: Theme.of(context).dividerColor.withValues(alpha: 0.5),
                 ),
               ),
             ),
@@ -276,7 +295,7 @@ class CharacterPovSynopsesTab extends StatelessWidget {
   final ValueChanged<bool> onToggleDone;
   final VoidCallback onSave;
   final ValueChanged<Character?> onSelectCharacter;
-  final ValueChanged<double> onListPaneWidthChanged;
+  final ValueChanged<DragUpdateDetails> onListPaneDrag;
   final String Function(String) t;
   final String language;
   final bool isMobile;
@@ -293,7 +312,7 @@ class CharacterPovSynopsesTab extends StatelessWidget {
     required this.onToggleDone,
     required this.onSave,
     required this.onSelectCharacter,
-    required this.onListPaneWidthChanged,
+    required this.onListPaneDrag,
     required this.t,
     required this.language,
     required this.isMobile,
@@ -305,14 +324,14 @@ class CharacterPovSynopsesTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final char = selectedCharacter;
     Widget listPane = Card(
-      margin: isMobile ? EdgeInsets.zero : const EdgeInsets.all(16),
+      margin: isMobile ? EdgeInsets.zero : const EdgeInsets.all(8),
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             child: Text(
               t('charSynopsesTitle'),
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -323,7 +342,7 @@ class CharacterPovSynopsesTab extends StatelessWidget {
                     child: Text(
                       t('pleaseAddCharsFirst'),
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                      style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant),
                     ),
                   )
                 : ListView.builder(
@@ -332,12 +351,36 @@ class CharacterPovSynopsesTab extends StatelessWidget {
                       final c = characters[index];
                       final isSelected = char?.id == c.id;
                       return ListTile(
+                        dense: true,
+                        visualDensity: VisualDensity.compact,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                         leading: CircleAvatar(
-                          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                          child: Text(c.name.isNotEmpty ? c.name[0].toUpperCase() : '?'),
+                          radius: 12,
+                          backgroundColor: isSelected
+                              ? Theme.of(context).colorScheme.primary
+                              : Theme.of(context).colorScheme.primaryContainer,
+                          child: Text(
+                            c.name.isNotEmpty ? c.name[0].toUpperCase() : '?',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: isSelected
+                                  ? Theme.of(context).colorScheme.onPrimary
+                                  : Theme.of(context).colorScheme.onPrimaryContainer,
+                            ),
+                          ),
                         ),
-                        title: Text(c.name, style: const TextStyle(fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
-                        subtitle: Text(c.motivation, maxLines: 1, overflow: TextOverflow.ellipsis),
+                        title: Text(
+                          c.name,
+                          style: TextStyle(
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                            fontSize: 12,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        subtitle: c.motivation.isNotEmpty
+                            ? Text(c.motivation, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 11))
+                            : null,
                         selected: isSelected,
                         onTap: () => onSelectCharacter(c),
                       );
@@ -448,25 +491,18 @@ class CharacterPovSynopsesTab extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SizedBox(width: listPaneWidth, child: listPane),
-        GestureDetector(
-          behavior: HitTestBehavior.translucent,
-          onHorizontalDragUpdate: (details) {
-            final delta = language == 'ar' ? -details.delta.dx : details.delta.dx;
-            onListPaneWidthChanged((listPaneWidth + delta).clamp(200.0, 360.0));
-          },
-          child: MouseRegion(
-            cursor: SystemMouseCursors.resizeColumn,
+        MouseRegion(
+          cursor: SystemMouseCursors.resizeColumn,
+          child: GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onHorizontalDragUpdate: onListPaneDrag,
             child: Container(
-              width: 12,
+              width: 8,
               color: Colors.transparent,
               child: Center(
                 child: Container(
                   width: 2,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).dividerColor.withValues(alpha: 0.5),
-                    borderRadius: BorderRadius.circular(1),
-                  ),
+                  color: Theme.of(context).dividerColor.withValues(alpha: 0.5),
                 ),
               ),
             ),
@@ -487,7 +523,7 @@ class DetailedCharacterChartsTab extends StatelessWidget {
   final ValueChanged<bool> onToggleDone;
   final VoidCallback onSave;
   final ValueChanged<Character?> onSelectCharacter;
-  final ValueChanged<double> onListPaneWidthChanged;
+  final ValueChanged<DragUpdateDetails> onListPaneDrag;
   final String Function(String) t;
   final String language;
   final bool isMobile;
@@ -504,7 +540,7 @@ class DetailedCharacterChartsTab extends StatelessWidget {
     required this.onToggleDone,
     required this.onSave,
     required this.onSelectCharacter,
-    required this.onListPaneWidthChanged,
+    required this.onListPaneDrag,
     required this.t,
     required this.language,
     required this.isMobile,
@@ -516,14 +552,14 @@ class DetailedCharacterChartsTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final char = selectedCharacter;
     Widget listPane = Card(
-      margin: isMobile ? EdgeInsets.zero : const EdgeInsets.all(16),
+      margin: isMobile ? EdgeInsets.zero : const EdgeInsets.all(8),
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             child: Text(
               t('charChartsTitle'),
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -534,7 +570,7 @@ class DetailedCharacterChartsTab extends StatelessWidget {
                     child: Text(
                       t('pleaseAddCharsFirst'),
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                      style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant),
                     ),
                   )
                 : ListView.builder(
@@ -543,12 +579,36 @@ class DetailedCharacterChartsTab extends StatelessWidget {
                       final c = characters[index];
                       final isSelected = char?.id == c.id;
                       return ListTile(
+                        dense: true,
+                        visualDensity: VisualDensity.compact,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                         leading: CircleAvatar(
-                          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                          child: Text(c.name.isNotEmpty ? c.name[0].toUpperCase() : '?'),
+                          radius: 12,
+                          backgroundColor: isSelected
+                              ? Theme.of(context).colorScheme.primary
+                              : Theme.of(context).colorScheme.primaryContainer,
+                          child: Text(
+                            c.name.isNotEmpty ? c.name[0].toUpperCase() : '?',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: isSelected
+                                  ? Theme.of(context).colorScheme.onPrimary
+                                  : Theme.of(context).colorScheme.onPrimaryContainer,
+                            ),
+                          ),
                         ),
-                        title: Text(c.name, style: const TextStyle(fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
-                        subtitle: Text(c.motivation, maxLines: 1, overflow: TextOverflow.ellipsis),
+                        title: Text(
+                          c.name,
+                          style: TextStyle(
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                            fontSize: 12,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        subtitle: c.motivation.isNotEmpty
+                            ? Text(c.motivation, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 11))
+                            : null,
                         selected: isSelected,
                         onTap: () => onSelectCharacter(c),
                       );
@@ -659,25 +719,18 @@ class DetailedCharacterChartsTab extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SizedBox(width: listPaneWidth, child: listPane),
-        GestureDetector(
-          behavior: HitTestBehavior.translucent,
-          onHorizontalDragUpdate: (details) {
-            final delta = language == 'ar' ? -details.delta.dx : details.delta.dx;
-            onListPaneWidthChanged((listPaneWidth + delta).clamp(200.0, 360.0));
-          },
-          child: MouseRegion(
-            cursor: SystemMouseCursors.resizeColumn,
+        MouseRegion(
+          cursor: SystemMouseCursors.resizeColumn,
+          child: GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onHorizontalDragUpdate: onListPaneDrag,
             child: Container(
-              width: 12,
+              width: 8,
               color: Colors.transparent,
               child: Center(
                 child: Container(
                   width: 2,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).dividerColor.withValues(alpha: 0.5),
-                    borderRadius: BorderRadius.circular(1),
-                  ),
+                  color: Theme.of(context).dividerColor.withValues(alpha: 0.5),
                 ),
               ),
             ),

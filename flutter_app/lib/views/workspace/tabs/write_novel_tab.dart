@@ -13,7 +13,7 @@ class WriteNovelTab extends StatefulWidget {
   final Future<void> Function(Chapter) onSaveChapter;
   final ValueChanged<Chapter> onDeleteChapter;
   final ValueChanged<Chapter?> onSelectChapter;
-  final ValueChanged<double> onListPaneWidthChanged;
+  final ValueChanged<DragUpdateDetails> onListPaneDrag;
   final Future<void> Function() onSaveActiveContent;
   final Function(String format) onExportDocument;
   final String Function(String) t;
@@ -33,7 +33,7 @@ class WriteNovelTab extends StatefulWidget {
     required this.onSaveChapter,
     required this.onDeleteChapter,
     required this.onSelectChapter,
-    required this.onListPaneWidthChanged,
+    required this.onListPaneDrag,
     required this.onSaveActiveContent,
     required this.onExportDocument,
     required this.t,
@@ -54,15 +54,15 @@ class _WriteNovelTabState extends State<WriteNovelTab> {
     final isMobile = widget.isMobile;
 
     Widget listPane = Card(
-      margin: isMobile ? EdgeInsets.zero : const EdgeInsets.all(16),
+      margin: isMobile ? EdgeInsets.zero : const EdgeInsets.all(8),
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(t('chaptersSidebarTitle'), style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text(t('chaptersSidebarTitle'), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                 IconButton(
                   onPressed: () async {
                     final newChap = Chapter(
@@ -73,7 +73,8 @@ class _WriteNovelTabState extends State<WriteNovelTab> {
                     );
                     await widget.onSaveChapter(newChap);
                   },
-                  icon: Icon(Icons.add_circle, color: Theme.of(context).colorScheme.primary),
+                  icon: Icon(Icons.add_circle, color: Theme.of(context).colorScheme.primary, size: 20),
+                  visualDensity: VisualDensity.compact,
                 ),
               ],
             ),
@@ -86,11 +87,35 @@ class _WriteNovelTabState extends State<WriteNovelTab> {
                 final chap = widget.chapters[index];
                 final isSelected = widget.selectedChapter?.id == chap.id;
                 return ListTile(
-                  title: Text(chap.title, overflow: TextOverflow.ellipsis),
+                  dense: true,
+                  visualDensity: VisualDensity.compact,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  leading: CircleAvatar(
+                    radius: 12,
+                    backgroundColor: isSelected
+                        ? Theme.of(context).colorScheme.primary
+                        : Theme.of(context).colorScheme.surfaceContainerHighest,
+                    child: Text(
+                      '${index + 1}',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: isSelected
+                            ? Theme.of(context).colorScheme.onPrimary
+                            : Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                  title: Text(
+                    chap.title,
+                    style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal, fontSize: 12),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                   selected: isSelected,
                   trailing: IconButton(
-                    icon: Icon(Icons.delete_outline, color: Theme.of(context).colorScheme.error, size: 18),
+                    icon: Icon(Icons.delete_outline, color: Theme.of(context).colorScheme.error, size: 16),
                     onPressed: () => widget.onDeleteChapter(chap),
+                    visualDensity: VisualDensity.compact,
                   ),
                   onTap: () => widget.onSelectChapter(chap),
                 );
@@ -238,25 +263,18 @@ class _WriteNovelTabState extends State<WriteNovelTab> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             SizedBox(width: effectiveListWidth, child: listPane),
-            GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              onHorizontalDragUpdate: (details) {
-                final delta = widget.language == 'ar' ? -details.delta.dx : details.delta.dx;
-                widget.onListPaneWidthChanged((widget.listPaneWidth + delta).clamp(200.0, maxListWidth));
-              },
-              child: MouseRegion(
-                cursor: SystemMouseCursors.resizeColumn,
+            MouseRegion(
+              cursor: SystemMouseCursors.resizeColumn,
+              child: GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onHorizontalDragUpdate: widget.onListPaneDrag,
                 child: Container(
-                  width: 12,
+                  width: 8,
                   color: Colors.transparent,
                   child: Center(
                     child: Container(
                       width: 2,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).dividerColor,
-                        borderRadius: BorderRadius.circular(1),
-                      ),
+                      color: Theme.of(context).dividerColor.withValues(alpha: 0.5),
                     ),
                   ),
                 ),

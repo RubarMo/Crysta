@@ -1152,6 +1152,13 @@ class _WorkspacePageState extends State<WorkspacePage> {
     );
   }
 
+  void _handleListPaneDrag(DragUpdateDetails details, {double max = 500.0}) {
+    setState(() {
+      final delta = widget.language == 'ar' ? -details.delta.dx : details.delta.dx;
+      _listPaneWidth = (_listPaneWidth + delta).clamp(180.0, max);
+    });
+  }
+
   Widget _buildSidebarContent({required bool isMobile}) {
     final completedSteps = _countCompletedSteps();
     return Card(
@@ -1603,7 +1610,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
           },
           onDeleteCharacter: _deleteCharacter,
           onOpenCharacterDialog: _openCharacterDialog,
-          onListPaneWidthChanged: (w) => setState(() => _listPaneWidth = w),
+          onListPaneDrag: _handleListPaneDrag,
           t: t,
           language: widget.language,
           isMobile: isMobile,
@@ -1644,7 +1651,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
               }
             });
           },
-          onListPaneWidthChanged: (w) => setState(() => _listPaneWidth = w),
+          onListPaneDrag: _handleListPaneDrag,
           t: t,
           language: widget.language,
           isMobile: isMobile,
@@ -1690,7 +1697,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
               _step7ChartCtrl.text = _cleanText(chartStep.contentText);
             }
           },
-          onListPaneWidthChanged: (w) => setState(() => _listPaneWidth = w),
+          onListPaneDrag: _handleListPaneDrag,
           t: t,
           language: widget.language,
           isMobile: isMobile,
@@ -1719,7 +1726,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
           },
           onDeleteScene: _deleteScene,
           onOpenSceneMetadataDialog: _openSceneMetadataDialog,
-          onListPaneWidthChanged: (w) => setState(() => _listPaneWidth = w),
+          onListPaneDrag: _handleListPaneDrag,
           onReorderScenes: (reordered) async {
             setState(() {
               _scenes = reordered;
@@ -1759,7 +1766,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
               _step9SceneCtrl.text = _cleanText(step9Prog.contentText);
             }
           },
-          onListPaneWidthChanged: (w) => setState(() => _listPaneWidth = w),
+          onListPaneDrag: _handleListPaneDrag,
           t: t,
           language: widget.language,
           isMobile: isMobile,
@@ -1802,7 +1809,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
               }
             });
           },
-          onListPaneWidthChanged: (w) => setState(() => _listPaneWidth = w),
+          onListPaneDrag: _handleListPaneDrag,
           onSaveActiveContent: () => _saveActiveContent(showToast: true),
           onExportDocument: _exportDocument,
           t: t,
@@ -1934,7 +1941,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
                       onDrag: (details) {
                         setState(() {
                           final delta = widget.language == 'ar' ? -details.delta.dx : details.delta.dx;
-                          _sidebarWidth = (_sidebarWidth + delta).clamp(180.0, 340.0);
+                          _sidebarWidth = (_sidebarWidth + delta).clamp(180.0, 380.0);
                         });
                       },
                     ),

@@ -1,0 +1,211 @@
+:root {
+  --bg-color: #121418;
+  --text-color: #e2e8f0;
+  --primary-color: #6366f1;
+  --toolbar-bg: rgba(255, 255, 255, 0.03);
+  --border-color: rgba(120, 120, 120, 0.18);
+  --btn-hover-bg: rgba(120, 120, 120, 0.15);
+  --btn-active-bg: rgba(99, 102, 241, 0.2);
+  --placeholder-color: rgba(226, 232, 240, 0.35);
+  --font-family: 'Cairo', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-size: 15px;
+  --line-height: 1.75;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: var(--font-family);
+  font-size: var(--font-size);
+  line-height: var(--line-height);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+/* --- Toolbar Styling --- */
+#toolbar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 3px;
+  padding: 6px 12px;
+  background-color: var(--toolbar-bg);
+  border-bottom: 1px solid var(--border-color);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.btn-group {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.separator {
+  width: 1px;
+  height: 18px;
+  background-color: var(--border-color);
+  margin: 0 4px;
+}
+
+.toolbar-btn {
+  width: 30px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  color: var(--text-color);
+  cursor: pointer;
+  outline: none;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.toolbar-btn:hover {
+  background-color: var(--btn-hover-bg);
+}
+
+.toolbar-btn.active {
+  background-color: var(--btn-active-bg);
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+.toolbar-btn svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+.text-icon {
+  font-size: 13px;
+  font-weight: 600;
+  font-family: serif;
+}
+
+.bold-icon {
+  font-weight: 800;
+}
+
+.italic-icon {
+  font-style: italic;
+}
+
+.underline-icon {
+  text-decoration: underline;
+}
+
+.strike-icon {
+  text-decoration: line-through;
+}
+
+/* --- Editor Container & Typography --- */
+#editor-container {
+  flex: 1 1 0;
+  min-height: 0;
+  width: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 16px 20px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(120, 120, 120, 0.3) transparent;
+}
+
+#editor-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+#editor-container::-webkit-scrollbar-thumb {
+  background: rgba(120, 120, 120, 0.3);
+  border-radius: 3px;
+}
+
+#editor-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(120, 120, 120, 0.5);
+}
+
+#editor {
+  min-height: 100%;
+  outline: none;
+  border: none;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  tab-size: 4;
+}
+
+#editor[dir="rtl"] {
+  text-align: right;
+  direction: rtl;
+}
+
+#editor[dir="ltr"] {
+  text-align: left;
+  direction: ltr;
+}
+
+#editor:empty::before {
+  content: attr(data-placeholder);
+  color: var(--placeholder-color);
+  pointer-events: none;
+  display: block;
+}
+
+/* Rich text blocks */
+h1 {
+  font-size: 1.55em;
+  font-weight: 700;
+  margin: 0.6em 0 0.3em;
+  line-height: 1.35;
+}
+
+h2 {
+  font-size: 1.25em;
+  font-weight: 600;
+  margin: 0.5em 0 0.25em;
+  line-height: 1.4;
+}
+
+p {
+  margin-bottom: 0.75em;
+}
+
+p:last-child {
+  margin-bottom: 0;
+}
+
+ul, ol {
+  padding-inline-start: 1.6em;
+  margin: 0.5em 0;
+}
+
+li {
+  margin-bottom: 0.25em;
+}
+
+blockquote {
+  border-inline-start: 3px solid var(--primary-color);
+  padding-inline-start: 14px;
+  margin: 0.8em 0;
+  opacity: 0.88;
+  font-style: italic;
+}
+
+::selection {
+  background-color: rgba(99, 102, 241, 0.35);
+  color: inherit;
+}

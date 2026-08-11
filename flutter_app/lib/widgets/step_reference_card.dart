@@ -26,6 +26,129 @@ class StepReferenceCard extends StatefulWidget {
     required this.t,
   });
 
+  static String stripHtml(String html) {
+    return html
+        .replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), '\n')
+        .replaceAll(RegExp(r'</p>', caseSensitive: false), '\n\n')
+        .replaceAll(RegExp(r'</li>', caseSensitive: false), '\n')
+        .replaceAll(RegExp(r'<[^>]*>'), '')
+        .replaceAll(RegExp(r'&nbsp;', caseSensitive: false), ' ')
+        .replaceAll(RegExp(r'&amp;', caseSensitive: false), '&')
+        .replaceAll(RegExp(r'&lt;', caseSensitive: false), '<')
+        .replaceAll(RegExp(r'&gt;', caseSensitive: false), '>')
+        .trim();
+  }
+
+  static TextSpan parseHtmlToTextSpan(String htmlText, TextStyle baseStyle) {
+    if (!htmlText.contains('<') || !htmlText.contains('>')) {
+      return TextSpan(text: htmlText, style: baseStyle);
+    }
+
+    String normalized = htmlText
+        .replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), '\n')
+        .replaceAll(RegExp(r'</p>', caseSensitive: false), '\n\n')
+        .replaceAll(RegExp(r'</li>', caseSensitive: false), '\n')
+        .replaceAll(RegExp(r'<li[^>]*>', caseSensitive: false), '• ')
+        .replaceAll(RegExp(r'<blockquote[^>]*>', caseSensitive: false), '“ ')
+        .replaceAll(RegExp(r'</blockquote>', caseSensitive: false), ' ”\n')
+        .replaceAll(RegExp(r'&nbsp;', caseSensitive: false), ' ')
+        .replaceAll(RegExp(r'&amp;', caseSensitive: false), '&')
+        .replaceAll(RegExp(r'&lt;', caseSensitive: false), '<')
+        .replaceAll(RegExp(r'&gt;', caseSensitive: false), '>');
+
+    final List<InlineSpan> spans = [];
+    final tagRegex = RegExp(r'<(/?[a-zA-Z0-9]+)[^>]*>');
+    int lastIndex = 0;
+
+    bool isBold = false;
+    bool isItalic = false;
+    bool isUnderline = false;
+    bool isStrike = false;
+    bool isH1 = false;
+    bool isH2 = false;
+
+    for (final match in tagRegex.allMatches(normalized)) {
+      if (match.start > lastIndex) {
+        final text = normalized.substring(lastIndex, match.start);
+        if (text.isNotEmpty) {
+          TextStyle currentStyle = baseStyle;
+          if (isBold) currentStyle = currentStyle.copyWith(fontWeight: FontWeight.bold);
+          if (isItalic) currentStyle = currentStyle.copyWith(fontStyle: FontStyle.italic);
+          if (isH1) currentStyle = currentStyle.copyWith(fontSize: (baseStyle.fontSize ?? 13) * 1.3, fontWeight: FontWeight.bold);
+          if (isH2) currentStyle = currentStyle.copyWith(fontSize: (baseStyle.fontSize ?? 13) * 1.15, fontWeight: FontWeight.bold);
+
+          TextDecoration decoration = TextDecoration.none;
+          if (isUnderline && isStrike) {
+            decoration = TextDecoration.combine([TextDecoration.underline, TextDecoration.lineThrough]);
+          } else if (isUnderline) {
+            decoration = TextDecoration.underline;
+          } else if (isStrike) {
+            decoration = TextDecoration.lineThrough;
+          }
+          currentStyle = currentStyle.copyWith(decoration: decoration);
+
+          spans.add(TextSpan(text: text, style: currentStyle));
+        }
+      }
+
+      final tag = match.group(1)?.toLowerCase() ?? '';
+      switch (tag) {
+        case 'b':
+        case 'strong':
+          isBold = true;
+          break;
+        case '/b':
+        case '/strong':
+          isBold = false;
+          break;
+        case 'i':
+        case 'em':
+          isItalic = true;
+          break;
+        case '/i':
+        case '/em':
+          isItalic = false;
+          break;
+        case 'u':
+          isUnderline = true;
+          break;
+        case '/u':
+          isUnderline = false;
+          break;
+        case 's':
+        case 'strike':
+          isStrike = true;
+          break;
+        case '/s':
+        case '/strike':
+          isStrike = false;
+          break;
+        case 'h1':
+          isH1 = true;
+          break;
+        case '/h1':
+          isH1 = false;
+          break;
+        case 'h2':
+          isH2 = true;
+          break;
+        case '/h2':
+          isH2 = false;
+          break;
+      }
+      lastIndex = match.end;
+    }
+
+    if (lastIndex < normalized.length) {
+      final text = normalized.substring(lastIndex);
+      if (text.isNotEmpty) {
+        spans.add(TextSpan(text: text, style: baseStyle));
+      }
+    }
+
+    return TextSpan(children: spans, style: baseStyle);
+  }
+
   @override
   State<StepReferenceCard> createState() => _StepReferenceCardState();
 }
@@ -49,7 +172,7 @@ class _StepReferenceCardState extends State<StepReferenceCard> with SingleTicker
   void _copyToClipboard() {
     final textToCopy = widget.referenceText;
     if (textToCopy != null && textToCopy.trim().isNotEmpty) {
-      Clipboard.setData(ClipboardData(text: textToCopy));
+      Clipboard.setData(ClipboardData(text: StepReferenceCard.stripHtml(textToCopy)));
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
@@ -70,7 +193,7 @@ class _StepReferenceCardState extends State<StepReferenceCard> with SingleTicker
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final hasText = widget.referenceText != null && widget.referenceText!.trim().isNotEmpty;
+    final hasText = widget.referenceText != null && StepReferenceCard.stripHtml(widget.referenceText!).isNotEmpty;
     final hasChild = widget.child != null;
     final hasContent = hasText || hasChild;
 
@@ -222,12 +345,15 @@ class _StepReferenceCardState extends State<StepReferenceCard> with SingleTicker
                         padding: const EdgeInsets.all(14),
                         child: hasContent
                             ? (widget.child ??
-                                SelectableText(
-                                  widget.referenceText!,
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    height: 1.55,
-                                    color: colorScheme.onSurface,
+                                SelectableText.rich(
+                                  StepReferenceCard.parseHtmlToTextSpan(
+                                    widget.referenceText!,
+                                    TextStyle(
+                                      fontSize: 13,
+                                      height: 1.55,
+                                      fontFamily: widget.language == 'ar' ? 'Cairo' : 'Segoe UI',
+                                      color: colorScheme.onSurface,
+                                    ),
                                   ),
                                 ))
                             : Text(
