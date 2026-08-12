@@ -22,12 +22,19 @@ Crysta/
 ├── README.md                  # Project overview and build instructions
 └── flutter_app/               # Main Flutter application package
     ├── assets/
-    │   └── editor/            # Bundled TipTap rich text editor (HTML/CSS/JS)
+    │   ├── editor/            # Bundled TipTap rich text editor (HTML/CSS/JS)
+    │   └── fonts/             # Bundled offline TrueType fonts (Amiri Regular/Bold/Italic)
     ├── lib/
     │   ├── main.dart          # App entry point, MaterialApp, Theme & Locale state (~80 LOC)
     │   ├── db_service.dart    # Local SQLite database service (sqflite on mobile, sqflite_common_ffi on desktop)
-    │   ├── models.dart        # Core data structures (Novel, Character, Scene, Chapter, StepProgress)
+    │   ├── models.dart        # Core data structures (Novel, Character, Scene, Chapter, StepProgress, BookFormatConfig)
     │   ├── locales.dart       # Bilingual localization dictionary (Arabic RTL & English LTR)
+    │   │
+    │   ├── services/          # Book compilation & publishing engines
+    │   │   ├── book_export_service.dart  # Multi-format export coordinator (EPUB, DOCX, PDF)
+    │   │   ├── pdf_book_builder.dart     # Print-ready PDF compiler with alternating binding gutters & justified text
+    │   │   ├── epub_builder.dart         # Standard EPUB 3 archive builder with RTL metadata
+    │   │   └── docx_builder.dart         # Microsoft Word OpenXML manuscript generator
     │   │
     │   ├── widgets/           # Reusable UI components
     │   │   ├── native_text_editor.dart    # Fallback plain text editor with live word count & RTL handling
@@ -48,7 +55,8 @@ Crysta/
     │               ├── character_bios_tab.dart    # Character sheets (Steps 3, 5, 7)
     │               ├── scene_matrix_tab.dart      # Scene list & outlines (Steps 8, 9)
     │               ├── export_tab.dart            # Complete outline export view (Step 10)
-    │               └── write_novel_tab.dart       # Full chapter drafting and export view
+    │               ├── write_novel_tab.dart       # Full chapter drafting and rich editing (Tab 11)
+    │               └── book_studio_tab.dart       # Book Formatting & Publishing Studio (Tab 12)
     ├── android/               # Android platform target
     ├── windows/               # Windows platform target
     └── pubspec.yaml           # Dependencies & Flutter configuration
@@ -60,6 +68,7 @@ Crysta/
   - **Desktop**: Multi-pane split workspace with resizable main and nested sidebars (1:1 drag tracking, RTL-aware).
 - **Database Architecture**: `db_service.dart` handles database initialization and schema migration, utilizing `sqflite` on mobile devices and `sqflite_common_ffi` on desktop OS targets.
 - **Rich Text Editing**: TipTap-based WebView2 editor (`universal_web_editor.dart`) with bold/italic/heading formatting, debounced Flutter↔JS IPC bridge, momentum trackpad scrolling, and pinch-to-zoom guard. Falls back to a plain `TextField` in test environments. Bundled HTML/CSS/JS assets live in `assets/editor/`.
+- **Book Publishing Studio (`services/`)**: Full-featured publishing suite supporting EPUB 3 (reflowable with RTL/Arabic support), DOCX (OpenXML manuscript layout), and print-ready PDF generation with custom trim sizes, TrueType font embedding, alternating Verso/Recto binding gutters, and justified body text.
 
 ---
 

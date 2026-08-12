@@ -25,13 +25,17 @@ Built 100% in **Flutter & Dart**, Crysta delivers a fast, responsive experience 
 ## ✨ Key Features
 
 - **❄️ 10-Step Snowflake Workflow**: Structured progression from a 15-word hook all the way to complete scene-by-scene narrative drafting.
+- **📚 Book Formatting & Publishing Studio**:
+  - **📱 EPUB 3 Export**: Reflowable eBook publishing with full bilingual RTL metadata (`dir="rtl"`, `xml:lang="ar"`, `page-progression-direction="rtl"`).
+  - **🖨️ Print-Ready PDF Export**: Industry-standard trim sizes (`5x8"`, `5.5x8.5"`, `6x9"`, `4.25x6.87"`, `8.5x11"`), offline TrueType Arabic font embedding (**Amiri**), alternating Verso/Recto binding gutters, and justified body text.
+  - **📝 DOCX Manuscript Export**: Standard Microsoft Word OpenXML manuscript generator.
+  - **📑 Front & Back Matter Suite**: Full support for Title Page, Copyright page, Dedication, Epigraph, Foreword, Epilogue, Acknowledgments, and About the Author.
 - **📱💻 Responsive Master-Detail Design**:
   - **Mobile**: Touch-optimized layout featuring an adaptive Navigation Drawer, stacked metrics, and full-screen drill-down editors with back-button navigation.
   - **Desktop**: Multi-pane desktop workspace with drag-to-resize sidebars and split master-detail views.
 - **💾 Local-First & Private**: Stories are saved in standalone SQLite files (`.crysta`). No accounts, no cloud lock-in, no telemetry.
 - **🌐 Dynamic Bilingual UI (RTL & LTR)**: Native support for Arabic (RTL) and English (LTR) with instant, real-time layout flipping and RTL arrow key navigation.
 - **✏️ Rich Text Editor**: TipTap-based WebView2 editor with bold, italic, and heading formatting, trackpad momentum scrolling, and real-time word count tracking.
-- **📄 Exporting**: Export your novel and structured outlines directly to **`.txt`** and **`.docx`** (Microsoft Word) documents or copy complete Markdown summaries.
 - **🧘 Zen Mode**: Distraction-free fullscreen writing environment.
 - **⌨️ Command Palette**: Keyboard-driven quick-access to all app actions and shortcuts.
 - **🎨 Material 3 Theming**: Built-in Light/Dark themes and dynamic seed color customization.
@@ -48,12 +52,19 @@ Crysta/
 ├── README.md                  # Project overview & documentation
 └── flutter_app/               # Main Flutter application package
     ├── assets/
-    │   └── editor/            # Bundled TipTap rich text editor (HTML/CSS/JS)
+    │   ├── editor/            # Bundled TipTap rich text editor (HTML/CSS/JS)
+    │   └── fonts/             # Bundled offline TrueType fonts (Amiri font family)
     ├── lib/
     │   ├── main.dart          # App entry point & root MaterialApp (~80 LOC)
-    │   ├── models.dart        # Data Models (Novel, Character, Scene, Chapter, StepProgress)
+    │   ├── models.dart        # Data Models (Novel, Character, Scene, Chapter, StepProgress, BookFormatConfig)
     │   ├── db_service.dart    # Native SQLite Engine (sqflite & sqflite_common_ffi)
     │   ├── locales.dart       # Bilingual i18n dictionaries (Arabic RTL & English LTR)
+    │   │
+    │   ├── services/          # Book compilation & publishing engines
+    │   │   ├── book_export_service.dart  # Multi-format export coordinator (EPUB, DOCX, PDF)
+    │   │   ├── pdf_book_builder.dart     # Print-ready PDF compiler with alternating binding gutters & justified text
+    │   │   ├── epub_builder.dart         # Standard EPUB 3 archive builder with RTL metadata
+    │   │   └── docx_builder.dart         # Microsoft Word OpenXML manuscript generator
     │   │
     │   ├── widgets/           # Shared reusable components
     │   │   ├── native_text_editor.dart    # Fallback plain text editor with live word count
@@ -74,7 +85,8 @@ Crysta/
     │               ├── character_bios_tab.dart
     │               ├── scene_matrix_tab.dart
     │               ├── export_tab.dart
-    │               └── write_novel_tab.dart
+    │               ├── write_novel_tab.dart
+    │               └── book_studio_tab.dart
     ├── android/               # Android Platform Target
     ├── windows/               # Windows Platform Target
     └── pubspec.yaml           # Project Dependencies
@@ -142,7 +154,9 @@ Crysta/
 7. **Step 7 — Character Profile Charts**: Detailed character attribute charts and growth trajectories.
 8. **Step 8 — Scene List**: Map out all novel scenes, POV assignments, and target word counts.
 9. **Step 9 — Scene Outlines**: Write detailed narrative action descriptions for each planned scene.
-10. **Step 10 — Write Novel**: Author final novel chapters with real-time target word count progress.
+10. **Step 10 — Outline Export**: Review, copy, and export the complete structured outline.
+11. **Write Novel**: Author and draft full novel chapters with real-time target word count progress.
+12. **Book Studio**: Format and publish professional **EPUB 3**, **DOCX**, and print-ready **PDF** editions.
 
 ---
 
