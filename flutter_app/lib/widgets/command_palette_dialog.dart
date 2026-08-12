@@ -165,6 +165,14 @@ class _CommandPaletteDialogState extends State<CommandPaletteDialog> {
       onExecute: () => widget.onNavigate(11),
     ));
 
+    items.add(CommandPaletteItem(
+      title: t('bookStudioTitle'),
+      subtitle: t('formatAndPublishBtn'),
+      category: CommandCategory.navigation,
+      icon: Icons.auto_stories,
+      onExecute: () => widget.onNavigate(12),
+    ));
+
     // Actions & Tools
     items.add(CommandPaletteItem(
       title: t('cmdForceSave'),

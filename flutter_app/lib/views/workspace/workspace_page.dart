@@ -13,6 +13,7 @@ import '../../repositories/step_repository.dart';
 import '../../repositories/character_repository.dart';
 import '../../repositories/scene_repository.dart';
 import '../../repositories/chapter_repository.dart';
+import '../../repositories/book_format_repository.dart';
 import '../../services/backup_service.dart';
 import '../../widgets/command_palette_dialog.dart';
 import '../../widgets/theme_settings_dialog.dart';
@@ -24,6 +25,7 @@ import 'tabs/character_bios_tab.dart';
 import 'tabs/scene_matrix_tab.dart';
 import 'tabs/export_tab.dart';
 import 'tabs/write_novel_tab.dart';
+import 'tabs/book_studio_tab.dart';
 import 'zen_mode_view.dart';
 
 enum SaveStatus { idle, saving, saved, error }
@@ -66,6 +68,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
   final CharacterRepository _characterRepo = DatabaseService.characterRepository;
   final SceneRepository _sceneRepo = DatabaseService.sceneRepository;
   final ChapterRepository _chapterRepo = DatabaseService.chapterRepository;
+  final BookFormatRepository _bookFormatRepo = DatabaseService.bookFormatRepository;
 
   // Interactive Resizable Panes State
   double _sidebarWidth = 260.0;
@@ -100,6 +103,8 @@ class _WorkspacePageState extends State<WorkspacePage> {
 
   List<Chapter> _chapters = [];
   Chapter? _selectedChapter;
+
+  BookFormatConfig _formatConfig = const BookFormatConfig(novelId: 0);
 
   String t(String key) => Locales.t(key, widget.language);
 
@@ -226,6 +231,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
     await _loadCharacters();
     await _loadScenes();
     await _loadChapters();
+    await _loadFormatConfig();
     await _loadTabContent(_selectedTabIndex);
   }
 
@@ -404,13 +410,23 @@ class _WorkspacePageState extends State<WorkspacePage> {
     } else if (tabIndex == 8 || tabIndex == 9) {
       await _loadScenes();
       await _loadCharacters();
-    } else if (tabIndex == 10) {
+    } else if (tabIndex == 10 || tabIndex == 12) {
       await _loadChapters();
+      await _loadFormatConfig();
     }
 
     setState(() {
       _isLoadingStep = false;
     });
+  }
+
+  Future<void> _loadFormatConfig() async {
+    try {
+      final cfg = await _bookFormatRepo.getFormatConfig(novelId: _activeNovel.id!, novel: _activeNovel);
+      setState(() {
+        _formatConfig = cfg;
+      });
+    } catch (_) {}
   }
 
   Future<void> _saveActiveContent({bool showToast = true}) async {
@@ -1269,6 +1285,8 @@ class _WorkspacePageState extends State<WorkspacePage> {
                 _buildSidebarStepTile(10, t('step10Title'), 10, isMobile: isMobile),
                 const Divider(height: 1),
                 _buildSidebarTile(11, t('writeNovelTitle'), Icons.edit_note, color: Theme.of(context).colorScheme.primary, isMobile: isMobile),
+                const Divider(height: 1),
+                _buildSidebarTile(12, t('bookStudioTitle'), Icons.auto_stories, color: Colors.amber.shade700, isMobile: isMobile),
               ],
             ),
           ),
@@ -1884,6 +1902,25 @@ class _WorkspacePageState extends State<WorkspacePage> {
           onChanged: (val) => _handleContentChanged(),
           entities: _allEntitiesForEditor,
           onInspectEntity: _handleInspectEntity,
+          onOpenBookStudio: () => _navigateToTab(12),
+        );
+      case 12:
+        return BookStudioTab(
+          activeNovel: _activeNovel,
+          chapters: _chapters,
+          config: _formatConfig,
+          onConfigChanged: (cfg) async {
+            setState(() => _formatConfig = cfg);
+            await _bookFormatRepo.saveFormatConfig(config: cfg);
+          },
+          onSave: () async {
+            await _bookFormatRepo.saveFormatConfig(config: _formatConfig);
+            _saveActiveContent(showToast: true);
+          },
+          t: t,
+          language: widget.language,
+          isMobile: isMobile,
+          cleanText: _cleanText,
         );
       default:
         return const Center(child: Text('Unknown tab'));
