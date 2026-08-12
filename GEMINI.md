@@ -21,6 +21,8 @@ Crysta/
 ├── GEMINI.md                  # Project instructions & guidelines for AI assistants
 ├── README.md                  # Project overview and build instructions
 └── flutter_app/               # Main Flutter application package
+    ├── assets/
+    │   └── editor/            # Bundled TipTap rich text editor (HTML/CSS/JS)
     ├── lib/
     │   ├── main.dart          # App entry point, MaterialApp, Theme & Locale state (~80 LOC)
     │   ├── db_service.dart    # Local SQLite database service (sqflite on mobile, sqflite_common_ffi on desktop)
@@ -28,13 +30,18 @@ Crysta/
     │   ├── locales.dart       # Bilingual localization dictionary (Arabic RTL & English LTR)
     │   │
     │   ├── widgets/           # Reusable UI components
-    │   │   ├── native_text_editor.dart    # Native rich text editor with live word count & RTL arrow key handling
-    │   │   └── theme_settings_dialog.dart # Theme customization dialog & helper
+    │   │   ├── native_text_editor.dart    # Fallback plain text editor with live word count & RTL handling
+    │   │   ├── step_reference_card.dart   # Rich text reference preview card (renders HTML from editor)
+    │   │   ├── command_palette_dialog.dart # Keyboard-driven command palette & shortcuts help
+    │   │   ├── theme_settings_dialog.dart  # Theme customization dialog & helper
+    │   │   └── web_editor/
+    │   │       └── universal_web_editor.dart # TipTap WebView2 rich text editor with momentum scrolling
     │   │
     │   └── views/             # Screen views and workspace tab builders
     │       ├── project_manager_page.dart  # Project creation, opening, and recent files list
     │       └── workspace/
     │           ├── workspace_page.dart    # Main workspace shell, drawer, sidebar, and DB synchronization
+    │           ├── zen_mode_view.dart     # Distraction-free fullscreen writing mode
     │           └── tabs/                  # Focused Snowflake step builder tabs
     │               ├── dashboard_tab.dart         # Novel metrics dashboard (Step 0)
     │               ├── step_editor_tab.dart       # Generic text step editor & StepHeaderActions (Steps 1, 2, 4, 6)
@@ -50,9 +57,9 @@ Crysta/
 ### Technical Design Patterns:
 - **Responsive Layout Engine**: Master-Detail pattern adapted per screen form factor:
   - **Mobile**: Touch-optimized adaptive Navigation Drawer, stacked metrics, drill-down editors with back-navigation.
-  - **Desktop**: Multi-pane split workspace with resizable sidebars.
+  - **Desktop**: Multi-pane split workspace with resizable main and nested sidebars (1:1 drag tracking, RTL-aware).
 - **Database Architecture**: `db_service.dart` handles database initialization and schema migration, utilizing `sqflite` on mobile devices and `sqflite_common_ffi` on desktop OS targets.
-- **Native Text Editing & Metrics**: Integrated native text editor with real-time word counting, responsive toolbar/footer, and goal progress bars.
+- **Rich Text Editing**: TipTap-based WebView2 editor (`universal_web_editor.dart`) with bold/italic/heading formatting, debounced Flutter↔JS IPC bridge, momentum trackpad scrolling, and pinch-to-zoom guard. Falls back to a plain `TextField` in test environments. Bundled HTML/CSS/JS assets live in `assets/editor/`.
 
 ---
 

@@ -98,4 +98,34 @@ void main() {
     expect(find.text('Character Reference'), findsOneWidget);
     expect(find.text('Custom Character Details Widget'), findsOneWidget);
   });
+
+  testWidgets('StepReferenceCard renders HTML formatted text and strips tags on copy', (WidgetTester tester) async {
+    const htmlText = 'هذه <b>فقرة</b> <i>ممتدة</i>';
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Padding(
+            padding: const EdgeInsets.all(16),
+            child: StepReferenceCard(
+              title: 'الخطوة السابقة',
+              referenceText: htmlText,
+              isInitiallyExpanded: true,
+              language: 'ar',
+              t: (k) => Locales.t(k, 'ar'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    // Verify rich text is rendered (SelectableText.rich) without raw HTML tags displayed
+    expect(find.byType(SelectableText), findsOneWidget);
+    expect(find.text(htmlText), findsNothing);
+
+    // Verify stripHtml works
+    expect(StepReferenceCard.stripHtml(htmlText), equals('هذه فقرة ممتدة'));
+  });
 }
