@@ -30,8 +30,10 @@ Built 100% in **Flutter & Dart**, Crysta delivers a fast, responsive experience 
   - **Desktop**: Multi-pane desktop workspace with drag-to-resize sidebars and split master-detail views.
 - **💾 Local-First & Private**: Stories are saved in standalone SQLite files (`.crysta`). No accounts, no cloud lock-in, no telemetry.
 - **🌐 Dynamic Bilingual UI (RTL & LTR)**: Native support for Arabic (RTL) and English (LTR) with instant, real-time layout flipping and RTL arrow key navigation.
-- **✏️ Native Text Editor & Live Metrics**: Built-in native editor with live word count tracking, automatic synchronization, and goal progress bars.
+- **✏️ Rich Text Editor**: TipTap-based WebView2 editor with bold, italic, and heading formatting, trackpad momentum scrolling, and real-time word count tracking.
 - **📄 Exporting**: Export your novel and structured outlines directly to **`.txt`** and **`.docx`** (Microsoft Word) documents or copy complete Markdown summaries.
+- **🧘 Zen Mode**: Distraction-free fullscreen writing environment.
+- **⌨️ Command Palette**: Keyboard-driven quick-access to all app actions and shortcuts.
 - **🎨 Material 3 Theming**: Built-in Light/Dark themes and dynamic seed color customization.
 
 ---
@@ -45,6 +47,8 @@ Crysta/
 ├── GEMINI.md                  # Developer guidelines & AI assistant instructions
 ├── README.md                  # Project overview & documentation
 └── flutter_app/               # Main Flutter application package
+    ├── assets/
+    │   └── editor/            # Bundled TipTap rich text editor (HTML/CSS/JS)
     ├── lib/
     │   ├── main.dart          # App entry point & root MaterialApp (~80 LOC)
     │   ├── models.dart        # Data Models (Novel, Character, Scene, Chapter, StepProgress)
@@ -52,13 +56,18 @@ Crysta/
     │   ├── locales.dart       # Bilingual i18n dictionaries (Arabic RTL & English LTR)
     │   │
     │   ├── widgets/           # Shared reusable components
-    │   │   ├── native_text_editor.dart    # Native rich text editor with live word count
-    │   │   └── theme_settings_dialog.dart # Theme customizer modal
+    │   │   ├── native_text_editor.dart    # Fallback plain text editor with live word count
+    │   │   ├── step_reference_card.dart   # Rich text reference preview card
+    │   │   ├── command_palette_dialog.dart # Command palette & keyboard shortcuts
+    │   │   ├── theme_settings_dialog.dart  # Theme customizer modal
+    │   │   └── web_editor/
+    │   │       └── universal_web_editor.dart # TipTap WebView2 rich text editor
     │   │
     │   └── views/             # Screen layouts and Snowflake views
     │       ├── project_manager_page.dart  # Project manager & recent files view
     │       └── workspace/
     │           ├── workspace_page.dart    # Workspace shell, drawer, & sidebar navigation
+    │           ├── zen_mode_view.dart     # Distraction-free fullscreen writing mode
     │           └── tabs/                  # Focused Snowflake step builder tabs
     │               ├── dashboard_tab.dart
     │               ├── step_editor_tab.dart
@@ -71,7 +80,7 @@ Crysta/
     └── pubspec.yaml           # Project Dependencies
 ```
 
-- **Frontend**: Flutter Material 3 with adaptive layouts and modular tabs.
+- **Frontend**: Flutter Material 3 with adaptive layouts, TipTap-based rich text editing via WebView2, and modular tabs.
 - **Database Engine**: `sqflite` (Android/iOS) and `sqflite_common_ffi` (Desktop).
 
 ---
