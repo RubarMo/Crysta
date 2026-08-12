@@ -21,6 +21,8 @@ class WriteNovelTab extends StatefulWidget {
   final bool isMobile;
   final String Function(String) cleanText;
   final ValueChanged<String>? onChanged;
+  final List<Map<String, dynamic>>? entities;
+  final void Function(int? id, String type, String name)? onInspectEntity;
 
   const WriteNovelTab({
     super.key,
@@ -41,6 +43,8 @@ class WriteNovelTab extends StatefulWidget {
     required this.isMobile,
     required this.cleanText,
     this.onChanged,
+    this.entities,
+    this.onInspectEntity,
   });
 
   @override
@@ -189,6 +193,8 @@ class _WriteNovelTabState extends State<WriteNovelTab> {
                               language: widget.language,
                               onChanged: widget.onChanged,
                               onSave: widget.onSaveActiveContent,
+                              entities: widget.entities,
+                              onInspectEntity: widget.onInspectEntity,
                             );
                           },
                         ),
@@ -229,6 +235,8 @@ class _WriteNovelTabState extends State<WriteNovelTab> {
                       wordCountLabel: t('words'),
                       isRtl: widget.language == 'ar',
                       onChanged: widget.onChanged,
+                      entities: widget.entities,
+                      onInspectEntity: widget.onInspectEntity,
                       onOpenZenMode: () {
                         ZenModeView.show(
                           context,
@@ -240,6 +248,8 @@ class _WriteNovelTabState extends State<WriteNovelTab> {
                           language: widget.language,
                           onChanged: widget.onChanged,
                           onSave: widget.onSaveActiveContent,
+                          entities: widget.entities,
+                          onInspectEntity: widget.onInspectEntity,
                         );
                       },
                       zenModeTooltip: t('zenModeBtn'),

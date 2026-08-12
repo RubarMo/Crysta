@@ -18,6 +18,8 @@ class UniversalWebEditor extends StatefulWidget {
   final double? fontSize;
   final bool showToolbar;
   final ValueChanged<String>? onChanged;
+  final List<Map<String, dynamic>>? entities;
+  final void Function(int? id, String type, String name)? onInspectEntity;
 
   const UniversalWebEditor({
     super.key,
@@ -29,13 +31,15 @@ class UniversalWebEditor extends StatefulWidget {
     this.fontSize,
     this.showToolbar = true,
     this.onChanged,
+    this.entities,
+    this.onInspectEntity,
   });
 
   @override
   State<UniversalWebEditor> createState() => _UniversalWebEditorState();
 }
 
-class _UniversalWebEditorState extends State<UniversalWebEditor> with SingleTickerProviderStateMixin {
+class _UniversalWebEditorState extends State<UniversalWebEditor> with TickerProviderStateMixin {
   // Windows Controller
   win.WebviewController? _winController;
   // Mobile Controller
@@ -132,6 +136,9 @@ class _UniversalWebEditorState extends State<UniversalWebEditor> with SingleTick
         oldWidget.showToolbar != widget.showToolbar) {
       _syncThemeToWeb();
     }
+    if (!listEquals(oldWidget.entities, widget.entities)) {
+      _syncEntitiesToWeb();
+    }
   }
 
   @override
@@ -224,6 +231,12 @@ class _UniversalWebEditorState extends State<UniversalWebEditor> with SingleTick
         _isEditorReady = true;
         _syncThemeToWeb();
         _syncContentToWeb();
+        _syncEntitiesToWeb();
+      } else if (type == 'inspect_entity') {
+        final id = data['entityId'] as int?;
+        final entityType = data['entityType'] as String? ?? 'character';
+        final entityName = data['entityName'] as String? ?? '';
+        widget.onInspectEntity?.call(id, entityType, entityName);
       } else if (type == 'content_changed') {
         final html = data['html'] as String? ?? '';
         final text = data['text'] as String? ?? '';
@@ -246,6 +259,12 @@ class _UniversalWebEditorState extends State<UniversalWebEditor> with SingleTick
     } catch (e) {
       debugPrint('Error handling web message: $e');
     }
+  }
+
+  void _syncEntitiesToWeb() {
+    if (_isDisposed || !_isInitialized || !_isEditorReady) return;
+    final list = widget.entities ?? [];
+    _runJs('window.setEntities(${jsonEncode(list)});');
   }
 
   void _syncContentToWeb() {
@@ -324,6 +343,12 @@ class _UniversalWebEditorState extends State<UniversalWebEditor> with SingleTick
 
     if (Platform.isWindows && _winController != null) {
       return Listener(
+        onPointerSignal: (pointerSignal) {
+          if (pointerSignal is PointerScrollEvent) {
+            // Forward mouse wheel to JS scrollEditor which handles popup vs editor routing
+            _scrollBy(pointerSignal.scrollDelta.dy, pointerSignal.scrollDelta.dx);
+          }
+        },
         onPointerPanZoomStart: (event) {
           _isPinching = false;
           _momentumTicker?.stop();

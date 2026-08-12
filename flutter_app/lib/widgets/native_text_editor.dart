@@ -10,6 +10,8 @@ class NativeTextEditor extends StatefulWidget {
   final ValueChanged<String>? onChanged;
   final VoidCallback? onOpenZenMode;
   final String? zenModeTooltip;
+  final List<Map<String, dynamic>>? entities;
+  final void Function(int? id, String type, String name)? onInspectEntity;
 
   const NativeTextEditor({
     super.key,
@@ -21,6 +23,8 @@ class NativeTextEditor extends StatefulWidget {
     this.onChanged,
     this.onOpenZenMode,
     this.zenModeTooltip,
+    this.entities,
+    this.onInspectEntity,
   });
 
   @override
@@ -47,6 +51,8 @@ class _NativeTextEditorState extends State<NativeTextEditor> {
             isRtl: widget.isRtl,
             showToolbar: widget.showToolbar,
             onChanged: widget.onChanged,
+            entities: widget.entities,
+            onInspectEntity: widget.onInspectEntity,
           ),
         ),
         AnimatedBuilder(

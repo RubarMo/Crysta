@@ -247,11 +247,10 @@ class Locales {
       'cmdToggleTheme': 'إعدادات المظهر والسمات',
       'cmdOpenHelp': 'دليل إرشادات طريقة ندفة الثلج (F1)',
       'cmdOpenShortcuts': 'عرض قائمة الاختصارات (Ctrl+/)',
-      'cmdExportDocx': 'تصدير المخطوطة كملف Word (.docx)',
-      'cmdExportTxt': 'تصدير المخطوطة كملف نصي (.txt)',
-      'cmdNewCharacter': 'إضافة شخصية جديدة',
-      'cmdNewScene': 'إضافة مشهد جديد',
-      'cmdNewChapter': 'إضافة فصل جديد',
+      // Character Smart Mentions
+      'smartMentionHint': 'اكتب @ للإشارة التلقائية لشخصية من الشخصيات',
+      'quickInspectorTitle': 'معاينة سريعة للشخصية',
+      'jumpToBioBtn': 'فتح بطاقة الشخصية',
     },
 
     'en': {
@@ -501,11 +500,10 @@ class Locales {
       'cmdToggleTheme': 'Theme & Appearance Settings',
       'cmdOpenHelp': 'Open Snowflake Method Guide (F1)',
       'cmdOpenShortcuts': 'Show Keyboard Shortcuts Reference (Ctrl+/)',
-      'cmdExportDocx': 'Export Manuscript to Word (.docx)',
-      'cmdExportTxt': 'Export Manuscript to Text (.txt)',
-      'cmdNewCharacter': 'Add New Character',
-      'cmdNewScene': 'Add New Scene',
-      'cmdNewChapter': 'Add New Chapter',
+      // Character Smart Mentions
+      'smartMentionHint': 'Type @ to mention a character',
+      'quickInspectorTitle': 'Character Inspector',
+      'jumpToBioBtn': 'Open Character Sheet',
     }
   };
 

@@ -28,6 +28,8 @@ class SceneListMasterDetailTab extends StatefulWidget {
   final bool isMobile;
   final String Function(String) cleanText;
   final ValueChanged<String>? onChanged;
+  final List<Map<String, dynamic>>? entities;
+  final void Function(int? id, String type, String name)? onInspectEntity;
 
   const SceneListMasterDetailTab({
     super.key,
@@ -50,6 +52,8 @@ class SceneListMasterDetailTab extends StatefulWidget {
     required this.isMobile,
     required this.cleanText,
     this.onChanged,
+    this.entities,
+    this.onInspectEntity,
   });
 
   @override
@@ -226,7 +230,19 @@ class _SceneListMasterDetailTabState extends State<SceneListMasterDetailTab> {
                     ),
                   )
                 : ReorderableListView.builder(
-                    buildDefaultDragHandles: true,
+                    buildDefaultDragHandles: false,
+                    proxyDecorator: (Widget child, int index, Animation<double> animation) {
+                      return Directionality(
+                        textDirection: widget.language == 'ar' ? TextDirection.rtl : TextDirection.ltr,
+                        child: Material(
+                          elevation: 6,
+                          shadowColor: Theme.of(context).shadowColor.withValues(alpha: 0.3),
+                          color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                          borderRadius: BorderRadius.circular(8),
+                          child: child,
+                        ),
+                      );
+                    },
                     itemCount: widget.scenes.length,
                     onReorder: (oldIndex, newIndex) {
                       if (newIndex > oldIndex) newIndex -= 1;
@@ -273,10 +289,30 @@ class _SceneListMasterDetailTabState extends State<SceneListMasterDetailTab> {
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(fontSize: 11),
                         ),
-                        trailing: IconButton(
-                          icon: Icon(Icons.delete_outline, color: Theme.of(context).colorScheme.error, size: 16),
-                          onPressed: () => widget.onDeleteScene(scn),
-                          visualDensity: VisualDensity.compact,
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: Icon(Icons.delete_outline, color: Theme.of(context).colorScheme.error, size: 16),
+                              tooltip: t('delete'),
+                              onPressed: () => widget.onDeleteScene(scn),
+                              visualDensity: VisualDensity.compact,
+                            ),
+                            ReorderableDragStartListener(
+                              index: index,
+                              child: MouseRegion(
+                                cursor: SystemMouseCursors.grab,
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                                  child: Icon(
+                                    Icons.drag_indicator,
+                                    size: 18,
+                                    color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                         onTap: () => widget.onSelectScene(scn),
                       );
@@ -366,6 +402,8 @@ class _SceneListMasterDetailTabState extends State<SceneListMasterDetailTab> {
                     wordCountLabel: t('words'),
                     isRtl: widget.language == 'ar',
                     onChanged: widget.onChanged,
+                    entities: widget.entities,
+                    onInspectEntity: widget.onInspectEntity,
                     onOpenZenMode: () {
                       final sceneTitle = widget.selectedScene != null && widget.selectedScene!.setting.isNotEmpty
                           ? widget.selectedScene!.setting
@@ -378,6 +416,8 @@ class _SceneListMasterDetailTabState extends State<SceneListMasterDetailTab> {
                         language: widget.language,
                         onChanged: widget.onChanged,
                         onSave: widget.onSave,
+                        entities: widget.entities,
+                        onInspectEntity: widget.onInspectEntity,
                       );
                     },
                     zenModeTooltip: t('zenModeBtn'),
@@ -1030,6 +1070,8 @@ class SceneNarrativeOutlinesTab extends StatelessWidget {
   final bool isMobile;
   final String Function(String) cleanText;
   final ValueChanged<String>? onChanged;
+  final List<Map<String, dynamic>>? entities;
+  final void Function(int? id, String type, String name)? onInspectEntity;
 
   const SceneNarrativeOutlinesTab({
     super.key,
@@ -1048,6 +1090,8 @@ class SceneNarrativeOutlinesTab extends StatelessWidget {
     required this.isMobile,
     required this.cleanText,
     this.onChanged,
+    this.entities,
+    this.onInspectEntity,
   });
 
   @override
@@ -1160,6 +1204,8 @@ class SceneNarrativeOutlinesTab extends StatelessWidget {
                           language: language,
                           onChanged: onChanged,
                           onSave: onSave,
+                          entities: entities,
+                          onInspectEntity: onInspectEntity,
                         );
                       }
                     : null,
@@ -1216,6 +1262,8 @@ class SceneNarrativeOutlinesTab extends StatelessWidget {
                             wordCountLabel: t('words'),
                             isRtl: language == 'ar',
                             onChanged: onChanged,
+                            entities: entities,
+                            onInspectEntity: onInspectEntity,
                             onOpenZenMode: () {
                               final sceneTitle = selectedScene != null && selectedScene!.setting.isNotEmpty
                                   ? selectedScene!.setting
@@ -1228,6 +1276,8 @@ class SceneNarrativeOutlinesTab extends StatelessWidget {
                                 language: language,
                                 onChanged: onChanged,
                                 onSave: onSave,
+                                entities: entities,
+                                onInspectEntity: onInspectEntity,
                               );
                             },
                             zenModeTooltip: t('zenModeBtn'),
