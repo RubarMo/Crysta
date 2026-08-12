@@ -15,10 +15,47 @@ snowflake_data.db
 # Flutter, Dart & Pub build artifacts
 **/doc/api/
 **/.dart_tool/
+**/.flutter-plugins
 **/.flutter-plugins-dependencies
+**/.packages
 **/.pub-cache/
 **/.pub/
 **/build/
 **/coverage/
 app.*.symbols
 app.*.map.json
+
+# Web generated files
+**/lib/generated_plugin_registrant.dart
+
+# Windows generated files
+**/windows/flutter/ephemeral/
+**/windows/flutter/generated_plugin_registrant.cc
+**/windows/flutter/generated_plugin_registrant.h
+**/windows/flutter/generated_plugins.cmake
+
+# Linux generated files
+**/linux/flutter/ephemeral/
+**/linux/flutter/generated_plugin_registrant.cc
+**/linux/flutter/generated_plugin_registrant.h
+**/linux/flutter/generated_plugins.cmake
+
+# macOS generated files
+**/macos/Flutter/ephemeral/
+**/macos/Flutter/GeneratedPluginRegistrant.swift
+
+# iOS generated files
+**/ios/Flutter/ephemeral/
+**/ios/Flutter/GeneratedPluginRegistrant.h
+**/ios/Flutter/GeneratedPluginRegistrant.m
+**/ios/Flutter/flutter_export_environment.sh
+**/ios/Flutter/Generated.xcconfig
+**/ios/.symlinks/
+**/ios/Pods/
+**/ios/Podfile.lock
+
+# Android generated files
+**/android/local.properties
+**/android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java
+**/android/.gradle/
+**/android/captures/
