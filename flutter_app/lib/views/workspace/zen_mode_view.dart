@@ -13,6 +13,8 @@ class ZenModeView extends StatefulWidget {
   final String language;
   final ValueChanged<String>? onChanged;
   final VoidCallback? onSave;
+  final List<Map<String, dynamic>>? entities;
+  final void Function(int? id, String type, String name)? onInspectEntity;
 
   const ZenModeView({
     super.key,
@@ -22,6 +24,8 @@ class ZenModeView extends StatefulWidget {
     required this.language,
     this.onChanged,
     this.onSave,
+    this.entities,
+    this.onInspectEntity,
   });
 
   static Future<void> show(
@@ -32,6 +36,8 @@ class ZenModeView extends StatefulWidget {
     required String language,
     ValueChanged<String>? onChanged,
     VoidCallback? onSave,
+    List<Map<String, dynamic>>? entities,
+    void Function(int? id, String type, String name)? onInspectEntity,
   }) {
     return Navigator.of(context, rootNavigator: true).push(
       PageRouteBuilder(
@@ -48,6 +54,8 @@ class ZenModeView extends StatefulWidget {
               language: language,
               onChanged: onChanged,
               onSave: onSave,
+              entities: entities,
+              onInspectEntity: onInspectEntity,
             ),
           );
         },
@@ -208,6 +216,8 @@ class _ZenModeViewState extends State<ZenModeView> {
                           backgroundColor: bgColor,
                           textColor: textColor,
                           fontSize: _fontSize,
+                          entities: widget.entities,
+                          onInspectEntity: widget.onInspectEntity,
                           onChanged: (val) {
                             _onUserActivity();
                             widget.onChanged?.call(val);

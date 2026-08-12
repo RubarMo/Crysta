@@ -73,6 +73,8 @@ class StepEditorTab extends StatelessWidget {
   final String language;
   final bool isMobile;
   final ValueChanged<String>? onChanged;
+  final List<Map<String, dynamic>>? entities;
+  final void Function(int? id, String type, String name)? onInspectEntity;
 
   const StepEditorTab({
     super.key,
@@ -89,6 +91,8 @@ class StepEditorTab extends StatelessWidget {
     required this.language,
     required this.isMobile,
     this.onChanged,
+    this.entities,
+    this.onInspectEntity,
   });
 
   void _openZenMode(BuildContext context) {
@@ -100,6 +104,8 @@ class StepEditorTab extends StatelessWidget {
       language: language,
       onChanged: onChanged,
       onSave: onSave,
+      entities: entities,
+      onInspectEntity: onInspectEntity,
     );
   }
 
@@ -168,6 +174,8 @@ class StepEditorTab extends StatelessWidget {
                 onChanged: onChanged,
                 onOpenZenMode: () => _openZenMode(context),
                 zenModeTooltip: t('zenModeBtn'),
+                entities: entities,
+                onInspectEntity: onInspectEntity,
               ),
             ),
           )

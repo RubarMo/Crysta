@@ -16,6 +16,7 @@ import '../../repositories/chapter_repository.dart';
 import '../../services/backup_service.dart';
 import '../../widgets/command_palette_dialog.dart';
 import '../../widgets/theme_settings_dialog.dart';
+import '../../widgets/entity_inspector_dialog.dart';
 
 import 'tabs/dashboard_tab.dart';
 import 'tabs/step_editor_tab.dart';
@@ -99,7 +100,6 @@ class _WorkspacePageState extends State<WorkspacePage> {
 
   List<Chapter> _chapters = [];
   Chapter? _selectedChapter;
-  bool _isModalDialogOpen = false;
 
   String t(String key) => Locales.t(key, widget.language);
 
@@ -131,7 +131,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
 
   bool _handleGlobalHardwareKey(KeyEvent event) {
     if (event is! KeyDownEvent) return false;
-    if (_isModalDialogOpen) return false;
+    if (!mounted || ModalRoute.of(context)?.isCurrent != true) return false;
 
     final isCtrl = HardwareKeyboard.instance.isControlPressed;
     final isMeta = HardwareKeyboard.instance.isMetaPressed;
@@ -227,6 +227,87 @@ class _WorkspacePageState extends State<WorkspacePage> {
     await _loadScenes();
     await _loadChapters();
     await _loadTabContent(_selectedTabIndex);
+  }
+
+  List<Map<String, dynamic>> get _allEntitiesForEditor {
+    final list = <Map<String, dynamic>>[];
+    for (final c in _characters) {
+      list.add({
+        'id': c.id,
+        'name': c.name,
+        'type': 'character',
+        'summary': c.goal.isNotEmpty ? c.goal : c.motivation,
+      });
+    }
+    for (int i = 0; i < _scenes.length; i++) {
+      final s = _scenes[i];
+      final label = s.setting.isNotEmpty ? s.setting : '${t('step8Title')} #${i + 1}';
+      list.add({
+        'id': s.id,
+        'name': label,
+        'type': 'scene',
+        'summary': s.plotThread.isNotEmpty ? s.plotThread : '${t('sceneSettingCol')}: $label',
+      });
+    }
+    for (final ch in _chapters) {
+      list.add({
+        'id': ch.id,
+        'name': ch.title,
+        'type': 'chapter',
+        'summary': '${t('chapterTitleLabel')} ${ch.sortOrder}',
+      });
+    }
+    return list;
+  }
+
+  void _handleInspectEntity(int? id, String type, String name) {
+    if (id == null && name.isEmpty) return;
+
+    if (type == 'scene') {
+      final scn = _scenes.firstWhere(
+        (s) => (id != null && s.id == id) || s.setting.toLowerCase() == name.toLowerCase(),
+        orElse: () => _scenes.isNotEmpty ? _scenes.first : Scene(novelId: _activeNovel.id!, setting: name, plotThread: '', whatHappens: '', expectedWordCount: 0, actualWordCount: 0),
+      );
+      _navigateToTab(8, scene: scn);
+      return;
+    }
+
+    if (type == 'chapter') {
+      final chap = _chapters.firstWhere(
+        (c) => (id != null && c.id == id) || c.title.toLowerCase() == name.toLowerCase(),
+        orElse: () => _chapters.isNotEmpty ? _chapters.first : Chapter(novelId: _activeNovel.id!, title: name, content: '', sortOrder: 1),
+      );
+      _navigateToTab(11, chapter: chap);
+      return;
+    }
+
+    final char = _characters.firstWhere(
+      (c) => (id != null && c.id == id) || c.name.toLowerCase() == name.toLowerCase(),
+      orElse: () => Character(
+        novelId: _activeNovel.id!,
+        name: name,
+        motivation: '',
+        goal: '',
+        conflict: '',
+        epiphany: '',
+        oneParagraphSummary: '',
+        fullSynopsis: '',
+      ),
+    );
+
+    showDialog(
+      context: context,
+      builder: (ctx) => Directionality(
+        textDirection: widget.language == 'ar' ? TextDirection.rtl : TextDirection.ltr,
+        child: EntityInspectorDialog(
+          character: char,
+          language: widget.language,
+          onOpenFullProfile: () {
+            _navigateToTab(3, character: char);
+          },
+        ),
+      ),
+    );
   }
 
   Future<void> _loadStepsProgress() async {
@@ -507,8 +588,6 @@ class _WorkspacePageState extends State<WorkspacePage> {
   }
 
   void _showBackupsHistoryDialog() {
-    if (_isModalDialogOpen) return;
-    _isModalDialogOpen = true;
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
@@ -625,9 +704,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
           );
         },
       ),
-    ).then((_) {
-      _isModalDialogOpen = false;
-    });
+    );
   }
 
   void _showTakeSnapshotDialog() {
@@ -695,9 +772,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
           ],
         ),
       ),
-    ).then((_) {
-      _isModalDialogOpen = false;
-    });
+    );
   }
 
   void _confirmDeleteDialog({
@@ -705,8 +780,6 @@ class _WorkspacePageState extends State<WorkspacePage> {
     required String itemName,
     required VoidCallback onConfirm,
   }) {
-    if (_isModalDialogOpen) return;
-    _isModalDialogOpen = true;
     showDialog(
       context: context,
       builder: (context) => Directionality(
@@ -721,7 +794,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
           ),
           content: Text(
             widget.language == 'ar'
-                ? 'هل أنت تأكد من حذف "$itemName"؟ لا يمكن التراجع عن هذا الإجراء.'
+                ? 'هل أنت متأكد من حذف "$itemName"؟ لا يمكن التراجع عن هذا الإجراء.'
                 : 'Are you sure you want to delete "$itemName"? This action cannot be undone.',
           ),
           actions: [
@@ -743,9 +816,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
           ],
         ),
       ),
-    ).then((_) {
-      _isModalDialogOpen = false;
-    });
+    );
   }
 
   int _getStepNumberForTab(int tabIndex) {
@@ -816,8 +887,6 @@ class _WorkspacePageState extends State<WorkspacePage> {
   }
 
   void _openCharacterDialog([Character? existing]) {
-    if (_isModalDialogOpen) return;
-    _isModalDialogOpen = true;
     final nameCtrl = TextEditingController(text: existing?.name ?? '');
     final motCtrl = TextEditingController(text: existing?.motivation ?? '');
     final goalCtrl = TextEditingController(text: existing?.goal ?? '');
@@ -870,9 +939,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
           ),
         );
       },
-    ).then((_) {
-      _isModalDialogOpen = false;
-    });
+    );
   }
 
   Future<void> _loadScenes() async {
@@ -908,8 +975,6 @@ class _WorkspacePageState extends State<WorkspacePage> {
   }
 
   void _openSceneMetadataDialog([Scene? existing]) {
-    if (_isModalDialogOpen) return;
-    _isModalDialogOpen = true;
     int? selectedPovId = existing?.povCharacterId;
     final settingCtrl = TextEditingController(text: existing?.setting ?? '');
     final plotCtrl = TextEditingController(text: existing?.plotThread ?? '');
@@ -1073,8 +1138,6 @@ class _WorkspacePageState extends State<WorkspacePage> {
   }
 
   void _showHelpModal() {
-    if (_isModalDialogOpen) return;
-    _isModalDialogOpen = true;
     showDialog(
       context: context,
       builder: (context) => Directionality(
@@ -1111,9 +1174,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
           ],
         ),
       ),
-    ).then((_) {
-      _isModalDialogOpen = false;
-    });
+    );
   }
 
   Widget _buildHelpStepItem(String titleKey, String descKey) {
@@ -1262,8 +1323,6 @@ class _WorkspacePageState extends State<WorkspacePage> {
   }
 
   void _openCommandPalette() {
-    if (_isModalDialogOpen) return;
-    _isModalDialogOpen = true;
     CommandPaletteDialog.show(
       context: context,
       language: widget.language,
@@ -1277,17 +1336,11 @@ class _WorkspacePageState extends State<WorkspacePage> {
       onTriggerAction: (actionId) {
         _handlePaletteAction(actionId);
       },
-    ).then((_) {
-      _isModalDialogOpen = false;
-    });
+    );
   }
 
   void _showShortcutsModal() {
-    if (_isModalDialogOpen) return;
-    _isModalDialogOpen = true;
-    KeyboardShortcutsHelpDialog.show(context, widget.language, t).then((_) {
-      _isModalDialogOpen = false;
-    });
+    KeyboardShortcutsHelpDialog.show(context, widget.language, t);
   }
 
   void _handlePaletteAction(String actionId) {
@@ -1305,11 +1358,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
         _openActiveZenMode();
         break;
       case 'theme':
-        if (_isModalDialogOpen) return;
-        _isModalDialogOpen = true;
-        showThemeSettingsDialog(context, widget.currentThemeMode, widget.currentSeedColor, widget.useDynamicColor, widget.onThemeSettingsChanged, t).then((_) {
-          _isModalDialogOpen = false;
-        });
+        showThemeSettingsDialog(context, widget.currentThemeMode, widget.currentSeedColor, widget.useDynamicColor, widget.onThemeSettingsChanged, t);
         break;
       case 'language':
         widget.onLanguageToggle();
@@ -1426,19 +1475,17 @@ class _WorkspacePageState extends State<WorkspacePage> {
     }
 
     if (ctrl != null) {
-      if (_isModalDialogOpen) return;
-      _isModalDialogOpen = true;
       ZenModeView.show(
         context,
         title: title,
         controller: ctrl,
         t: t,
         language: widget.language,
+        entities: _allEntitiesForEditor,
+        onInspectEntity: _handleInspectEntity,
         onChanged: (val) => _handleContentChanged(),
         onSave: () => _saveActiveContent(showToast: true),
-      ).then((_) {
-        _isModalDialogOpen = false;
-      });
+      );
     }
   }
 
@@ -1572,6 +1619,8 @@ class _WorkspacePageState extends State<WorkspacePage> {
           language: widget.language,
           isMobile: isMobile,
           onChanged: (val) => _handleContentChanged(),
+          entities: _allEntitiesForEditor,
+          onInspectEntity: _handleInspectEntity,
         );
       case 2:
         return StepEditorTab(
@@ -1588,6 +1637,8 @@ class _WorkspacePageState extends State<WorkspacePage> {
           language: widget.language,
           isMobile: isMobile,
           onChanged: (val) => _handleContentChanged(),
+          entities: _allEntitiesForEditor,
+          onInspectEntity: _handleInspectEntity,
         );
       case 3:
         return CharacterBiosTab(
@@ -1615,6 +1666,8 @@ class _WorkspacePageState extends State<WorkspacePage> {
           language: widget.language,
           isMobile: isMobile,
           onChanged: (val) => _handleContentChanged(),
+          entities: _allEntitiesForEditor,
+          onInspectEntity: _handleInspectEntity,
         );
       case 4:
         return StepEditorTab(
@@ -1631,6 +1684,8 @@ class _WorkspacePageState extends State<WorkspacePage> {
           language: widget.language,
           isMobile: isMobile,
           onChanged: (val) => _handleContentChanged(),
+          entities: _allEntitiesForEditor,
+          onInspectEntity: _handleInspectEntity,
         );
       case 5:
         return CharacterPovSynopsesTab(
@@ -1657,6 +1712,8 @@ class _WorkspacePageState extends State<WorkspacePage> {
           isMobile: isMobile,
           cleanText: _cleanText,
           onChanged: (val) => _handleContentChanged(),
+          entities: _allEntitiesForEditor,
+          onInspectEntity: _handleInspectEntity,
         );
       case 6:
         return StepEditorTab(
@@ -1673,6 +1730,8 @@ class _WorkspacePageState extends State<WorkspacePage> {
           language: widget.language,
           isMobile: isMobile,
           onChanged: (val) => _handleContentChanged(),
+          entities: _allEntitiesForEditor,
+          onInspectEntity: _handleInspectEntity,
         );
       case 7:
         return DetailedCharacterChartsTab(
@@ -1703,6 +1762,8 @@ class _WorkspacePageState extends State<WorkspacePage> {
           isMobile: isMobile,
           cleanText: _cleanText,
           onChanged: (val) => _handleContentChanged(),
+          entities: _allEntitiesForEditor,
+          onInspectEntity: _handleInspectEntity,
         );
       case 8:
         return SceneListMasterDetailTab(
@@ -1741,6 +1802,8 @@ class _WorkspacePageState extends State<WorkspacePage> {
           isMobile: isMobile,
           cleanText: _cleanText,
           onChanged: (val) => _handleContentChanged(),
+          entities: _allEntitiesForEditor,
+          onInspectEntity: _handleInspectEntity,
         );
       case 9:
         return SceneNarrativeOutlinesTab(
@@ -1772,6 +1835,8 @@ class _WorkspacePageState extends State<WorkspacePage> {
           isMobile: isMobile,
           cleanText: _cleanText,
           onChanged: (val) => _handleContentChanged(),
+          entities: _allEntitiesForEditor,
+          onInspectEntity: _handleInspectEntity,
         );
       case 10:
         return ExportTab(
@@ -1817,6 +1882,8 @@ class _WorkspacePageState extends State<WorkspacePage> {
           isMobile: isMobile,
           cleanText: _cleanText,
           onChanged: (val) => _handleContentChanged(),
+          entities: _allEntitiesForEditor,
+          onInspectEntity: _handleInspectEntity,
         );
       default:
         return const Center(child: Text('Unknown tab'));
@@ -1898,11 +1965,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
             ),
             IconButton(
               onPressed: () {
-                if (_isModalDialogOpen) return;
-                _isModalDialogOpen = true;
-                showThemeSettingsDialog(context, widget.currentThemeMode, widget.currentSeedColor, widget.useDynamicColor, widget.onThemeSettingsChanged, t).then((_) {
-                  _isModalDialogOpen = false;
-                });
+                showThemeSettingsDialog(context, widget.currentThemeMode, widget.currentSeedColor, widget.useDynamicColor, widget.onThemeSettingsChanged, t);
               },
               icon: const Icon(Icons.palette),
               tooltip: t('appearance'),

@@ -21,6 +21,8 @@ class CharacterBiosTab extends StatefulWidget {
   final String language;
   final bool isMobile;
   final ValueChanged<String>? onChanged;
+  final List<Map<String, dynamic>>? entities;
+  final void Function(int? id, String type, String name)? onInspectEntity;
 
   const CharacterBiosTab({
     super.key,
@@ -39,6 +41,8 @@ class CharacterBiosTab extends StatefulWidget {
     required this.language,
     required this.isMobile,
     this.onChanged,
+    this.entities,
+    this.onInspectEntity,
   });
 
   @override
@@ -170,6 +174,8 @@ class _CharacterBiosTabState extends State<CharacterBiosTab> {
                           language: widget.language,
                           onChanged: widget.onChanged,
                           onSave: widget.onSave,
+                          entities: widget.entities,
+                          onInspectEntity: widget.onInspectEntity,
                         );
                       }
                     : null,
@@ -233,6 +239,8 @@ class _CharacterBiosTabState extends State<CharacterBiosTab> {
                             wordCountLabel: t('words'),
                             isRtl: widget.language == 'ar',
                             onChanged: widget.onChanged,
+                            entities: widget.entities,
+                            onInspectEntity: widget.onInspectEntity,
                             onOpenZenMode: () {
                               ZenModeView.show(
                                 context,
@@ -242,6 +250,8 @@ class _CharacterBiosTabState extends State<CharacterBiosTab> {
                                 language: widget.language,
                                 onChanged: widget.onChanged,
                                 onSave: widget.onSave,
+                                entities: widget.entities,
+                                onInspectEntity: widget.onInspectEntity,
                               );
                             },
                             zenModeTooltip: t('zenModeBtn'),
@@ -301,6 +311,8 @@ class CharacterPovSynopsesTab extends StatelessWidget {
   final bool isMobile;
   final String Function(String) cleanText;
   final ValueChanged<String>? onChanged;
+  final List<Map<String, dynamic>>? entities;
+  final void Function(int? id, String type, String name)? onInspectEntity;
 
   const CharacterPovSynopsesTab({
     super.key,
@@ -318,6 +330,8 @@ class CharacterPovSynopsesTab extends StatelessWidget {
     required this.isMobile,
     required this.cleanText,
     this.onChanged,
+    this.entities,
+    this.onInspectEntity,
   });
 
   @override
@@ -425,6 +439,8 @@ class CharacterPovSynopsesTab extends StatelessWidget {
                           language: language,
                           onChanged: onChanged,
                           onSave: onSave,
+                          entities: entities,
+                          onInspectEntity: onInspectEntity,
                         );
                       }
                     : null,
@@ -461,6 +477,8 @@ class CharacterPovSynopsesTab extends StatelessWidget {
                             wordCountLabel: t('words'),
                             isRtl: language == 'ar',
                             onChanged: onChanged,
+                            entities: entities,
+                            onInspectEntity: onInspectEntity,
                             onOpenZenMode: () {
                               ZenModeView.show(
                                 context,
@@ -470,6 +488,8 @@ class CharacterPovSynopsesTab extends StatelessWidget {
                                 language: language,
                                 onChanged: onChanged,
                                 onSave: onSave,
+                                entities: entities,
+                                onInspectEntity: onInspectEntity,
                               );
                             },
                             zenModeTooltip: t('zenModeBtn'),
@@ -529,6 +549,8 @@ class DetailedCharacterChartsTab extends StatelessWidget {
   final bool isMobile;
   final String Function(String) cleanText;
   final ValueChanged<String>? onChanged;
+  final List<Map<String, dynamic>>? entities;
+  final void Function(int? id, String type, String name)? onInspectEntity;
 
   const DetailedCharacterChartsTab({
     super.key,
@@ -546,6 +568,8 @@ class DetailedCharacterChartsTab extends StatelessWidget {
     required this.isMobile,
     required this.cleanText,
     this.onChanged,
+    this.entities,
+    this.onInspectEntity,
   });
 
   @override
@@ -653,6 +677,8 @@ class DetailedCharacterChartsTab extends StatelessWidget {
                           language: language,
                           onChanged: onChanged,
                           onSave: onSave,
+                          entities: entities,
+                          onInspectEntity: onInspectEntity,
                         );
                       }
                     : null,
@@ -689,6 +715,8 @@ class DetailedCharacterChartsTab extends StatelessWidget {
                             wordCountLabel: t('words'),
                             isRtl: language == 'ar',
                             onChanged: onChanged,
+                            entities: entities,
+                            onInspectEntity: onInspectEntity,
                             onOpenZenMode: () {
                               ZenModeView.show(
                                 context,
@@ -698,6 +726,8 @@ class DetailedCharacterChartsTab extends StatelessWidget {
                                 language: language,
                                 onChanged: onChanged,
                                 onSave: onSave,
+                                entities: entities,
+                                onInspectEntity: onInspectEntity,
                               );
                             },
                             zenModeTooltip: t('zenModeBtn'),
