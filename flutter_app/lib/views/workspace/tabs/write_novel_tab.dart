@@ -23,6 +23,7 @@ class WriteNovelTab extends StatefulWidget {
   final ValueChanged<String>? onChanged;
   final List<Map<String, dynamic>>? entities;
   final void Function(int? id, String type, String name)? onInspectEntity;
+  final VoidCallback? onOpenBookStudio;
 
   const WriteNovelTab({
     super.key,
@@ -45,6 +46,7 @@ class WriteNovelTab extends StatefulWidget {
     this.onChanged,
     this.entities,
     this.onInspectEntity,
+    this.onOpenBookStudio,
   });
 
   @override
@@ -204,6 +206,14 @@ class _WriteNovelTabState extends State<WriteNovelTab> {
                           icon: const Icon(Icons.save, size: 16),
                           label: Text(t('save')),
                         ),
+                        if (widget.onOpenBookStudio != null) ...[
+                          const SizedBox(width: 6),
+                          FilledButton.tonalIcon(
+                            onPressed: widget.onOpenBookStudio,
+                            icon: const Icon(Icons.auto_stories, size: 16),
+                            label: Text(t('formatAndPublishBtn')),
+                          ),
+                        ],
                         const SizedBox(width: 6),
                         OutlinedButton.icon(
                           onPressed: () => widget.onExportDocument('txt'),

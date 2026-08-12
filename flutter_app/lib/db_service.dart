@@ -6,6 +6,7 @@ import 'repositories/step_repository.dart';
 import 'repositories/character_repository.dart';
 import 'repositories/scene_repository.dart';
 import 'repositories/chapter_repository.dart';
+import 'repositories/book_format_repository.dart';
 
 class DatabaseService {
   static Database? _db;
@@ -25,6 +26,7 @@ class DatabaseService {
   static final CharacterRepository characterRepository = CharacterRepository();
   static final SceneRepository sceneRepository = SceneRepository();
   static final ChapterRepository chapterRepository = ChapterRepository();
+  static final BookFormatRepository bookFormatRepository = BookFormatRepository();
 
   static void init() {
     if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
@@ -108,6 +110,50 @@ class DatabaseService {
             FOREIGN KEY (novel_id) REFERENCES novels(id) ON DELETE CASCADE
           )
         ''');
+
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS book_formatting (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            novel_id INTEGER NOT NULL,
+            has_title_page INTEGER NOT NULL DEFAULT 1,
+            subtitle TEXT NOT NULL DEFAULT '',
+            author_name TEXT NOT NULL DEFAULT '',
+            publisher_name TEXT NOT NULL DEFAULT '',
+            has_copyright_page INTEGER NOT NULL DEFAULT 1,
+            copyright_year TEXT NOT NULL DEFAULT '',
+            isbn TEXT NOT NULL DEFAULT '',
+            edition_notice TEXT NOT NULL DEFAULT 'First Edition',
+            has_dedication INTEGER NOT NULL DEFAULT 0,
+            dedication_text TEXT NOT NULL DEFAULT '',
+            has_epigraph INTEGER NOT NULL DEFAULT 0,
+            epigraph_quote TEXT NOT NULL DEFAULT '',
+            epigraph_author TEXT NOT NULL DEFAULT '',
+            has_table_of_contents INTEGER NOT NULL DEFAULT 1,
+            has_foreword INTEGER NOT NULL DEFAULT 0,
+            foreword_title TEXT NOT NULL DEFAULT 'Foreword',
+            foreword_content TEXT NOT NULL DEFAULT '',
+            has_epilogue INTEGER NOT NULL DEFAULT 0,
+            epilogue_title TEXT NOT NULL DEFAULT 'Epilogue',
+            epilogue_content TEXT NOT NULL DEFAULT '',
+            has_acknowledgments INTEGER NOT NULL DEFAULT 0,
+            acknowledgments_content TEXT NOT NULL DEFAULT '',
+            has_about_author INTEGER NOT NULL DEFAULT 0,
+            about_author_bio TEXT NOT NULL DEFAULT '',
+            preset_theme TEXT NOT NULL DEFAULT 'classic',
+            trim_size TEXT NOT NULL DEFAULT 'us_trade_6x9',
+            font_family TEXT NOT NULL DEFAULT 'Garamond',
+            font_size REAL NOT NULL DEFAULT 11.0,
+            line_spacing REAL NOT NULL DEFAULT 1.3,
+            first_line_indent INTEGER NOT NULL DEFAULT 1,
+            first_paragraph_drop_cap INTEGER NOT NULL DEFAULT 0,
+            chapter_numbering_style TEXT NOT NULL DEFAULT 'number_title',
+            scene_break_ornament TEXT NOT NULL DEFAULT '* * *',
+            header_verso TEXT NOT NULL DEFAULT 'title',
+            header_recto TEXT NOT NULL DEFAULT 'chapter',
+            include_page_numbers INTEGER NOT NULL DEFAULT 1,
+            FOREIGN KEY (novel_id) REFERENCES novels(id) ON DELETE CASCADE
+          )
+        ''');
       },
     );
 
@@ -116,6 +162,51 @@ class DatabaseService {
     // Non-destructive schema migration for existing project databases
     try {
       await _db!.execute('ALTER TABLE scenes ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0;');
+    } catch (_) {}
+    try {
+      await _db!.execute('''
+        CREATE TABLE IF NOT EXISTS book_formatting (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          novel_id INTEGER NOT NULL,
+          has_title_page INTEGER NOT NULL DEFAULT 1,
+          subtitle TEXT NOT NULL DEFAULT '',
+          author_name TEXT NOT NULL DEFAULT '',
+          publisher_name TEXT NOT NULL DEFAULT '',
+          has_copyright_page INTEGER NOT NULL DEFAULT 1,
+          copyright_year TEXT NOT NULL DEFAULT '',
+          isbn TEXT NOT NULL DEFAULT '',
+          edition_notice TEXT NOT NULL DEFAULT 'First Edition',
+          has_dedication INTEGER NOT NULL DEFAULT 0,
+          dedication_text TEXT NOT NULL DEFAULT '',
+          has_epigraph INTEGER NOT NULL DEFAULT 0,
+          epigraph_quote TEXT NOT NULL DEFAULT '',
+          epigraph_author TEXT NOT NULL DEFAULT '',
+          has_table_of_contents INTEGER NOT NULL DEFAULT 1,
+          has_foreword INTEGER NOT NULL DEFAULT 0,
+          foreword_title TEXT NOT NULL DEFAULT 'Foreword',
+          foreword_content TEXT NOT NULL DEFAULT '',
+          has_epilogue INTEGER NOT NULL DEFAULT 0,
+          epilogue_title TEXT NOT NULL DEFAULT 'Epilogue',
+          epilogue_content TEXT NOT NULL DEFAULT '',
+          has_acknowledgments INTEGER NOT NULL DEFAULT 0,
+          acknowledgments_content TEXT NOT NULL DEFAULT '',
+          has_about_author INTEGER NOT NULL DEFAULT 0,
+          about_author_bio TEXT NOT NULL DEFAULT '',
+          preset_theme TEXT NOT NULL DEFAULT 'classic',
+          trim_size TEXT NOT NULL DEFAULT 'us_trade_6x9',
+          font_family TEXT NOT NULL DEFAULT 'Garamond',
+          font_size REAL NOT NULL DEFAULT 11.0,
+          line_spacing REAL NOT NULL DEFAULT 1.3,
+          first_line_indent INTEGER NOT NULL DEFAULT 1,
+          first_paragraph_drop_cap INTEGER NOT NULL DEFAULT 0,
+          chapter_numbering_style TEXT NOT NULL DEFAULT 'number_title',
+          scene_break_ornament TEXT NOT NULL DEFAULT '* * *',
+          header_verso TEXT NOT NULL DEFAULT 'title',
+          header_recto TEXT NOT NULL DEFAULT 'chapter',
+          include_page_numbers INTEGER NOT NULL DEFAULT 1,
+          FOREIGN KEY (novel_id) REFERENCES novels(id) ON DELETE CASCADE
+        );
+      ''');
     } catch (_) {}
 
     final novels = await novelRepository.getNovels();
