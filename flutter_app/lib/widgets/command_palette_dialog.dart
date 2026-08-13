@@ -700,6 +700,7 @@ class KeyboardShortcutsHelpDialog extends StatelessWidget {
       _ShortcutGroup(
         title: isRtl ? 'الإجراءات السريعة والتحرير' : 'Quick Creation & Editing',
         items: [
+          _ShortcutEntry(['Ctrl', 'Shift', 'R'], isRtl ? 'إظهار / إخفاء درج المراجع (في كتابة الفصول)' : 'Toggle Reference Drawer (in Novel Drafting)'),
           _ShortcutEntry(['Ctrl', 'N'], isRtl ? 'إضافة عنصر سياقي (فصل/مشهد/شخصية)' : 'Context-Aware New (Chapter/Scene/Char)'),
           _ShortcutEntry(['Esc'], isRtl ? 'الخروج من النوافذ ولوحة الأوامر' : 'Exit dialogs, palette, or Zen Mode'),
         ],

@@ -1903,6 +1903,10 @@ class _WorkspacePageState extends State<WorkspacePage> {
           entities: _allEntitiesForEditor,
           onInspectEntity: _handleInspectEntity,
           onOpenBookStudio: () => _navigateToTab(12),
+          characters: _characters,
+          scenes: _scenes,
+          allStepsProgress: _allStepsProgress,
+          getStepContentText: _getStepContentText,
         );
       case 12:
         return BookStudioTab(

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../../models.dart';
 import '../../../widgets/native_text_editor.dart';
+import '../../../widgets/reference_drawer_panel.dart';
+import '../../../widgets/web_editor/universal_web_editor.dart';
 import '../zen_mode_view.dart';
 
 class WriteNovelTab extends StatefulWidget {
@@ -24,6 +27,10 @@ class WriteNovelTab extends StatefulWidget {
   final List<Map<String, dynamic>>? entities;
   final void Function(int? id, String type, String name)? onInspectEntity;
   final VoidCallback? onOpenBookStudio;
+  final List<Character> characters;
+  final List<Scene> scenes;
+  final List<StepProgress> allStepsProgress;
+  final String Function(int) getStepContentText;
 
   const WriteNovelTab({
     super.key,
@@ -47,6 +54,10 @@ class WriteNovelTab extends StatefulWidget {
     this.entities,
     this.onInspectEntity,
     this.onOpenBookStudio,
+    this.characters = const [],
+    this.scenes = const [],
+    this.allStepsProgress = const [],
+    required this.getStepContentText,
   });
 
   @override
@@ -54,10 +65,97 @@ class WriteNovelTab extends StatefulWidget {
 }
 
 class _WriteNovelTabState extends State<WriteNovelTab> {
+  bool _isReferenceDrawerOpen = false;
+  double _referenceDrawerWidth = 320.0;
+  final TextEditingController _scratchpadCtrl = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    HardwareKeyboard.instance.addHandler(_handleKeyEvent);
+  }
+
+  @override
+  void dispose() {
+    HardwareKeyboard.instance.removeHandler(_handleKeyEvent);
+    _scratchpadCtrl.dispose();
+    super.dispose();
+  }
+
+  bool _handleKeyEvent(KeyEvent event) {
+    if (event is! KeyDownEvent) return false;
+    if (!mounted || ModalRoute.of(context)?.isCurrent != true) return false;
+
+    final isCtrl = HardwareKeyboard.instance.isControlPressed;
+    final isMeta = HardwareKeyboard.instance.isMetaPressed;
+    final isShift = HardwareKeyboard.instance.isShiftPressed;
+    final key = event.logicalKey;
+
+    // Ctrl+Shift+R -> Toggle Reference Drawer
+    if ((isCtrl || isMeta) && isShift && key == LogicalKeyboardKey.keyR) {
+      _toggleReferenceDrawer();
+      return true;
+    }
+    return false;
+  }
+
+  void _toggleReferenceDrawer() {
+    if (widget.isMobile) {
+      _showMobileReferenceDrawer(context);
+    } else {
+      setState(() {
+        _isReferenceDrawerOpen = !_isReferenceDrawerOpen;
+      });
+    }
+  }
+
+  void _handleInsertText(String text) {
+    // 1. Dispatch directly to web/native editor at current cursor position
+    UniversalWebEditor.insertTextAtCursor(text);
+
+    // 2. Also ensure database persistence is updated
+    if (widget.selectedChapter != null) {
+      Future.delayed(const Duration(milliseconds: 150), () {
+        if (!mounted || widget.selectedChapter == null) return;
+        final updated = widget.selectedChapter!.copyWith(content: widget.chapterCtrl.text);
+        widget.onSaveChapter(updated);
+        widget.onChanged?.call(widget.chapterCtrl.text);
+      });
+    }
+  }
+
+  void _showMobileReferenceDrawer(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (ctx) {
+        return SizedBox(
+          height: MediaQuery.of(ctx).size.height * 0.85,
+          child: ReferenceDrawerPanel(
+            scenes: widget.scenes,
+            characters: widget.characters,
+            allStepsProgress: widget.allStepsProgress,
+            getStepContentText: widget.getStepContentText,
+            t: widget.t,
+            language: widget.language,
+            onClose: () => Navigator.of(ctx).pop(),
+            onInsertText: (text) {
+              _handleInsertText(text);
+              Navigator.of(ctx).pop();
+            },
+            scratchpadController: _scratchpadCtrl,
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = widget.t;
     final isMobile = widget.isMobile;
+    final isRtl = widget.language == 'ar';
 
     Widget listPane = Card(
       margin: isMobile ? EdgeInsets.zero : const EdgeInsets.all(8),
@@ -135,7 +233,7 @@ class _WriteNovelTabState extends State<WriteNovelTab> {
     Widget detailPane = widget.selectedChapter == null
         ? Center(child: Text(t('selectChapterPlaceholder')))
         : Padding(
-            padding: EdgeInsets.all(isMobile ? 12 : 20),
+            padding: EdgeInsets.all(isMobile ? 12 : 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -175,65 +273,75 @@ class _WriteNovelTabState extends State<WriteNovelTab> {
                 const SizedBox(height: 8),
                 Align(
                   alignment: AlignmentDirectional.centerEnd,
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: AlignmentDirectional.centerEnd,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.self_improvement, size: 20),
-                          tooltip: t('zenModeBtn'),
-                          onPressed: () {
-                            ZenModeView.show(
-                              context,
-                              title: widget.chapterTitleCtrl.text.isNotEmpty
-                                  ? widget.chapterTitleCtrl.text
-                                  : t('writeNovelTitle'),
-                              controller: widget.chapterCtrl,
-                              t: t,
-                              language: widget.language,
-                              onChanged: widget.onChanged,
-                              onSave: widget.onSaveActiveContent,
-                              entities: widget.entities,
-                              onInspectEntity: widget.onInspectEntity,
-                            );
-                          },
-                        ),
-                        const SizedBox(width: 4),
-                        ElevatedButton.icon(
-                          onPressed: () => widget.onSaveActiveContent(),
-                          icon: const Icon(Icons.save, size: 16),
-                          label: Text(t('save')),
-                        ),
-                        if (widget.onOpenBookStudio != null) ...[
-                          const SizedBox(width: 6),
-                          FilledButton.tonalIcon(
-                            onPressed: widget.onOpenBookStudio,
-                            icon: const Icon(Icons.auto_stories, size: 16),
-                            label: Text(t('formatAndPublishBtn')),
+                  child: Wrap(
+                    alignment: WrapAlignment.end,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: [
+                      Tooltip(
+                        message: t('toggleReferenceDrawer'),
+                        child: FilledButton.tonalIcon(
+                          onPressed: _toggleReferenceDrawer,
+                          icon: Icon(
+                            _isReferenceDrawerOpen ? Icons.auto_stories : Icons.auto_stories_outlined,
+                            size: 16,
                           ),
-                        ],
-                        const SizedBox(width: 6),
-                        OutlinedButton.icon(
-                          onPressed: () => widget.onExportDocument('txt'),
-                          icon: const Icon(Icons.article, size: 16),
-                          label: Text(t('exportTxtBtn')),
+                          label: Text(t('referenceDrawerTitle')),
+                          style: _isReferenceDrawerOpen
+                              ? FilledButton.styleFrom(
+                                  backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                                  foregroundColor: Theme.of(context).colorScheme.onPrimaryContainer,
+                                )
+                              : null,
                         ),
-                        const SizedBox(width: 6),
-                        OutlinedButton.icon(
-                          onPressed: () => widget.onExportDocument('docx'),
-                          icon: const Icon(Icons.description, size: 16),
-                          label: Text(t('exportDocxBtn')),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.self_improvement, size: 20),
+                        tooltip: t('zenModeBtn'),
+                        onPressed: () {
+                          ZenModeView.show(
+                            context,
+                            title: widget.chapterTitleCtrl.text.isNotEmpty
+                                ? widget.chapterTitleCtrl.text
+                                : t('writeNovelTitle'),
+                            controller: widget.chapterCtrl,
+                            t: t,
+                            language: widget.language,
+                            onChanged: widget.onChanged,
+                            onSave: widget.onSaveActiveContent,
+                            entities: widget.entities,
+                            onInspectEntity: widget.onInspectEntity,
+                          );
+                        },
+                      ),
+                      ElevatedButton.icon(
+                        onPressed: () => widget.onSaveActiveContent(),
+                        icon: const Icon(Icons.save, size: 16),
+                        label: Text(t('save')),
+                      ),
+                      if (widget.onOpenBookStudio != null)
+                        FilledButton.tonalIcon(
+                          onPressed: widget.onOpenBookStudio,
+                          icon: const Icon(Icons.auto_stories, size: 16),
+                          label: Text(t('formatAndPublishBtn')),
                         ),
-                        const SizedBox(width: 4),
-                        IconButton(
-                          onPressed: () => widget.onDeleteChapter(widget.selectedChapter!),
-                          icon: Icon(Icons.delete, color: Theme.of(context).colorScheme.error),
-                          tooltip: t('delete'),
-                        ),
-                      ],
-                    ),
+                      OutlinedButton.icon(
+                        onPressed: () => widget.onExportDocument('txt'),
+                        icon: const Icon(Icons.article, size: 16),
+                        label: Text(t('exportTxtBtn')),
+                      ),
+                      OutlinedButton.icon(
+                        onPressed: () => widget.onExportDocument('docx'),
+                        icon: const Icon(Icons.description, size: 16),
+                        label: Text(t('exportDocxBtn')),
+                      ),
+                      IconButton(
+                        onPressed: () => widget.onDeleteChapter(widget.selectedChapter!),
+                        icon: Icon(Icons.delete, color: Theme.of(context).colorScheme.error),
+                        tooltip: t('delete'),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -276,8 +384,12 @@ class _WriteNovelTabState extends State<WriteNovelTab> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final maxListWidth = (constraints.maxWidth - 460.0).clamp(200.0, 360.0);
-        final effectiveListWidth = widget.listPaneWidth.clamp(200.0, maxListWidth);
+        final availableWidth = constraints.maxWidth;
+        final maxListWidth = (availableWidth - 500.0).clamp(180.0, 340.0);
+        final effectiveListWidth = widget.listPaneWidth.clamp(180.0, maxListWidth);
+
+        final maxDrawerWidth = (availableWidth - effectiveListWidth - 320.0).clamp(240.0, 480.0);
+        final effectiveDrawerWidth = _referenceDrawerWidth.clamp(240.0, maxDrawerWidth);
 
         return Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -305,6 +417,44 @@ class _WriteNovelTabState extends State<WriteNovelTab> {
                 child: detailPane,
               ),
             ),
+            if (_isReferenceDrawerOpen) ...[
+              MouseRegion(
+                cursor: SystemMouseCursors.resizeColumn,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.translucent,
+                  onHorizontalDragUpdate: (details) {
+                    setState(() {
+                      final delta = isRtl ? details.delta.dx : -details.delta.dx;
+                      _referenceDrawerWidth = (_referenceDrawerWidth + delta).clamp(240.0, 500.0);
+                    });
+                  },
+                  child: Container(
+                    width: 8,
+                    color: Colors.transparent,
+                    child: Center(
+                      child: Container(
+                        width: 2,
+                        color: Theme.of(context).dividerColor.withValues(alpha: 0.5),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(
+                width: effectiveDrawerWidth,
+                child: ReferenceDrawerPanel(
+                  scenes: widget.scenes,
+                  characters: widget.characters,
+                  allStepsProgress: widget.allStepsProgress,
+                  getStepContentText: widget.getStepContentText,
+                  t: t,
+                  language: widget.language,
+                  onClose: () => setState(() => _isReferenceDrawerOpen = false),
+                  onInsertText: _handleInsertText,
+                  scratchpadController: _scratchpadCtrl,
+                ),
+              ),
+            ],
           ],
         );
       },
