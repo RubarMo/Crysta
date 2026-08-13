@@ -35,6 +35,14 @@ class UniversalWebEditor extends StatefulWidget {
     this.onInspectEntity,
   });
 
+  static final StreamController<String> _insertTextStreamController =
+      StreamController<String>.broadcast();
+
+  /// Programmatically insert text at the current cursor/caret position in the active editor.
+  static void insertTextAtCursor(String text) {
+    _insertTextStreamController.add(text);
+  }
+
   @override
   State<UniversalWebEditor> createState() => _UniversalWebEditorState();
 }
@@ -44,6 +52,7 @@ class _UniversalWebEditorState extends State<UniversalWebEditor> with TickerProv
   win.WebviewController? _winController;
   // Mobile Controller
   mobile.WebViewController? _mobileController;
+  StreamSubscription<String>? _insertTextSubscription;
 
   Ticker? _momentumTicker;
   VelocityTracker? _velocityTracker;
@@ -102,6 +111,26 @@ class _UniversalWebEditorState extends State<UniversalWebEditor> with TickerProv
     super.initState();
     _lastKnownText = widget.controller.text;
     widget.controller.addListener(_onControllerChanged);
+    _insertTextSubscription = UniversalWebEditor._insertTextStreamController.stream.listen((text) {
+      if (_isDisposed) return;
+      if (_isTestEnvironment || _hasInitError || !_isInitialized || !_isEditorReady) {
+        final currentText = widget.controller.text;
+        final sel = widget.controller.selection;
+        if (sel.isValid && sel.start >= 0 && sel.end <= currentText.length) {
+          final newText = currentText.replaceRange(sel.start, sel.end, text);
+          widget.controller.value = TextEditingValue(
+            text: newText,
+            selection: TextSelection.collapsed(offset: sel.start + text.length),
+          );
+        } else {
+          final newText = currentText.isEmpty ? text.trim() : '$currentText$text';
+          widget.controller.text = newText;
+        }
+        widget.onChanged?.call(widget.controller.text);
+        return;
+      }
+      _runJs('if (window.insertTextAtCursor) { window.insertTextAtCursor(${jsonEncode(text)}); }');
+    });
     if (!_isTestEnvironment) {
       _initWebView();
     }
@@ -145,6 +174,7 @@ class _UniversalWebEditorState extends State<UniversalWebEditor> with TickerProv
   void dispose() {
     _isDisposed = true;
     _momentumTicker?.dispose();
+    _insertTextSubscription?.cancel();
     widget.controller.removeListener(_onControllerChanged);
     _winController?.dispose();
     super.dispose();

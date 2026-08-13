@@ -123,12 +123,29 @@
     lastMouseY = e.clientY;
   }, { passive: true });
 
+  let lastSavedRange = null;
+  function saveCurrentSelection() {
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0) {
+      const range = sel.getRangeAt(0);
+      if (editor.contains(range.commonAncestorContainer) || range.commonAncestorContainer === editor) {
+        lastSavedRange = range.cloneRange();
+      }
+    }
+  }
+
   editor.addEventListener('input', () => {
+    saveCurrentSelection();
     notifyFlutter(false);
     requestToolbarUpdate();
     checkMentionTrigger();
   });
+  editor.addEventListener('keyup', saveCurrentSelection);
+  editor.addEventListener('mouseup', saveCurrentSelection);
+  editor.addEventListener('touchend', saveCurrentSelection);
+
   editor.addEventListener('blur', () => {
+    saveCurrentSelection();
     notifyFlutter(true);
     setTimeout(() => {
       if (mentionPopup && mentionPopup.style.display === 'block') {
@@ -145,6 +162,7 @@
     }, 250);
   });
   document.addEventListener('selectionchange', () => {
+    saveCurrentSelection();
     requestToolbarUpdate();
   });
 
@@ -584,6 +602,52 @@
       container.scrollTop += dy;
       if (dx) container.scrollLeft += dx;
     }
+  };
+
+  window.insertTextAtCursor = function (text) {
+    if (!text) return;
+    editor.focus();
+    const sel = window.getSelection();
+    let range = null;
+
+    if (lastSavedRange) {
+      range = lastSavedRange.cloneRange();
+      sel.removeAllRanges();
+      sel.addRange(range);
+    } else if (sel && sel.rangeCount > 0) {
+      range = sel.getRangeAt(0);
+    }
+
+    if (range && (editor.contains(range.commonAncestorContainer) || range.commonAncestorContainer === editor)) {
+      range.deleteContents();
+      
+      const cleanText = text.replace(/^\n+/, '').replace(/\n+$/, '');
+      const lines = cleanText.split('\n');
+      const frag = document.createDocumentFragment();
+      for (let i = 0; i < lines.length; i++) {
+        if (i > 0) {
+          frag.appendChild(document.createElement('br'));
+        }
+        if (lines[i].length > 0) {
+          frag.appendChild(document.createTextNode(lines[i]));
+        }
+      }
+      // Insert with surrounding space or spacing if needed
+      const nodeToInsert = frag.hasChildNodes() ? frag : document.createTextNode(cleanText);
+      range.insertNode(nodeToInsert);
+      
+      range.collapse(false);
+      sel.removeAllRanges();
+      sel.addRange(range);
+      lastSavedRange = range.cloneRange();
+    } else {
+      const p = document.createElement('p');
+      p.innerText = text.trim();
+      editor.appendChild(p);
+    }
+
+    notifyFlutter(true);
+    updateToolbarStates();
   };
 
 
