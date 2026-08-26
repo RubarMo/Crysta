@@ -1,0 +1,12 @@
+# Normalize line endings to LF across all operating systems
+* text=auto eol=lf
+*.toml text eol=lf
+*.json text eol=lf
+*.rs text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.css text eol=lf
+*.html text eol=lf
+*.md text eol=lf
+*.cjs text eol=lf
+*.lock text eol=lf
