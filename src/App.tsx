@@ -7,6 +7,19 @@ import { check } from "@tauri-apps/plugin-updater";
 import { relaunch, exit } from "@tauri-apps/plugin-process";
 import { onBackButtonPress } from "@tauri-apps/api/app";
 import { 
+  Menu, 
+  Sparkles, 
+  FolderOpen, 
+  Plus, 
+  HelpCircle, 
+  X, 
+  BookOpen, 
+  RefreshCw, 
+  FileCode,
+  FolderKanban,
+  Clock
+} from 'lucide-react';
+import { 
   Novel, 
   StepProgress, 
   getStepsProgress,
@@ -16,7 +29,6 @@ import {
   openProject,
   closeProject
 } from "./lib";
-
 
 interface RecentProject {
   path: string;
@@ -114,7 +126,6 @@ function App() {
       }
     };
   }, []);
-
 
   // Check for updates on startup
   useEffect(() => {
@@ -315,8 +326,8 @@ function App() {
   const activeNovel = novels.find(n => n.id === activeNovelId) || null;
 
   return (
-    <div className="flex h-screen app-container bg-m3-background text-m3-on-surface overflow-hidden font-cairo select-none">
-      {/* Sidebar (Navigation) */}
+    <div className="flex h-screen app-container bg-[var(--bg-canvas)] text-[var(--text-primary)] overflow-hidden select-none">
+      {/* Sidebar Navigation */}
       <Sidebar
         novel={activeNovel}
         activeProjectPath={activeProjectPath}
@@ -324,73 +335,81 @@ function App() {
         activeStep={activeStep}
         onSelectStep={(step) => {
           setActiveStep(step);
-          setIsSidebarOpen(false); // Close drawer on step select on mobile
+          setIsSidebarOpen(false);
         }}
         stepsProgress={stepsProgress}
         isSidebarOpen={isSidebarOpen}
         onCloseSidebar={() => setIsSidebarOpen(false)}
       />
 
-      {/* Backdrop dimming overlay on mobile */}
+      {/* Backdrop Dimming on Mobile */}
       {isSidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/40 z-30 md:hidden"
+          className="fixed inset-0 bg-black/60 z-30 md:hidden backdrop-blur-xs"
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
 
-      {/* Main workspace */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden">
-        {/* Top bar with Toggle / Logo (M3 Top App Bar: subtle elevation / outline variant) */}
-        <header className="h-16 border-b border-m3-outline-variant bg-m3-background px-6 flex items-center justify-between shrink-0">
+      {/* Main Container */}
+      <div className="flex-1 flex flex-col h-full overflow-hidden min-w-0">
+        {/* Top Header App Bar */}
+        <header className="h-16 border-b-3 border-[var(--border-ink)] bg-[var(--bg-surface)] px-4 sm:px-6 flex items-center justify-between shrink-0 z-10">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsSidebarOpen(true)}
-              className="relative overflow-hidden md:hidden p-1.5 text-m3-on-surface-variant hover:text-m3-on-surface hover:bg-m3-surface-variant/40 rounded-full cursor-pointer transition-colors flex items-center justify-center"
+              className="md:hidden p-1.5 text-[var(--text-primary)] border-2 border-[var(--border-ink)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-yellow)] hover:text-black active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center justify-center"
               title={t("openSidebar")}
+              aria-label="Open sidebar"
             >
-              <span className="material-symbols-rounded text-sm block">menu</span>
-              <md-ripple></md-ripple>
+              <Menu className="w-4 h-4" />
             </button>
-            <span 
-              onClick={handleCloseProject}
-              className="font-bold text-base tracking-wide text-m3-on-surface cursor-pointer hover:opacity-80 transition-opacity font-cairo"
-            >
-              {t("appName")}
-            </span>
+
+            {/* Brand Title */}
+            <div className="flex items-center gap-2 select-none">
+              <span className="p-1 bg-[var(--pastel-yellow)] text-black border-2 border-[var(--border-ink)] shadow-[2px_2px_0px_var(--shadow-ink)] flex items-center justify-center">
+                <Sparkles className="w-4 h-4" />
+              </span>
+              <span className="font-display font-extrabold text-base sm:text-lg tracking-tight text-[var(--text-primary)]">
+                {t("appName")}
+              </span>
+            </div>
+
             {activeNovelId !== null && (
               <button
                 onClick={handleCloseProject}
-                className="relative overflow-hidden text-[10px] px-3 py-1 border border-m3-outline-variant hover:bg-m3-surface-variant/40 text-m3-on-surface-variant rounded-full transition-colors cursor-pointer font-cairo font-semibold whitespace-nowrap shrink-0"
+                className="inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1 border-2 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] text-[var(--text-secondary)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-yellow)] hover:text-black hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer font-heading font-bold whitespace-nowrap"
               >
-                {t("projectsBtn")}
-                <md-ripple></md-ripple>
+                <FolderKanban className="w-3.5 h-3.5" />
+                <span>{t("projectsBtn")}</span>
               </button>
             )}
           </div>
           
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
             {errorMessage && (
-              <span className="text-xs text-rose-500 bg-rose-50 dark:bg-rose-950/20 px-3 py-1 rounded-full">
-                {t("error")}: {errorMessage}
+              <span className="text-[11px] font-bold text-black bg-[var(--pastel-coral)] border-2 border-[var(--border-ink)] px-2.5 py-1 shadow-[2px_2px_0px_var(--shadow-ink)] truncate max-w-[200px]">
+                {errorMessage}
               </span>
             )}
             <button
               onClick={() => setShowHelpModal(true)}
-              className="relative overflow-hidden text-xs px-4 py-1.5 border border-m3-outline text-m3-primary hover:bg-m3-primary/10 transition-colors font-bold rounded-full cursor-pointer font-cairo whitespace-nowrap shrink-0"
+              className="inline-flex items-center gap-1 text-xs px-3 py-1.5 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[3px_3px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-yellow)] hover:text-black hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_var(--shadow-ink)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all font-heading font-black cursor-pointer whitespace-nowrap"
             >
-              {t("helpGuideBtn")}
-              <md-ripple></md-ripple>
+              <HelpCircle className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">{t("helpGuideBtn")}</span>
             </button>
             <ThemeToggle />
           </div>
         </header>
 
-        {/* Content area */}
-        <main className="flex-1 overflow-hidden bg-m3-background flex flex-col min-h-0">
+        {/* Workspace or Projects Launcher */}
+        <main className="flex-1 overflow-hidden bg-[var(--bg-canvas)] flex flex-col min-h-0">
           {loading ? (
-            <div className="h-full flex items-center justify-center text-xs text-m3-on-surface-variant">
-              {t("loadingProjectFile")}
+            <div className="h-full flex flex-col items-center justify-center gap-3 text-xs font-heading font-bold text-[var(--text-secondary)]">
+              <div className="p-3 bg-[var(--pastel-yellow)] text-black border-3 border-[var(--border-ink)] shadow-[4px_4px_0px_var(--shadow-ink)] animate-bounce">
+                <RefreshCw className="w-6 h-6 animate-spin" />
+              </div>
+              <p>{t("loadingProjectFile")}</p>
             </div>
           ) : activeNovel ? (
             <Workspace
@@ -401,74 +420,97 @@ function App() {
               activeStep={activeStep}
             />
           ) : (
-            <div className="flex-1 overflow-y-auto w-full max-w-4xl mx-auto p-8 space-y-8 fade-in font-cairo select-text">
-              {/* Header */}
-              <div className="border-b border-m3-outline-variant pb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div className="min-w-0 pr-4">
-                  <h1 className="text-2xl font-black text-m3-on-surface font-cairo">{t("appName")}</h1>
-                  <p className="text-m3-on-surface-variant text-xs mt-1 font-cairo font-medium truncate" title={t("appTagline")}>{t("appTagline")}</p>
+            <div className="flex-1 overflow-y-auto w-full max-w-4xl mx-auto p-6 sm:p-8 space-y-8 select-text nb-dots">
+              {/* Hero Banner */}
+              <div className="bg-[var(--bg-surface)] border-3 border-[var(--border-ink)] shadow-[6px_6px_0px_var(--shadow-ink)] p-6 sm:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                <div className="space-y-2 min-w-0 flex-1">
+                  <h1 className="text-2xl sm:text-4xl font-display font-black text-[var(--text-primary)] leading-tight">
+                    {t("appName")}
+                  </h1>
+                  <p className="text-xs sm:text-sm font-body font-medium text-[var(--text-secondary)] leading-relaxed max-w-xl">
+                    {t("appTagline")}
+                  </p>
                 </div>
-                <div className="flex gap-2 shrink-0">
+                
+                {/* Primary Action Buttons */}
+                <div className="flex flex-col sm:flex-row gap-3 shrink-0 w-full sm:w-auto">
                   <button
                     onClick={handleOpenFileDialog}
-                    className="relative overflow-hidden flex items-center justify-center text-xs px-6 py-2.5 border border-m3-outline text-m3-primary hover:bg-m3-primary/10 font-bold rounded-full cursor-pointer transition-colors font-cairo whitespace-nowrap shrink-0"
+                    className="inline-flex items-center justify-center gap-2 px-5 py-3 text-xs font-heading font-black border-3 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[4px_4px_0px_var(--shadow-ink)] hover:bg-[var(--bg-surface-hover)] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0px_var(--shadow-ink)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer select-none"
                   >
+                    <FolderOpen className="w-4 h-4 stroke-[2.5]" />
                     <span>{t("openProjectBtn")}</span>
-                    <md-ripple></md-ripple>
                   </button>
                   <button
                     onClick={handleCreateFileDialog}
-                    className="relative overflow-hidden flex items-center justify-center gap-2 text-xs px-6 py-2.5 bg-m3-primary hover:opacity-90 text-m3-on-primary font-bold rounded-full cursor-pointer transition-all font-cairo shadow-sm whitespace-nowrap shrink-0"
+                    className="inline-flex items-center justify-center gap-2 px-5 py-3 text-xs font-heading font-black border-3 border-[var(--border-ink)] bg-[var(--accent)] text-black shadow-[4px_4px_0px_var(--shadow-ink)] hover:bg-[var(--accent-hover)] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0px_var(--shadow-ink)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer select-none"
                   >
-                    <span className="material-symbols-rounded text-[18px]">add</span>
+                    <Plus className="w-4 h-4 stroke-[3]" />
                     <span>{t("createProjectBtn")}</span>
-                    <md-ripple></md-ripple>
                   </button>
                 </div>
               </div>
 
               {/* Recent Projects List */}
               <div className="space-y-4">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-m3-on-surface-variant">{t("recentProjectsTitle")}</h3>
+                <div className="flex items-center justify-between border-b-2 border-[var(--border-subtle)] pb-2">
+                  <h3 className="text-xs font-heading font-black uppercase tracking-wider text-[var(--text-secondary)]">
+                    {t("recentProjectsTitle")}
+                  </h3>
+                  <span className="font-mono text-[11px] font-bold text-[var(--text-muted)]">
+                    {recentProjects.length} {language === 'ar' ? 'مشاريع' : 'projects'}
+                  </span>
+                </div>
+
                 {recentProjects.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-20 text-center space-y-4 border border-dashed border-m3-outline-variant rounded-2xl bg-m3-surface/50">
-                    <span className="material-symbols-rounded text-4xl text-m3-on-surface-variant/40">library_books</span>
-                    <h2 className="text-sm font-bold text-m3-on-surface font-cairo">{t("noRecentProjectsTitle")}</h2>
-                    <p className="text-xs text-m3-on-surface-variant max-w-xs leading-relaxed font-cairo font-semibold text-center">
+                  <div className="flex flex-col items-center justify-center py-16 text-center space-y-3 border-3 border-dashed border-[var(--border-ink)] bg-[var(--bg-surface)] p-6">
+                    <div className="p-3 bg-[var(--pastel-sky)] text-black border-2 border-[var(--border-ink)] shadow-[3px_3px_0px_var(--shadow-ink)]">
+                      <BookOpen className="w-8 h-8" />
+                    </div>
+                    <h2 className="text-sm font-heading font-black text-[var(--text-primary)]">
+                      {t("noRecentProjectsTitle")}
+                    </h2>
+                    <p className="text-xs font-body text-[var(--text-secondary)] max-w-sm leading-relaxed">
                       {t("noRecentProjectsDesc")}
                     </p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 gap-3">
+                  <div className="grid grid-cols-1 gap-3.5">
                     {recentProjects.map((project) => (
                       <div 
                         key={project.path}
                         onClick={() => handleOpenProjectPath(project.path)}
-                        className="bg-m3-surface p-4 border border-m3-outline-variant hover:border-m3-primary rounded-2xl cursor-pointer transition-all flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 group relative select-text"
+                        className="bg-[var(--bg-surface)] p-4 sm:p-5 border-3 border-[var(--border-ink)] shadow-[4px_4px_0px_var(--shadow-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[7px_7px_0px_var(--shadow-ink)] cursor-pointer transition-all flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 select-text group"
                       >
-                        <div className="space-y-1 min-w-0 flex-1 pe-4 text-start">
-                          <h4 className="text-sm font-bold text-m3-on-surface group-hover:text-m3-primary transition-colors font-cairo">
-                            {project.title}
-                          </h4>
-                          <p className="text-[10px] text-m3-on-surface-variant font-mono truncate w-full select-all" dir="ltr" title={project.path}>
+                        <div className="space-y-1.5 min-w-0 flex-1 pe-4 text-start">
+                          <div className="flex items-center gap-2">
+                            <span className="p-1 bg-[var(--pastel-sky)] text-black border border-[var(--border-ink)] shadow-[1px_1px_0px_var(--shadow-ink)] shrink-0">
+                              <FileCode className="w-3.5 h-3.5" />
+                            </span>
+                            <h4 className="text-sm font-heading font-black text-[var(--text-primary)] group-hover:text-[var(--pastel-yellow)] transition-colors truncate">
+                              {project.title}
+                            </h4>
+                          </div>
+                          <p className="text-[10px] text-[var(--text-muted)] font-mono truncate w-full select-all" dir="ltr" title={project.path}>
                             {project.path}
                           </p>
                         </div>
                         
-                        <div className="flex items-center gap-4 shrink-0 sm:self-center self-end">
-                          <span className="text-[10px] text-m3-on-surface-variant font-semibold">
-                            {t("openedLabel")} {new Date(project.lastOpened).toLocaleDateString(language === "ar" ? "ar-EG" : "en-US", { day: "numeric", month: "short", year: "numeric" })}
+                        <div className="flex items-center gap-3 shrink-0 sm:self-center self-end">
+                          <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold text-[var(--text-secondary)] bg-[var(--bg-surface-raised)] border border-[var(--border-ink)] px-2 py-1">
+                            <Clock className="w-3 h-3" />
+                            <span>{new Date(project.lastOpened).toLocaleDateString(language === "ar" ? "ar-EG" : "en-US", { day: "numeric", month: "short", year: "numeric" })}</span>
                           </span>
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               removeRecentProject(project.path);
                             }}
-                            className="relative overflow-hidden p-1.5 text-m3-on-surface-variant hover:text-rose-500 opacity-100 rounded-full cursor-pointer flex items-center justify-center"
+                            className="p-1.5 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--pastel-coral)] hover:text-black shadow-[2px_2px_0px_var(--shadow-ink)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center justify-center"
                             title={t("removeFromList")}
+                            aria-label="Remove recent project"
                           >
-                            <span className="material-symbols-rounded text-sm">close</span>
-                            <md-ripple></md-ripple>
+                            <X className="w-3.5 h-3.5 stroke-[2.5]" />
                           </button>
                         </div>
                       </div>
@@ -481,91 +523,71 @@ function App() {
         </main>
       </div>
 
-      {/* Help Modal (M3 dialog: rounded-3xl and bg-m3-surface) */}
+      {/* Help Modal */}
       {showHelpModal && (
         <div 
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 font-cairo select-text"
+          className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 select-text"
           onClick={() => setShowHelpModal(false)}
         >
           <div 
-            className="bg-m3-surface border border-m3-outline-variant rounded-3xl max-w-2xl w-full max-h-[85vh] overflow-y-auto p-6 shadow-2xl relative"
+            className="bg-[var(--bg-surface)] border-4 border-[var(--border-ink)] shadow-[12px_12px_0px_var(--shadow-ink)] max-w-2xl w-full max-h-[85vh] overflow-y-auto p-6 sm:p-8 relative"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex justify-between items-start border-b border-m3-outline-variant pb-3 mb-4">
-              <h2 className="text-base font-bold text-m3-on-surface">{t("helpModalTitle")}</h2>
+            {/* Modal Header */}
+            <div className="flex justify-between items-start border-b-3 border-[var(--border-ink)] pb-3 mb-5">
+              <div className="flex items-center gap-2.5">
+                <span className="p-1.5 bg-[var(--pastel-yellow)] text-black border-2 border-[var(--border-ink)] shadow-[2px_2px_0px_var(--shadow-ink)]">
+                  <HelpCircle className="w-4 h-4 stroke-[2.5]" />
+                </span>
+                <h2 className="text-base sm:text-lg font-heading font-black text-[var(--text-primary)]">
+                  {t("helpModalTitle")}
+                </h2>
+              </div>
               <button 
                 onClick={() => setShowHelpModal(false)}
-                className="relative overflow-hidden p-1 text-m3-on-surface-variant hover:text-m3-on-surface hover:bg-m3-surface-variant/40 rounded-full cursor-pointer flex items-center justify-center"
+                className="p-1.5 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--pastel-coral)] hover:text-black shadow-[2px_2px_0px_var(--shadow-ink)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center justify-center"
                 title={t("close")}
+                aria-label="Close dialog"
               >
-                <span className="material-symbols-rounded text-sm">close</span>
-                <md-ripple></md-ripple>
+                <X className="w-4 h-4 stroke-[3]" />
               </button>
             </div>
 
-            <div className="space-y-4 text-xs leading-relaxed text-m3-on-surface-variant text-start">
-              <p className="font-semibold text-m3-on-surface">{t("helpModalDesc")}</p>
+            {/* Modal Content */}
+            <div className="space-y-4 text-xs font-body leading-relaxed text-[var(--text-secondary)] text-start">
+              <div className="p-3 bg-[var(--pastel-yellow)] text-black border-2 border-[var(--border-ink)] shadow-[3px_3px_0px_var(--shadow-ink)] font-bold">
+                {t("helpModalDesc")}
+              </div>
               
               <div className="space-y-3 pt-2">
-                <div>
-                  <h4 className="font-bold text-m3-on-surface">{t("helpStep1Title")}</h4>
-                  <p>{t("helpStep1Desc")}</p>
-                </div>
-                
-                <div>
-                  <h4 className="font-bold text-m3-on-surface">{t("helpStep2Title")}</h4>
-                  <p>{t("helpStep2Desc")}</p>
-                </div>
-
-                <div>
-                  <h4 className="font-bold text-m3-on-surface">{t("helpStep3Title")}</h4>
-                  <p>{t("helpStep3Desc")}</p>
-                </div>
-
-                <div>
-                  <h4 className="font-bold text-m3-on-surface">{t("helpStep4Title")}</h4>
-                  <p>{t("helpStep4Desc")}</p>
-                </div>
-
-                <div>
-                  <h4 className="font-bold text-m3-on-surface">{t("helpStep5Title")}</h4>
-                  <p>{t("helpStep5Desc")}</p>
-                </div>
-
-                <div>
-                  <h4 className="font-bold text-m3-on-surface">{t("helpStep6Title")}</h4>
-                  <p>{t("helpStep6Desc")}</p>
-                </div>
-
-                <div>
-                  <h4 className="font-bold text-m3-on-surface">{t("helpStep7Title")}</h4>
-                  <p>{t("helpStep7Desc")}</p>
-                </div>
-
-                <div>
-                  <h4 className="font-bold text-m3-on-surface">{t("helpStep8Title")}</h4>
-                  <p>{t("helpStep8Desc")}</p>
-                </div>
-
-                <div>
-                  <h4 className="font-bold text-m3-on-surface">{t("helpStep9Title")}</h4>
-                  <p>{t("helpStep9Desc")}</p>
-                </div>
-
-                <div>
-                  <h4 className="font-bold text-m3-on-surface">{t("helpStep10Title")}</h4>
-                  <p>{t("helpStep10Desc")}</p>
-                </div>
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => {
+                  const titleKey = `helpStep${num}Title` as any;
+                  const descKey = `helpStep${num}Desc` as any;
+                  return (
+                    <div key={num} className="p-3.5 bg-[var(--bg-surface-raised)] border-2 border-[var(--border-ink)] shadow-[2px_2px_0px_var(--shadow-ink)] space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="w-5 h-5 font-mono text-[10px] font-black bg-[var(--pastel-sky)] text-black border border-[var(--border-ink)] flex items-center justify-center shrink-0">
+                          {num}
+                        </span>
+                        <h4 className="font-heading font-black text-[var(--text-primary)] text-xs">
+                          {t(titleKey)}
+                        </h4>
+                      </div>
+                      <p className="text-[11px] text-[var(--text-secondary)] font-medium leading-relaxed ps-7">
+                        {t(descKey)}
+                      </p>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
-            <div className="mt-6 flex justify-end border-t border-m3-outline-variant pt-4">
+            <div className="mt-6 flex justify-end border-t-3 border-[var(--border-ink)] pt-4">
               <button 
                 onClick={() => setShowHelpModal(false)}
-                className="relative overflow-hidden px-6 py-2.5 bg-m3-primary hover:opacity-90 text-m3-on-primary font-bold rounded-full text-xs transition-colors cursor-pointer font-cairo shadow-sm"
+                className="px-6 py-2.5 bg-[var(--accent)] text-black font-heading font-black border-3 border-[var(--border-ink)] shadow-[4px_4px_0px_var(--shadow-ink)] hover:bg-[var(--accent-hover)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none text-xs transition-all cursor-pointer"
               >
-                <span>{t("helpModalCloseBtn")}</span>
-                <md-ripple></md-ripple>
+                {t("helpModalCloseBtn")}
               </button>
             </div>
           </div>
@@ -574,18 +596,18 @@ function App() {
 
       {/* Project Picker Modal for Mobile */}
       {showPickerModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-m3-surface border border-m3-outline-variant w-full max-w-sm rounded-3xl p-6 space-y-4 shadow-xl text-start font-cairo">
-            <div>
-              <h3 className="text-sm font-bold text-m3-on-surface">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className="bg-[var(--bg-surface)] border-4 border-[var(--border-ink)] shadow-[12px_12px_0px_var(--shadow-ink)] w-full max-w-sm p-6 space-y-4 text-start">
+            <div className="border-b-2 border-[var(--border-subtle)] pb-2">
+              <h3 className="text-sm font-heading font-black text-[var(--text-primary)]">
                 {language === 'ar' ? 'اختر ملف المشروع' : 'Select Project File'}
               </h3>
-              <p className="text-[10px] text-m3-on-surface-variant mt-1">
+              <p className="text-[10px] font-body text-[var(--text-muted)] mt-0.5">
                 {language === 'ar' ? 'اختر أحد الملفات المخزنة محلياً لفتحه:' : 'Select a locally stored file to open:'}
               </p>
             </div>
 
-            <div className="max-h-60 overflow-y-auto divide-y divide-m3-outline-variant/30 border border-m3-outline-variant/40 rounded-2xl bg-m3-background">
+            <div className="max-h-60 overflow-y-auto divide-y-2 divide-[var(--border-subtle)] border-2 border-[var(--border-ink)] bg-[var(--bg-surface-raised)]">
               {mobileProjects.map((file) => (
                 <button
                   key={file}
@@ -593,7 +615,7 @@ function App() {
                     setShowPickerModal(false);
                     await handleOpenProjectPath(file);
                   }}
-                  className="w-full text-start px-4 py-3 text-xs text-m3-on-surface hover:bg-m3-surface-variant/40 font-semibold cursor-pointer truncate transition-colors"
+                  className="w-full text-start px-3.5 py-2.5 text-xs font-mono font-bold text-[var(--text-primary)] hover:bg-[var(--pastel-yellow)] hover:text-black cursor-pointer truncate transition-colors"
                   title={file}
                 >
                   {file}
@@ -603,78 +625,75 @@ function App() {
             <div className="flex justify-end pt-2">
               <button
                 onClick={() => setShowPickerModal(false)}
-                className="relative overflow-hidden px-6 py-2.5 border border-m3-outline text-m3-primary hover:bg-m3-primary/10 font-bold rounded-full text-xs transition-colors cursor-pointer font-cairo"
+                className="px-5 py-2 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] text-xs font-heading font-bold shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--bg-surface-hover)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
               >
-                <span>{t("cancel")}</span>
-                <md-ripple></md-ripple>
+                {t("cancel")}
               </button>
             </div>
           </div>
         </div>
       )}
 
-        {/* Updater Modal */}
-        {updateInfo && updateInfo.available && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-m3-surface border border-m3-outline-variant max-w-sm w-full rounded-3xl p-6 shadow-2xl animate-fade-in flex flex-col gap-4 text-m3-on-surface">
-              <div>
-                <h3 className="text-sm font-bold font-cairo flex items-center gap-2">
-                  🚀 {language === 'ar' ? 'تحديث جديد متوفر' : 'Update Available'}
-                </h3>
-                <p className="text-[10px] text-m3-on-surface-variant mt-1 font-cairo">
-                  {language === 'ar' 
-                    ? `إصدار جديد متوفر للتطبيق: v${updateInfo.version}`
-                    : `A new version of Crysta is available: v${updateInfo.version}`}
-                </p>
+      {/* Updater Modal */}
+      {updateInfo && updateInfo.available && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-[var(--bg-surface)] border-4 border-[var(--border-ink)] shadow-[12px_12px_0px_var(--shadow-ink)] max-w-sm w-full p-6 flex flex-col gap-4 text-[var(--text-primary)]">
+            <div className="border-b-2 border-[var(--border-subtle)] pb-2">
+              <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-[var(--pastel-mint)] text-black border border-[var(--border-ink)] font-heading font-black text-[10px] uppercase mb-1">
+                🚀 {language === 'ar' ? 'تحديث متوفر' : 'Update Available'}
               </div>
-
-              {updateInfo.body && (
-                <div className="bg-m3-surface-variant/40 rounded-xl p-3 text-[10px] font-mono max-h-32 overflow-y-auto border border-m3-outline-variant/30 select-text">
-                  {updateInfo.body}
-                </div>
-              )}
-
-              {updateInfo.error && (
-                <div className="text-[10px] text-red-500 bg-red-500/10 border border-red-500/20 p-2 rounded-lg font-mono">
-                  {updateInfo.error}
-                </div>
-              )}
-
-              {updateInfo.downloading ? (
-                <div className="flex flex-col gap-2 mt-2 font-cairo">
-                  <div className="flex justify-between text-[10px] text-m3-on-surface-variant select-none">
-                    <span>{language === 'ar' ? 'جاري التحميل والتثبيت...' : 'Downloading & installing...'}</span>
-                    <span>{updateInfo.progress}%</span>
-                  </div>
-                  <div className="w-full bg-m3-surface-variant rounded-full h-2 overflow-hidden">
-                    <div 
-                      className="bg-m3-primary h-full transition-all duration-300 rounded-full" 
-                      style={{ width: `${updateInfo.progress}%` }}
-                    ></div>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex gap-3 justify-end mt-4 select-none font-cairo items-center">
-                  <button
-                    onClick={() => setUpdateInfo(null)}
-                    className="relative overflow-hidden px-4 py-2 text-xs font-bold text-m3-on-surface-variant hover:bg-m3-surface-variant/40 rounded-full transition-colors cursor-pointer"
-                  >
-                    {language === 'ar' ? 'تخطي' : 'Remind Me Later'}
-                    <md-ripple></md-ripple>
-                  </button>
-                  <button
-                    onClick={handlePerformUpdate}
-                    className="relative overflow-hidden px-6 py-2.5 bg-m3-primary hover:opacity-90 text-m3-on-primary font-bold rounded-full text-xs transition-colors cursor-pointer font-cairo shadow-sm"
-                  >
-                    <span>{language === 'ar' ? 'تحديث وإعادة تشغيل' : 'Update & Restart'}</span>
-                    <md-ripple></md-ripple>
-                  </button>
-                </div>
-              )}
+              <h3 className="text-sm font-heading font-black text-[var(--text-primary)] mt-1">
+                {language === 'ar' 
+                  ? `إصدار جديد للتطبيق: v${updateInfo.version}`
+                  : `New Crysta release: v${updateInfo.version}`}
+              </h3>
             </div>
+
+            {updateInfo.body && (
+              <div className="bg-[var(--bg-surface-raised)] border-2 border-[var(--border-ink)] p-3 text-[10px] font-mono max-h-32 overflow-y-auto select-text">
+                {updateInfo.body}
+              </div>
+            )}
+
+            {updateInfo.error && (
+              <div className="text-[10px] text-black bg-[var(--pastel-coral)] border-2 border-[var(--border-ink)] p-2 font-mono font-bold">
+                {updateInfo.error}
+              </div>
+            )}
+
+            {updateInfo.downloading ? (
+              <div className="flex flex-col gap-2 mt-2">
+                <div className="flex justify-between text-[10px] font-mono font-bold text-[var(--text-secondary)] select-none">
+                  <span>{language === 'ar' ? 'جاري التحميل والتثبيت...' : 'Downloading & installing...'}</span>
+                  <span>{updateInfo.progress}%</span>
+                </div>
+                <div className="w-full bg-[var(--bg-surface-raised)] border-2 border-[var(--border-ink)] h-3 overflow-hidden">
+                  <div 
+                    className="bg-[var(--pastel-mint)] h-full transition-all duration-300 border-e-2 border-[var(--border-ink)]" 
+                    style={{ width: `${updateInfo.progress}%` }}
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="flex gap-2.5 justify-end mt-2 select-none items-center">
+                <button
+                  onClick={() => setUpdateInfo(null)}
+                  className="px-3.5 py-1.5 text-xs font-heading font-bold border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:bg-[var(--bg-surface-hover)] shadow-[2px_2px_0px_var(--shadow-ink)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
+                >
+                  {language === 'ar' ? 'تخطي' : 'Remind Me Later'}
+                </button>
+                <button
+                  onClick={handlePerformUpdate}
+                  className="px-4 py-1.5 bg-[var(--pastel-yellow)] text-black font-heading font-black border-2 border-[var(--border-ink)] shadow-[3px_3px_0px_var(--shadow-ink)] hover:bg-[var(--accent-hover)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none text-xs transition-all cursor-pointer"
+                >
+                  {language === 'ar' ? 'تحديث وإعادة تشغيل' : 'Update & Restart'}
+                </button>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </div>
+      )}
+    </div>
   );
 }
 

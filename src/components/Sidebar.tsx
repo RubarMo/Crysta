@@ -2,6 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Novel, StepProgress } from '../lib';
 import { useLanguage } from '../LanguageContext';
 import { getVersion } from '@tauri-apps/api/app';
+import { 
+  X, 
+  Check, 
+  Sparkles, 
+  FolderKanban,
+  Languages,
+  LayoutDashboard
+} from 'lucide-react';
 
 interface SidebarProps {
   novel: Novel | null;
@@ -60,17 +68,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const translateClass = isSidebarOpen ? 'translate-x-0' : (isRtl ? 'translate-x-full' : '-translate-x-full');
 
   return (
-    <aside className={`w-72 border-e border-m3-outline-variant bg-m3-surface flex flex-col h-full select-none font-cairo shrink-0 transition-transform duration-300 ease-in-out fixed inset-y-0 start-0 z-40 pt-[env(safe-area-inset-top,0px)] md:pt-0 pb-[env(safe-area-inset-bottom,0px)] md:pb-0 md:relative md:translate-x-0 ${translateClass}`}>
-      {/* Header (M3 Drawer Header aligned to top bar height) */}
-      <div className="h-16 border-b border-m3-outline-variant bg-m3-surface-variant/30 flex items-center px-4 shrink-0">
+    <aside className={`w-72 md:w-80 border-e-3 border-[var(--border-ink)] bg-[var(--bg-surface)] flex flex-col h-full select-none shrink-0 transition-transform duration-200 ease-out fixed inset-y-0 start-0 z-40 pt-[env(safe-area-inset-top,0px)] md:pt-0 pb-[env(safe-area-inset-bottom,0px)] md:pb-0 md:relative md:translate-x-0 ${translateClass}`}>
+      {/* Sidebar Header */}
+      <div className="h-16 border-b-3 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] flex items-center px-4 shrink-0">
         {novel ? (
           <div className="flex items-center justify-between gap-2 w-full min-w-0">
             <div className="min-w-0 flex-1">
-              <h2 className="text-xs font-bold text-m3-on-surface truncate" title={novel.title}>
+              <h2 className="text-xs font-heading font-black text-[var(--text-primary)] truncate" title={novel.title}>
                 {novel.title}
               </h2>
               <p 
-                className="text-[9px] font-mono text-m3-on-surface-variant truncate" 
+                className="text-[10px] font-mono text-[var(--text-muted)] truncate" 
                 title={activeProjectPath || ""}
                 dir="ltr"
               >
@@ -79,34 +87,38 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
             <button
               onClick={onCloseProject}
-              className="relative overflow-hidden text-[10px] px-3 py-1 shrink-0 border border-m3-outline text-m3-primary hover:bg-m3-primary/10 transition-colors font-bold rounded-full cursor-pointer font-cairo"
+              className="px-2.5 py-1 text-[10px] font-heading font-black border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-coral)] hover:text-black hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer whitespace-nowrap shrink-0"
               title={t('closeProjectTitle')}
             >
               {t('close')}
-              <md-ripple></md-ripple>
             </button>
             {onCloseSidebar && (
               <button
                 onClick={onCloseSidebar}
-                className="relative overflow-hidden md:hidden p-1 text-m3-on-surface-variant hover:text-m3-on-surface hover:bg-m3-surface-variant/40 rounded-full cursor-pointer transition-colors shrink-0 flex items-center justify-center"
+                className="md:hidden p-1 text-[var(--text-primary)] hover:bg-[var(--pastel-coral)] hover:text-black border-2 border-[var(--border-ink)] shadow-[2px_2px_0px_var(--shadow-ink)] transition-all shrink-0 flex items-center justify-center cursor-pointer"
                 title={t('closeSidebar')}
+                aria-label="Close sidebar"
               >
-                <span className="material-symbols-rounded text-sm block">close</span>
-                <md-ripple></md-ripple>
+                <X className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
         ) : (
           <div className="flex items-center justify-between w-full">
-            <span className="text-xs font-bold text-m3-on-surface-variant">{t('platformName')}</span>
+            <div className="flex items-center gap-2">
+              <span className="p-1 bg-[var(--pastel-yellow)] text-black border-2 border-[var(--border-ink)] shadow-[2px_2px_0px_var(--shadow-ink)]">
+                <Sparkles className="w-3.5 h-3.5" />
+              </span>
+              <span className="text-xs font-heading font-black text-[var(--text-primary)] tracking-wide">{t('platformName')}</span>
+            </div>
             {onCloseSidebar && (
               <button
                 onClick={onCloseSidebar}
-                className="relative overflow-hidden md:hidden p-1 text-m3-on-surface-variant hover:text-m3-on-surface hover:bg-m3-surface-variant/40 rounded-full cursor-pointer transition-colors shrink-0 flex items-center justify-center"
+                className="md:hidden p-1 text-[var(--text-primary)] hover:bg-[var(--pastel-coral)] hover:text-black border-2 border-[var(--border-ink)] shadow-[2px_2px_0px_var(--shadow-ink)] transition-all shrink-0 flex items-center justify-center cursor-pointer"
                 title={t('closeSidebar')}
+                aria-label="Close sidebar"
               >
-                <span className="material-symbols-rounded text-sm block">close</span>
-                <md-ripple></md-ripple>
+                <X className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
@@ -115,91 +127,107 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {novel ? (
         <>
-          {/* Progress (M3 Progress Indicator) */}
-          <div className="px-4 py-3 border-b border-m3-outline-variant bg-m3-surface-variant/20">
-            <div className="flex justify-between items-center text-[10px] font-bold text-m3-on-surface-variant mb-1.5">
-              <span>{t('completedSteps')}</span>
-              <span>{completedSteps} / 10</span>
+          {/* Progress Section */}
+          <div className="p-3.5 border-b-3 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] space-y-2">
+            <div className="flex justify-between items-center text-[11px] font-heading font-black">
+              <span className="text-[var(--text-secondary)] uppercase tracking-wider">{t('completedSteps')}</span>
+              <span className="font-mono bg-[var(--pastel-yellow)] text-black px-1.5 py-0.5 border border-[var(--border-ink)] font-bold text-[10px]">
+                {completedSteps} / 10
+              </span>
             </div>
-            <div className="w-full bg-m3-surface-variant h-2 rounded-full overflow-hidden">
+            {/* Tactile Neubrutalist Progress Bar */}
+            <div className="w-full bg-[var(--bg-surface)] h-3 border-2 border-[var(--border-ink)] shadow-[2px_2px_0px_var(--shadow-ink)] overflow-hidden">
               <div 
-                className="bg-m3-primary h-full transition-all duration-300 ease-out"
+                className="bg-[var(--pastel-mint)] h-full transition-all duration-300 ease-out border-e-2 border-[var(--border-ink)]"
                 style={{ width: `${(completedSteps / 10) * 100}%` }}
               />
             </div>
           </div>
 
-          {/* Navigation (M3 Pill Navigation Items) */}
-          <nav className="flex-1 overflow-y-auto p-3 space-y-1">
+          {/* Navigation Steps List */}
+          <nav className="flex-1 overflow-y-auto p-3 space-y-1.5">
+            {/* Dashboard Step 0 */}
             <button
               onClick={() => onSelectStep(0)}
-              className={`relative overflow-hidden w-full text-start text-xs py-2.5 px-4 rounded-full transition-all cursor-pointer font-cairo ${
+              className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs font-heading font-black border-2 border-[var(--border-ink)] transition-all cursor-pointer text-start select-none ${
                 activeStep === 0
-                  ? 'bg-m3-primary-container text-m3-on-primary-container font-bold shadow-sm'
-                  : 'hover:bg-m3-surface-variant/45 text-m3-on-surface-variant hover:text-m3-on-surface'
+                  ? 'bg-[var(--pastel-yellow)] text-black shadow-[4px_4px_0px_var(--shadow-ink)] translate-x-0.5'
+                  : 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--bg-surface-hover)] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_var(--shadow-ink)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none'
               }`}
             >
-              {t('dashboard')}
-              <md-ripple></md-ripple>
+              <span className="p-1 bg-[var(--pastel-sky)] text-black border border-[var(--border-ink)] shrink-0 flex items-center justify-center">
+                <LayoutDashboard className="w-3.5 h-3.5" />
+              </span>
+              <span className="truncate">{t('dashboard')}</span>
             </button>
 
-            <div className="my-2 border-t border-m3-outline-variant/60 mx-2" />
+            <div className="py-1">
+              <div className="border-t-2 border-dashed border-[var(--border-subtle)]" />
+            </div>
 
+            {/* Steps 1 to 10 */}
             {steps.map((step) => {
               const isStepCompleted = stepsProgress.some(p => p.step_number === step.num && p.is_completed);
+              const isActive = activeStep === step.num;
+
               return (
                 <button
                   key={step.num}
                   onClick={() => onSelectStep(step.num)}
-                  className={`relative overflow-hidden w-full flex items-center justify-between text-xs py-2.5 px-4 rounded-full transition-all cursor-pointer font-cairo ${
-                    activeStep === step.num
-                      ? 'bg-m3-primary-container text-m3-on-primary-container font-bold shadow-sm'
-                      : 'hover:bg-m3-surface-variant/45 text-m3-on-surface-variant hover:text-m3-on-surface'
+                  className={`w-full flex items-center justify-between gap-2 px-3 py-2 text-xs font-heading font-bold border-2 border-[var(--border-ink)] transition-all cursor-pointer text-start select-none ${
+                    isActive
+                      ? 'bg-[var(--pastel-yellow)] text-black font-black shadow-[4px_4px_0px_var(--shadow-ink)] translate-x-0.5'
+                      : 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--bg-surface-hover)] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_var(--shadow-ink)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none'
                   }`}
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <span className={`text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold transition-colors ${
-                      activeStep === step.num
-                        ? 'bg-m3-primary text-m3-on-primary'
-                        : 'bg-m3-surface-variant text-m3-on-surface-variant'
+                    <span className={`w-5 h-5 font-mono text-[10px] font-black border border-[var(--border-ink)] shrink-0 flex items-center justify-center ${
+                      isActive 
+                        ? 'bg-black text-[var(--pastel-yellow)]' 
+                        : (isStepCompleted ? 'bg-[var(--pastel-mint)] text-black' : 'bg-[var(--bg-surface-raised)] text-[var(--text-primary)]')
                     }`}>
                       {step.num}
                     </span>
-                    <span className="truncate max-w-[150px]">{step.title}</span>
+                    <span className="truncate text-[11px] leading-tight">{step.title}</span>
                   </div>
 
                   {isStepCompleted && (
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" title={t('markAsCompleted')} />
+                    <span 
+                      className="p-0.5 bg-[var(--pastel-mint)] text-black border border-[var(--border-ink)] shadow-[1px_1px_0px_var(--shadow-ink)] shrink-0" 
+                      title={t('markAsCompleted')}
+                    >
+                      <Check className="w-2.5 h-2.5 stroke-[3]" />
+                    </span>
                   )}
-                  <md-ripple></md-ripple>
                 </button>
               );
             })}
           </nav>
         </>
       ) : (
-        <div className="flex-1 flex flex-col items-center justify-center p-6 text-center text-m3-on-surface-variant font-semibold">
-          <p className="text-[11px] leading-relaxed">{t('openProjectHelp')}</p>
+        <div className="flex-1 flex flex-col items-center justify-center p-6 text-center text-[var(--text-secondary)] font-heading">
+          <div className="p-3 bg-[var(--pastel-sky)] text-black border-2 border-[var(--border-ink)] shadow-[3px_3px_0px_var(--shadow-ink)] mb-3">
+            <FolderKanban className="w-6 h-6" />
+          </div>
+          <p className="text-xs font-bold leading-relaxed">{t('openProjectHelp')}</p>
         </div>
       )}
 
-      {/* Footer (M3 Sidebar Footer) */}
-      <footer className="p-3 border-t border-m3-outline-variant flex items-center justify-between text-[10px] text-m3-on-surface-variant shrink-0 select-text">
-        <div className="flex items-center gap-1.5 font-cairo">
-          <span>{t('builtBy')} Rubar</span>
+      {/* Sidebar Footer */}
+      <footer className="p-3 border-t-3 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] flex items-center justify-between text-xs text-[var(--text-secondary)] shrink-0 select-text">
+        <div className="flex items-center gap-2 font-heading font-bold text-[11px]">
+          <span>{t('builtBy')}</span>
           <a 
             href="https://github.com/RubarMo" 
             target="_blank" 
             rel="noopener noreferrer"
-            className="hover:text-m3-primary transition-colors flex items-center gap-1 font-semibold"
+            className="text-[var(--text-primary)] hover:bg-[var(--pastel-yellow)] hover:text-black px-1 border border-[var(--border-ink)] shadow-[1px_1px_0px_var(--shadow-ink)] transition-all font-black flex items-center gap-1"
             title="GitHub Profile"
           >
-            <svg className="w-3 h-3 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.385.6.11.82-.26.82-.577v-2.234c-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.43.372.82 1.102.82 2.222v3.293c0 .319.22.694.825.576C20.565 21.795 24 17.3 24 12c0-6.63-5.37-12-12-12z" />
-            </svg>
+            Rubar
           </a>
           {appVersion && (
-            <span className="text-[9px] font-mono text-m3-on-surface-variant/40 select-none px-1 bg-m3-surface-variant/20 rounded border border-m3-outline-variant/30">
+            <span className="text-[9px] font-mono text-black font-bold px-1 bg-[var(--pastel-lavender)] border border-[var(--border-ink)]">
               v{appVersion}
             </span>
           )}
@@ -208,11 +236,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Language Switcher */}
         <button
           onClick={() => setLanguage(language === 'ar' ? 'en' : 'ar')}
-          className="relative overflow-hidden px-3 py-1 rounded-full border border-m3-outline text-m3-primary hover:bg-m3-primary/10 transition-colors text-[9px] font-bold tracking-wider cursor-pointer font-cairo"
+          className="inline-flex items-center gap-1 px-2.5 py-1 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-sky)] hover:text-black hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all text-[10px] font-heading font-black tracking-wider cursor-pointer"
           title={language === 'ar' ? 'Switch to English' : 'التحويل للعربية'}
         >
-          {language === 'ar' ? 'English' : 'العربية'}
-          <md-ripple></md-ripple>
+          <Languages className="w-3 h-3" />
+          <span>{language === 'ar' ? 'English' : 'العربية'}</span>
         </button>
       </footer>
     </aside>

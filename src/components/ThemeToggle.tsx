@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
+import { Sun, Moon } from 'lucide-react';
+import { useLanguage } from '../LanguageContext';
 
 export const ThemeToggle: React.FC = () => {
+  const { language } = useLanguage();
   const [isDark, setIsDark] = useState(() => {
     const saved = localStorage.getItem('theme');
     if (saved) return saved === 'dark';
@@ -20,16 +23,38 @@ export const ThemeToggle: React.FC = () => {
   }, [isDark]);
 
   return (
-    <div className="flex items-center gap-2 select-none font-cairo">
-      <span className="material-symbols-rounded text-xs text-m3-on-surface-variant">light_mode</span>
-      <md-switch
-        selected={isDark}
-        checked={isDark}
-        onChange={() => setIsDark(!isDark)}
-        title={isDark ? "تفعيل الوضع المضيء" : "تفعيل الوضع المظلم"}
-        className="cursor-pointer scale-75"
-      />
-      <span className="material-symbols-rounded text-xs text-m3-on-surface-variant">dark_mode</span>
+    <div 
+      className="inline-flex items-center p-1 bg-[var(--bg-surface-raised)] border-2 border-[var(--border-ink)] shadow-[3px_3px_0px_var(--shadow-ink)] gap-1 select-none font-heading"
+      role="group"
+      aria-label="Theme selector"
+    >
+      {/* Light Mode Option */}
+      <button
+        onClick={() => setIsDark(false)}
+        className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs cursor-pointer transition-all ${
+          !isDark
+            ? 'bg-[var(--pastel-yellow)] text-black border-2 border-[var(--border-ink)] shadow-[2px_2px_0px_var(--shadow-ink)] font-black'
+            : 'bg-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] border-2 border-transparent font-bold'
+        }`}
+        title={language === 'ar' ? 'الوضع المضيء' : 'Light Mode'}
+      >
+        <Sun className="w-3.5 h-3.5 stroke-[2.5]" />
+        <span className="text-[11px]">{language === 'ar' ? 'مضيء' : 'Light'}</span>
+      </button>
+
+      {/* Dark Mode Option */}
+      <button
+        onClick={() => setIsDark(true)}
+        className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs cursor-pointer transition-all ${
+          isDark
+            ? 'bg-[var(--pastel-yellow)] text-black border-2 border-[var(--border-ink)] shadow-[2px_2px_0px_var(--shadow-ink)] font-black'
+            : 'bg-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] border-2 border-transparent font-bold'
+        }`}
+        title={language === 'ar' ? 'الوضع المظلم' : 'Dark Mode'}
+      >
+        <Moon className="w-3.5 h-3.5 stroke-[2.5]" />
+        <span className="text-[11px]">{language === 'ar' ? 'مظلم' : 'Dark'}</span>
+      </button>
     </div>
   );
 };

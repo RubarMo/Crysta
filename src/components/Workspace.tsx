@@ -3,6 +3,18 @@ import { Novel, StepProgress, Character, Scene, saveStepProgress, saveCharacter,
 import { WordCounter } from './WordCounter';
 import { useLanguage } from '../LanguageContext';
 import { LocaleKeys } from '../locales';
+import { 
+  Plus, 
+  Save, 
+  Check, 
+  Copy, 
+  Edit3, 
+  Trash2, 
+  User, 
+  Layers, 
+  Film, 
+  BookOpen
+} from 'lucide-react';
 
 interface WorkspaceProps {
   activeNovel: Novel;
@@ -51,7 +63,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
   const [scenes, setScenes] = useState<Scene[]>([]);
   const [editingScene, setEditingScene] = useState<Partial<Scene> | null>(null);
 
-  // Top-level states for Step 5, 7, and 9 to follow React Rules of Hooks
+  // Top-level states for Step 5, 7, and 9
   const [selectedCharIdStep5, setSelectedCharIdStep5] = useState<number | null>(null);
   const [selectedCharIdStep7, setSelectedCharIdStep7] = useState<number | null>(null);
   const [selectedSceneIdStep9, setSelectedSceneIdStep9] = useState<number | null>(null);
@@ -274,7 +286,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
   };
 
   // ----------------------------------------------------
-  // DASHBOARD VIEW (STEP 0)
+  // STEP 0: NOVEL DASHBOARD
   // ----------------------------------------------------
   if (activeStep === 0) {
     const progressPercent = activeNovel.target_word_count > 0 
@@ -282,116 +294,163 @@ export const Workspace: React.FC<WorkspaceProps> = ({
       : 0;
 
     return (
-      <div className="flex-1 overflow-y-auto w-full p-8 max-w-3xl mx-auto space-y-8 fade-in font-cairo">
-        <header className="border-b border-m3-outline-variant pb-4">
-          <h1 className="text-xl font-bold text-m3-on-surface">{t('novelDashboardTitle')}</h1>
-          <p className="text-m3-on-surface-variant text-xs mt-1">{t('novelDashboardDesc')}</p>
+      <div className="flex-1 overflow-y-auto w-full p-6 sm:p-8 max-w-4xl mx-auto space-y-6 nb-dots">
+        {/* Header */}
+        <header className="border-b-3 border-[var(--border-ink)] pb-4">
+          <h1 className="text-xl sm:text-2xl font-heading font-black text-[var(--text-primary)]">
+            {t('novelDashboardTitle')}
+          </h1>
+          <p className="text-xs font-body font-medium text-[var(--text-secondary)] mt-1">
+            {t('novelDashboardDesc')}
+          </p>
         </header>
 
-        {/* Word Count Progress (M3 Elevated container) */}
-        <div className="bg-m3-surface p-5 border border-m3-outline-variant rounded-2xl space-y-2.5 shadow-sm">
-          <div className="flex justify-between items-center text-xs font-semibold">
-            <span className="text-m3-on-surface-variant">{t('writingProgress')}</span>
-            <span className="text-m3-on-surface font-bold">{activeNovel.current_word_count} / {activeNovel.target_word_count} {t('words')} ({progressPercent})%</span>
+        {/* Word Count Progress Box */}
+        <div className="bg-[var(--bg-surface)] border-3 border-[var(--border-ink)] shadow-[5px_5px_0px_var(--shadow-ink)] p-5 space-y-3">
+          <div className="flex justify-between items-center text-xs font-heading font-black">
+            <span className="text-[var(--text-secondary)] uppercase tracking-wider">{t('writingProgress')}</span>
+            <span className="font-mono bg-[var(--pastel-yellow)] text-black px-2 py-0.5 border-2 border-[var(--border-ink)] shadow-[2px_2px_0px_var(--shadow-ink)]">
+              {activeNovel.current_word_count} / {activeNovel.target_word_count} {t('words')} ({progressPercent}%)
+            </span>
           </div>
-          <div className="w-full bg-m3-surface-variant h-2 rounded-full overflow-hidden">
+          {/* Saturated Progress Bar */}
+          <div className="w-full bg-[var(--bg-surface-raised)] h-4 border-2 border-[var(--border-ink)] shadow-[2px_2px_0px_var(--shadow-ink)] overflow-hidden">
             <div 
-              className="bg-m3-primary h-full transition-all duration-300"
+              className="bg-[var(--pastel-mint)] h-full transition-all duration-300 border-e-2 border-[var(--border-ink)]"
               style={{ width: `${progressPercent}%` }}
             />
           </div>
         </div>
 
-        {/* Form Fields (M3 Surface card) */}
-        <div className="bg-m3-surface p-5 border border-m3-outline-variant rounded-2xl space-y-5 shadow-sm">
-          <h2 className="text-xs font-bold text-m3-on-surface-variant uppercase tracking-wider pb-1">{t('novelInfoTitle')}</h2>
+        {/* Novel Info Form Card */}
+        <div className="bg-[var(--bg-surface)] border-3 border-[var(--border-ink)] shadow-[5px_5px_0px_var(--shadow-ink)] p-5 sm:p-6 space-y-5">
+          <div className="flex items-center gap-2 pb-2 border-b-2 border-[var(--border-subtle)]">
+            <span className="p-1.5 bg-[var(--pastel-sky)] text-black border-2 border-[var(--border-ink)] shadow-[2px_2px_0px_var(--shadow-ink)]">
+              <BookOpen className="w-4 h-4" />
+            </span>
+            <h2 className="text-sm font-heading font-black text-[var(--text-primary)] uppercase tracking-wider">
+              {t('novelInfoTitle')}
+            </h2>
+          </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="font-cairo">
-              <md-outlined-text-field
-                label={t('novelTitleLabel')}
+            <div className="space-y-1.5">
+              <label className="block text-xs font-heading font-bold text-[var(--text-primary)]">
+                {t('novelTitleLabel')}
+              </label>
+              <input
+                type="text"
                 value={novelTitle}
-                onChange={(e: any) => setNovelTitle(e.target.value)}
+                onChange={(e) => setNovelTitle(e.target.value)}
                 onBlur={triggerSaveNovel}
                 placeholder={t('novelTitlePlaceholder')}
-                className="w-full"
+                className="w-full px-3.5 py-2.5 bg-[var(--bg-surface)] border-3 border-[var(--border-ink)] text-[var(--text-primary)] text-xs font-medium shadow-[3px_3px_0px_var(--shadow-ink)] focus:outline-none focus:shadow-[5px_5px_0px_var(--shadow-ink)] focus:-translate-x-[1px] focus:-translate-y-[1px] transition-all"
               />
             </div>
 
-            <div className="font-cairo">
-              <md-outlined-text-field
-                label={t('novelGenreLabel')}
+            <div className="space-y-1.5">
+              <label className="block text-xs font-heading font-bold text-[var(--text-primary)]">
+                {t('novelGenreLabel')}
+              </label>
+              <input
+                type="text"
                 value={novelGenre}
-                onChange={(e: any) => setNovelGenre(e.target.value)}
+                onChange={(e) => setNovelGenre(e.target.value)}
                 onBlur={triggerSaveNovel}
                 placeholder={t('novelGenrePlaceholder')}
-                className="w-full"
+                className="w-full px-3.5 py-2.5 bg-[var(--bg-surface)] border-3 border-[var(--border-ink)] text-[var(--text-primary)] text-xs font-medium shadow-[3px_3px_0px_var(--shadow-ink)] focus:outline-none focus:shadow-[5px_5px_0px_var(--shadow-ink)] focus:-translate-x-[1px] focus:-translate-y-[1px] transition-all"
               />
             </div>
 
-            <div className="font-cairo">
-              <md-outlined-text-field
-                label={t('novelAudienceLabel')}
+            <div className="space-y-1.5">
+              <label className="block text-xs font-heading font-bold text-[var(--text-primary)]">
+                {t('novelAudienceLabel')}
+              </label>
+              <input
+                type="text"
                 value={novelAudience}
-                onChange={(e: any) => setNovelAudience(e.target.value)}
+                onChange={(e) => setNovelAudience(e.target.value)}
                 onBlur={triggerSaveNovel}
                 placeholder={t('novelAudiencePlaceholder')}
-                className="w-full"
+                className="w-full px-3.5 py-2.5 bg-[var(--bg-surface)] border-3 border-[var(--border-ink)] text-[var(--text-primary)] text-xs font-medium shadow-[3px_3px_0px_var(--shadow-ink)] focus:outline-none focus:shadow-[5px_5px_0px_var(--shadow-ink)] focus:-translate-x-[1px] focus:-translate-y-[1px] transition-all"
               />
             </div>
 
-            <div className="font-cairo">
-              <md-outlined-text-field
-                label={t('novelTargetWordsLabel')}
+            <div className="space-y-1.5">
+              <label className="block text-xs font-heading font-bold text-[var(--text-primary)]">
+                {t('novelTargetWordsLabel')}
+              </label>
+              <input
                 type="number"
-                value={String(novelTargetWords || '')}
-                onChange={(e: any) => setNovelTargetWords(Number(e.target.value) || 0)}
+                value={novelTargetWords || ''}
+                onChange={(e) => setNovelTargetWords(Number(e.target.value) || 0)}
                 onBlur={triggerSaveNovel}
-                className="w-full"
+                className="w-full px-3.5 py-2.5 bg-[var(--bg-surface)] border-3 border-[var(--border-ink)] text-[var(--text-primary)] text-xs font-mono font-bold shadow-[3px_3px_0px_var(--shadow-ink)] focus:outline-none focus:shadow-[5px_5px_0px_var(--shadow-ink)] focus:-translate-x-[1px] focus:-translate-y-[1px] transition-all"
               />
             </div>
           </div>
 
-          <div className="flex justify-end pt-4 border-t border-m3-outline-variant/30 mt-4">
+          <div className="flex justify-end pt-3 border-t-2 border-[var(--border-subtle)]">
             <button
               onClick={triggerSaveNovel}
-              className={`relative overflow-hidden flex items-center gap-1.5 px-5 py-2 text-xs rounded-full transition-all font-bold cursor-pointer font-cairo shadow-sm ${
+              className={`inline-flex items-center gap-2 px-5 py-2.5 text-xs font-heading font-black border-3 border-[var(--border-ink)] shadow-[4px_4px_0px_var(--shadow-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0px_var(--shadow-ink)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer select-none ${
                 isNovelSaved 
-                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white' 
-                  : 'bg-m3-primary hover:opacity-90 text-m3-on-primary'
+                  ? 'bg-[var(--pastel-mint)] text-black' 
+                  : 'bg-[var(--accent)] text-black hover:bg-[var(--accent-hover)]'
               }`}
             >
-              <span className="material-symbols-rounded text-sm">
-                {isNovelSaved ? 'check' : 'save'}
-              </span>
-              <span>
-                {isNovelSaved 
-                  ? (language === 'ar' ? 'تم الحفظ!' : 'Saved!') 
-                  : (language === 'ar' ? 'حفظ معلومات الرواية' : 'Save Novel Info')
-                }
-              </span>
-              <md-ripple></md-ripple>
+              {isNovelSaved ? (
+                <>
+                  <Check className="w-4 h-4 stroke-[3]" />
+                  <span>{language === 'ar' ? 'تم الحفظ!' : 'Saved!'}</span>
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4 stroke-[2.5]" />
+                  <span>{language === 'ar' ? 'حفظ معلومات الرواية' : 'Save Novel Info'}</span>
+                </>
+              )}
             </button>
           </div>
         </div>
 
-        {/* Aggregate Stats (M3 Stats containers) */}
-        <div className="space-y-4">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-m3-on-surface-variant">{t('statsTitle')}</h3>
+        {/* 3 Saturated Stat Boxes (Strict solid black text invariant) */}
+        <div className="space-y-3">
+          <h3 className="text-xs font-heading font-black uppercase tracking-wider text-[var(--text-secondary)]">
+            {t('statsTitle')}
+          </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-m3-surface p-4 border border-m3-outline-variant rounded-2xl shadow-sm">
-              <span className="text-[10px] font-bold text-m3-on-surface-variant block">{t('statsCharactersCount')}</span>
-              <p className="text-2xl font-black text-m3-on-surface mt-1">{characters.length}</p>
+            {/* Characters Count Stat */}
+            <div className="p-4 border-3 border-[var(--border-ink)] shadow-[4px_4px_0px_var(--shadow-ink)] bg-[var(--pastel-sky)] transition-transform hover:-translate-y-0.5 select-none">
+              <div className="flex items-center justify-between pb-1">
+                <span className="text-[11px] font-heading font-black text-black uppercase tracking-wider truncate">
+                  {t('statsCharactersCount')}
+                </span>
+                <User className="w-4 h-4 text-black shrink-0" />
+              </div>
+              <p className="text-3xl font-mono font-black text-black mt-2">{characters.length}</p>
             </div>
 
-            <div className="bg-m3-surface p-4 border border-m3-outline-variant rounded-2xl shadow-sm">
-              <span className="text-[10px] font-bold text-m3-on-surface-variant block">{t('statsScenesPlanned')}</span>
-              <p className="text-2xl font-black text-m3-on-surface mt-1">{scenes.length}</p>
+            {/* Scenes Planned Stat */}
+            <div className="p-4 border-3 border-[var(--border-ink)] shadow-[4px_4px_0px_var(--shadow-ink)] bg-[var(--pastel-lavender)] transition-transform hover:-translate-y-0.5 select-none">
+              <div className="flex items-center justify-between pb-1">
+                <span className="text-[11px] font-heading font-black text-black uppercase tracking-wider truncate">
+                  {t('statsScenesPlanned')}
+                </span>
+                <Layers className="w-4 h-4 text-black shrink-0" />
+              </div>
+              <p className="text-3xl font-mono font-black text-black mt-2">{scenes.length}</p>
             </div>
 
-            <div className="bg-m3-surface p-4 border border-m3-outline-variant rounded-2xl shadow-sm">
-              <span className="text-[10px] font-bold text-m3-on-surface-variant block">{t('statsScenesDone')}</span>
-              <p className="text-2xl font-black text-m3-on-surface mt-1">
+            {/* Scenes Completed Stat */}
+            <div className="p-4 border-3 border-[var(--border-ink)] shadow-[4px_4px_0px_var(--shadow-ink)] bg-[var(--pastel-mint)] transition-transform hover:-translate-y-0.5 select-none">
+              <div className="flex items-center justify-between pb-1">
+                <span className="text-[11px] font-heading font-black text-black uppercase tracking-wider truncate">
+                  {t('statsScenesDone')}
+                </span>
+                <Film className="w-4 h-4 text-black shrink-0" />
+              </div>
+              <p className="text-3xl font-mono font-black text-black mt-2">
                 {scenes.filter(s => s.actual_word_count > 0).length} / {scenes.length}
               </p>
             </div>
@@ -421,56 +480,64 @@ export const Workspace: React.FC<WorkspaceProps> = ({
 
   const renderHeaderActions = () => {
     return (
-      <div className="flex flex-wrap items-center gap-4">
-        {/* Unified Checkbox */}
-        <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-m3-on-surface-variant select-none">
-          <md-checkbox
-            checked={stepCompleted}
-            onChange={(e: any) => {
-              const check = e.target.checked;
-              setStepCompleted(check);
-              const isWritingStep = activeStep === 1 || activeStep === 2 || activeStep === 4 || activeStep === 6;
-              triggerSaveStepProgress(isWritingStep ? stepText : '', check);
-            }}
-            className="cursor-pointer"
-          />
+      <div className="flex flex-wrap items-center gap-3">
+        {/* Neubrutalist Checkbox */}
+        <button
+          onClick={() => {
+            const nextVal = !stepCompleted;
+            setStepCompleted(nextVal);
+            const isWritingStep = activeStep === 1 || activeStep === 2 || activeStep === 4 || activeStep === 6;
+            triggerSaveStepProgress(isWritingStep ? stepText : '', nextVal);
+          }}
+          className="inline-flex items-center gap-2 px-3 py-1.5 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--bg-surface-hover)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer select-none text-xs font-heading font-bold"
+        >
+          <span className={`w-4 h-4 border-2 border-[var(--border-ink)] flex items-center justify-center ${
+            stepCompleted ? 'bg-[var(--pastel-mint)] text-black' : 'bg-[var(--bg-surface)]'
+          }`}>
+            {stepCompleted && <Check className="w-3 h-3 stroke-[3]" />}
+          </span>
           <span>{t('markAsCompleted')}</span>
-        </label>
+        </button>
 
-        {/* Step-specific buttons (M3 Outlined/Filled Buttons: rounded-full) */}
+        {/* Step 3: Add Character Action */}
         {activeStep === 3 && !editingCharacter && (
           <button
             onClick={() => setEditingCharacter({ name: '', motivation: '', goal: '', conflict: '', epiphany: '', one_paragraph_summary: '', full_synopsis: '' })}
-            className="relative overflow-hidden flex items-center gap-1.5 text-xs px-4 py-1.5 border border-m3-outline text-m3-primary hover:bg-m3-primary/10 transition-colors font-bold rounded-full cursor-pointer font-cairo"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-heading font-black border-2 border-[var(--border-ink)] bg-[var(--pastel-sky)] text-black shadow-[3px_3px_0px_var(--shadow-ink)] hover:bg-[var(--accent-hover)] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_var(--shadow-ink)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer select-none"
           >
-            <span className="material-symbols-rounded text-sm">add</span>
+            <Plus className="w-3.5 h-3.5 stroke-[3]" />
             <span>{t('addCharacterBtn')}</span>
-            <md-ripple></md-ripple>
           </button>
         )}
 
+        {/* Step 8: Add Scene Action */}
         {activeStep === 8 && !editingScene && (
           <button
             onClick={() => setEditingScene({ pov_character_id: null, setting: '', plot_thread: '', what_happens: '', expected_word_count: 500, actual_word_count: 0 })}
-            className="relative overflow-hidden flex items-center gap-1.5 text-xs px-4 py-1.5 border border-m3-outline text-m3-primary hover:bg-m3-primary/10 transition-colors font-bold rounded-full cursor-pointer font-cairo"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-heading font-black border-2 border-[var(--border-ink)] bg-[var(--pastel-lavender)] text-black shadow-[3px_3px_0px_var(--shadow-ink)] hover:bg-[var(--accent-hover)] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_var(--shadow-ink)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer select-none"
           >
-            <span className="material-symbols-rounded text-sm">add</span>
+            <Plus className="w-3.5 h-3.5 stroke-[3]" />
             <span>{t('addSceneBtn')}</span>
-            <md-ripple></md-ripple>
           </button>
         )}
 
+        {/* Step 10: Copy Markdown Action */}
         {activeStep === 10 && (
           <button
             onClick={() => handleCopyMarkdown(getExportMarkdown())}
-            className="relative overflow-hidden flex items-center gap-1.5 text-xs px-4 py-1.5 border border-m3-outline text-m3-primary hover:bg-m3-primary/10 transition-colors font-bold rounded-full cursor-pointer font-cairo"
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-heading font-black border-2 border-[var(--border-ink)] bg-[var(--pastel-mint)] text-black shadow-[3px_3px_0px_var(--shadow-ink)] hover:bg-[var(--accent-hover)] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_var(--shadow-ink)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer select-none"
           >
             {copied ? (
-              <span className="text-emerald-500">{t('copied')}</span>
+              <>
+                <Check className="w-3.5 h-3.5 stroke-[3]" />
+                <span>{t('copied')}</span>
+              </>
             ) : (
-              <span>{t('copyMarkdown')}</span>
+              <>
+                <Copy className="w-3.5 h-3.5 stroke-[2.5]" />
+                <span>{t('copyMarkdown')}</span>
+              </>
             )}
-            <md-ripple></md-ripple>
           </button>
         )}
       </div>
@@ -480,10 +547,14 @@ export const Workspace: React.FC<WorkspaceProps> = ({
   const renderStepHeader = () => {
     if (!meta) return null;
     return (
-      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-m3-outline-variant pb-3 shrink-0">
+      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b-3 border-[var(--border-ink)] pb-3.5 shrink-0">
         <div>
-          <h1 className="text-lg font-black text-m3-on-surface">{t(meta.titleKey)}</h1>
-          <p className="text-m3-on-surface-variant text-xs mt-0.5">{t(meta.descKey)}</p>
+          <h1 className="text-lg sm:text-xl font-heading font-black text-[var(--text-primary)]">
+            {t(meta.titleKey)}
+          </h1>
+          <p className="text-xs font-body font-medium text-[var(--text-secondary)] mt-0.5">
+            {t(meta.descKey)}
+          </p>
         </div>
         <div className="shrink-0">
           {renderHeaderActions()}
@@ -497,26 +568,29 @@ export const Workspace: React.FC<WorkspaceProps> = ({
   // ----------------------------------------------------
   if (activeStep === 1 || activeStep === 2 || activeStep === 4 || activeStep === 6) {
     return (
-      <div className="flex-1 overflow-y-auto w-full p-8 max-w-3xl mx-auto space-y-6 fade-in font-cairo">
+      <div className="flex-1 overflow-y-auto w-full p-6 sm:p-8 max-w-4xl mx-auto space-y-5 nb-dots">
         {renderStepHeader()}
 
         {meta.hasRef && (
-          <div className="bg-m3-primary-container/20 border border-m3-outline-variant p-4 rounded-2xl text-xs leading-relaxed text-m3-on-surface-variant whitespace-pre-line text-start shadow-sm">
-            <span className="font-bold text-m3-on-surface block mb-1">{t('referenceToStep')} {meta.hasRef}:</span>
-            {getStepText(meta.hasRef) || t('noReferenceYet')}
+          <div className="bg-[var(--pastel-yellow)] text-black border-3 border-[var(--border-ink)] shadow-[4px_4px_0px_var(--shadow-ink)] p-4 text-xs font-bold leading-relaxed text-start select-text">
+            <span className="font-heading font-black block pb-1 border-b-2 border-black/20 mb-1.5">
+              {t('referenceToStep')} {meta.hasRef}:
+            </span>
+            <p className="whitespace-pre-line font-medium text-black">
+              {getStepText(meta.hasRef) || t('noReferenceYet')}
+            </p>
           </div>
         )}
 
-        {/* Paper Sheet look-alike writing space */}
-        <div className="space-y-2">
-          <md-outlined-text-field
-            type="textarea"
-            rows={12}
+        {/* Paper Sheet Writing Space */}
+        <div className="space-y-3">
+          <textarea
+            rows={14}
             value={stepText}
-            onChange={(e: any) => setStepText(e.target.value)}
+            onChange={(e) => setStepText(e.target.value)}
             onBlur={() => triggerSaveStepProgress(stepText, stepCompleted)}
             placeholder={t('writeHerePlaceholder')}
-            className="w-full min-h-[350px]"
+            className="w-full p-4 sm:p-5 bg-[var(--bg-surface)] border-3 border-[var(--border-ink)] text-[var(--text-primary)] text-sm font-body shadow-[5px_5px_0px_var(--shadow-ink)] focus:outline-none focus:shadow-[7px_7px_0px_var(--shadow-ink)] focus:-translate-x-[1px] focus:-translate-y-[1px] transition-all min-h-[350px] leading-relaxed"
           />
           <div className="flex justify-end">
             <WordCounter text={stepText} maxWords={meta.limit} />
@@ -531,70 +605,91 @@ export const Workspace: React.FC<WorkspaceProps> = ({
   // ----------------------------------------------------
   if (activeStep === 3) {
     return (
-      <div className="flex-1 overflow-y-auto w-full p-8 max-w-3xl mx-auto space-y-6 fade-in font-cairo">
+      <div className="flex-1 overflow-y-auto w-full p-6 sm:p-8 max-w-4xl mx-auto space-y-6 nb-dots">
         {renderStepHeader()}
 
         {editingCharacter ? (
-          <div className="bg-m3-surface p-5 border border-m3-outline-variant rounded-2xl space-y-4 text-start shadow-sm">
-            <h3 className="text-xs font-bold text-m3-on-surface-variant uppercase tracking-wider">
-              {editingCharacter.id ? t('editCharacterTitle') : t('addCharacterTitle')}
-            </h3>
+          <div className="bg-[var(--bg-surface)] border-3 border-[var(--border-ink)] shadow-[6px_6px_0px_var(--shadow-ink)] p-5 sm:p-6 space-y-4 text-start">
+            <div className="flex items-center gap-2 pb-2 border-b-2 border-[var(--border-subtle)]">
+              <span className="p-1.5 bg-[var(--pastel-sky)] text-black border-2 border-[var(--border-ink)] shadow-[2px_2px_0px_var(--shadow-ink)]">
+                <User className="w-4 h-4" />
+              </span>
+              <h3 className="text-xs font-heading font-black text-[var(--text-primary)] uppercase tracking-wider">
+                {editingCharacter.id ? t('editCharacterTitle') : t('addCharacterTitle')}
+              </h3>
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="font-cairo">
-                <md-outlined-text-field
-                  label={t('charNameLabel')}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-heading font-bold text-[var(--text-primary)]">
+                  {t('charNameLabel')}
+                </label>
+                <input
+                  type="text"
                   value={editingCharacter.name || ''}
-                  onChange={(e: any) => setEditingCharacter({ ...editingCharacter, name: e.target.value })}
-                  className="w-full"
+                  onChange={(e) => setEditingCharacter({ ...editingCharacter, name: e.target.value })}
+                  className="w-full px-3.5 py-2.5 bg-[var(--bg-surface)] border-3 border-[var(--border-ink)] text-[var(--text-primary)] text-xs font-medium shadow-[3px_3px_0px_var(--shadow-ink)] focus:outline-none focus:shadow-[5px_5px_0px_var(--shadow-ink)] transition-all"
                 />
               </div>
 
-              <div className="font-cairo">
-                <md-outlined-text-field
-                  label={t('charMotivationLabel')}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-heading font-bold text-[var(--text-primary)]">
+                  {t('charMotivationLabel')}
+                </label>
+                <input
+                  type="text"
                   value={editingCharacter.motivation || ''}
-                  onChange={(e: any) => setEditingCharacter({ ...editingCharacter, motivation: e.target.value })}
-                  className="w-full"
+                  onChange={(e) => setEditingCharacter({ ...editingCharacter, motivation: e.target.value })}
+                  className="w-full px-3.5 py-2.5 bg-[var(--bg-surface)] border-3 border-[var(--border-ink)] text-[var(--text-primary)] text-xs font-medium shadow-[3px_3px_0px_var(--shadow-ink)] focus:outline-none focus:shadow-[5px_5px_0px_var(--shadow-ink)] transition-all"
                 />
               </div>
 
-              <div className="font-cairo">
-                <md-outlined-text-field
-                  label={t('charGoalLabel')}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-heading font-bold text-[var(--text-primary)]">
+                  {t('charGoalLabel')}
+                </label>
+                <input
+                  type="text"
                   value={editingCharacter.goal || ''}
-                  onChange={(e: any) => setEditingCharacter({ ...editingCharacter, goal: e.target.value })}
-                  className="w-full"
+                  onChange={(e) => setEditingCharacter({ ...editingCharacter, goal: e.target.value })}
+                  className="w-full px-3.5 py-2.5 bg-[var(--bg-surface)] border-3 border-[var(--border-ink)] text-[var(--text-primary)] text-xs font-medium shadow-[3px_3px_0px_var(--shadow-ink)] focus:outline-none focus:shadow-[5px_5px_0px_var(--shadow-ink)] transition-all"
                 />
               </div>
 
-              <div className="font-cairo">
-                <md-outlined-text-field
-                  label={t('charConflictLabel')}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-heading font-bold text-[var(--text-primary)]">
+                  {t('charConflictLabel')}
+                </label>
+                <input
+                  type="text"
                   value={editingCharacter.conflict || ''}
-                  onChange={(e: any) => setEditingCharacter({ ...editingCharacter, conflict: e.target.value })}
-                  className="w-full"
+                  onChange={(e) => setEditingCharacter({ ...editingCharacter, conflict: e.target.value })}
+                  className="w-full px-3.5 py-2.5 bg-[var(--bg-surface)] border-3 border-[var(--border-ink)] text-[var(--text-primary)] text-xs font-medium shadow-[3px_3px_0px_var(--shadow-ink)] focus:outline-none focus:shadow-[5px_5px_0px_var(--shadow-ink)] transition-all"
                 />
               </div>
 
-              <div className="md:col-span-2 font-cairo">
-                <md-outlined-text-field
-                  label={t('charEpiphanyLabel')}
+              <div className="md:col-span-2 space-y-1.5">
+                <label className="block text-xs font-heading font-bold text-[var(--text-primary)]">
+                  {t('charEpiphanyLabel')}
+                </label>
+                <input
+                  type="text"
                   value={editingCharacter.epiphany || ''}
-                  onChange={(e: any) => setEditingCharacter({ ...editingCharacter, epiphany: e.target.value })}
-                  className="w-full"
+                  onChange={(e) => setEditingCharacter({ ...editingCharacter, epiphany: e.target.value })}
+                  className="w-full px-3.5 py-2.5 bg-[var(--bg-surface)] border-3 border-[var(--border-ink)] text-[var(--text-primary)] text-xs font-medium shadow-[3px_3px_0px_var(--shadow-ink)] focus:outline-none focus:shadow-[5px_5px_0px_var(--shadow-ink)] transition-all"
                 />
               </div>
 
-              <div className="md:col-span-2 font-cairo">
-                <md-outlined-text-field
-                  type="textarea"
+              <div className="md:col-span-2 space-y-1.5">
+                <label className="block text-xs font-heading font-bold text-[var(--text-primary)]">
+                  {t('charSummaryLabel')}
+                </label>
+                <textarea
                   rows={4}
-                  label={t('charSummaryLabel')}
                   value={editingCharacter.one_paragraph_summary || ''}
-                  onChange={(e: any) => setEditingCharacter({ ...editingCharacter, one_paragraph_summary: e.target.value })}
-                  className="w-full"
+                  onChange={(e) => setEditingCharacter({ ...editingCharacter, one_paragraph_summary: e.target.value })}
                   placeholder={t('charSummaryPlaceholder')}
+                  className="w-full p-3.5 bg-[var(--bg-surface)] border-3 border-[var(--border-ink)] text-[var(--text-primary)] text-xs font-medium shadow-[3px_3px_0px_var(--shadow-ink)] focus:outline-none focus:shadow-[5px_5px_0px_var(--shadow-ink)] transition-all"
                 />
                 <div className="flex justify-end mt-1">
                   <WordCounter text={editingCharacter.one_paragraph_summary || ''} />
@@ -602,57 +697,64 @@ export const Workspace: React.FC<WorkspaceProps> = ({
               </div>
             </div>
 
-            <div className="flex gap-2 justify-end pt-2">
+            <div className="flex gap-2 justify-end pt-3 border-t-2 border-[var(--border-subtle)]">
               <button
                 onClick={() => setEditingCharacter(null)}
-                className="relative overflow-hidden px-4 py-1.5 border border-m3-outline text-m3-primary hover:bg-m3-primary/10 text-xs rounded-full transition-colors cursor-pointer font-cairo font-bold"
+                className="px-4 py-2 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] text-xs font-heading font-bold shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--bg-surface-hover)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
               >
                 {t('cancel')}
-                <md-ripple></md-ripple>
               </button>
               <button
                 onClick={() => handleSaveCharacter(editingCharacter)}
-                className="relative overflow-hidden flex items-center gap-1.5 px-4 py-1.5 bg-m3-primary hover:opacity-90 text-m3-on-primary text-xs rounded-full transition-all font-bold cursor-pointer font-cairo shadow-sm"
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-[var(--pastel-sky)] text-black text-xs font-heading font-black border-3 border-[var(--border-ink)] shadow-[3px_3px_0px_var(--shadow-ink)] hover:bg-[var(--accent-hover)] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[5px_5px_0px_var(--shadow-ink)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer select-none"
               >
-                <span className="material-symbols-rounded text-sm">save</span>
+                <Save className="w-3.5 h-3.5 stroke-[2.5]" />
                 <span>{t('save')}</span>
-                <md-ripple></md-ripple>
               </button>
             </div>
           </div>
         ) : (
-          <div className="space-y-4 font-cairo">
+          <div className="space-y-4">
             {characters.length === 0 ? (
-              <div className="text-center py-10 bg-m3-surface border border-m3-outline-variant rounded-2xl text-m3-on-surface-variant text-xs leading-relaxed font-semibold">
-                {t('noCharactersYet')}
+              <div className="text-center py-12 bg-[var(--bg-surface)] border-3 border-dashed border-[var(--border-ink)] p-6 space-y-3">
+                <div className="inline-flex p-3 bg-[var(--pastel-sky)] text-black border-2 border-[var(--border-ink)] shadow-[3px_3px_0px_var(--shadow-ink)]">
+                  <User className="w-6 h-6" />
+                </div>
+                <p className="text-xs font-heading font-bold text-[var(--text-secondary)]">{t('noCharactersYet')}</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-start">
                 {characters.map((char) => (
-                  <div key={char.id} className="relative overflow-hidden bg-m3-surface p-4 border border-m3-outline-variant rounded-2xl flex flex-col justify-between group shadow-sm">
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-start">
-                        <h3 className="text-sm font-bold text-m3-on-surface">{char.name}</h3>
-                        <div className="flex gap-2.5 opacity-100">
+                  <div 
+                    key={char.id} 
+                    className="bg-[var(--bg-surface)] border-3 border-[var(--border-ink)] shadow-[4px_4px_0px_var(--shadow-ink)] p-4 flex flex-col justify-between hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0px_var(--shadow-ink)] transition-all"
+                  >
+                    <div className="space-y-2.5">
+                      <div className="flex justify-between items-start gap-2 border-b-2 border-[var(--border-subtle)] pb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="p-1 bg-[var(--pastel-sky)] text-black border border-[var(--border-ink)] shadow-[1px_1px_0px_var(--shadow-ink)]">
+                            <User className="w-3.5 h-3.5" />
+                          </span>
+                          <h3 className="text-sm font-heading font-black text-[var(--text-primary)]">{char.name}</h3>
+                        </div>
+                        <div className="flex gap-1.5 shrink-0">
                           <button
                             onClick={() => setEditingCharacter(char)}
-                            className="relative overflow-hidden p-1.5 text-m3-on-surface-variant hover:text-m3-primary rounded-full cursor-pointer flex items-center justify-center"
+                            className="p-1 border border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--pastel-yellow)] hover:text-black shadow-[1px_1px_0px_var(--shadow-ink)] transition-all cursor-pointer"
                             title={t('edit')}
                           >
-                            <span className="material-symbols-rounded text-sm">edit</span>
-                            <md-ripple></md-ripple>
+                            <Edit3 className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => handleDeleteCharacter(char.id!)}
-                            className="relative overflow-hidden p-1.5 text-rose-500 hover:text-rose-600 rounded-full cursor-pointer flex items-center justify-center"
+                            className="p-1 border border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--pastel-coral)] hover:text-black shadow-[1px_1px_0px_var(--shadow-ink)] transition-all cursor-pointer"
                             title={t('delete')}
                           >
-                            <span className="material-symbols-rounded text-sm">delete</span>
-                            <md-ripple></md-ripple>
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       </div>
-                      <p className="text-[11px] leading-relaxed text-m3-on-surface-variant line-clamp-3 font-medium">
+                      <p className="text-xs font-body font-medium text-[var(--text-secondary)] leading-relaxed line-clamp-3">
                         {char.one_paragraph_summary || t('noCharSummary')}
                       </p>
                     </div>
@@ -686,65 +788,71 @@ export const Workspace: React.FC<WorkspaceProps> = ({
     };
 
     return (
-      <div className="flex-1 h-full flex flex-col overflow-hidden w-full p-8 max-w-4xl mx-auto space-y-6 fade-in font-cairo">
+      <div className="flex-1 h-full flex flex-col overflow-hidden w-full p-6 sm:p-8 max-w-5xl mx-auto space-y-5 nb-dots">
         {renderStepHeader()}
 
         {characters.length === 0 ? (
-          <div className="text-center py-10 bg-m3-surface border border-m3-outline-variant rounded-2xl text-m3-on-surface-variant text-xs">
-            {t('pleaseAddCharsFirst')}
+          <div className="text-center py-12 bg-[var(--bg-surface)] border-3 border-dashed border-[var(--border-ink)] p-6">
+            <p className="text-xs font-heading font-bold text-[var(--text-secondary)]">{t('pleaseAddCharsFirst')}</p>
           </div>
         ) : (
-          <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-6 text-start overflow-y-auto md:overflow-hidden min-h-0">
-            <div className={`md:col-span-1 flex flex-col md:overflow-hidden h-auto md:h-full ${language === 'ar' ? 'border-l pl-2' : 'border-r pr-2'} border-m3-outline-variant/35`}>
-              <span className="text-[10px] font-bold text-m3-on-surface-variant block pb-2 shrink-0">{t('charsSelectorLabel')}</span>
-              <div className="flex-1 overflow-y-auto space-y-1 pr-1 min-h-[150px] md:min-h-0">
+          <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-5 text-start overflow-y-auto md:overflow-hidden min-h-0">
+            {/* Character Selector Column */}
+            <div className={`md:col-span-1 flex flex-col md:overflow-hidden h-auto md:h-full ${language === 'ar' ? 'border-l-2' : 'border-r-2'} border-[var(--border-subtle)] pe-2`}>
+              <span className="text-xs font-heading font-black uppercase tracking-wider text-[var(--text-secondary)] pb-2 shrink-0">
+                {t('charsSelectorLabel')}
+              </span>
+              <div className="flex-1 overflow-y-auto space-y-1.5 pe-1">
                 {characters.map((char) => (
                   <button
                     key={char.id}
                     onClick={() => setSelectedCharIdStep5(char.id!)}
-                    className={`relative overflow-hidden w-full text-start p-2.5 rounded-xl text-xs transition-all cursor-pointer font-cairo ${
+                    className={`w-full text-start p-2.5 border-2 border-[var(--border-ink)] text-xs font-heading font-bold transition-all cursor-pointer truncate select-none ${
                       selectedCharIdStep5 === char.id
-                        ? 'bg-m3-primary-container text-m3-on-primary-container font-bold shadow-sm'
-                        : 'hover:bg-m3-surface-variant/45 text-m3-on-surface-variant'
+                        ? 'bg-[var(--pastel-yellow)] text-black font-black shadow-[3px_3px_0px_var(--shadow-ink)]'
+                        : 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--bg-surface-hover)]'
                     }`}
                     title={char.name}
                   >
-                    <span className="block truncate">{char.name}</span>
-                    <md-ripple></md-ripple>
+                    {char.name}
                   </button>
                 ))}
               </div>
             </div>
 
-            <div className="md:col-span-3 md:overflow-y-auto h-auto md:h-full space-y-4 pr-1 min-h-0">
+            {/* Synopsis Editor Column */}
+            <div className="md:col-span-3 md:overflow-y-auto h-auto md:h-full space-y-4 pe-1 min-h-0">
               {selectedChar ? (
                 <>
-                  <div className="bg-m3-primary-container/20 border border-m3-outline-variant p-4 rounded-2xl text-xs leading-relaxed text-m3-on-surface-variant shadow-sm">
-                    <span className="font-bold text-m3-on-surface block mb-1">{t('charRefBioLabel')} {selectedChar.name}:</span>
-                    {selectedChar.one_paragraph_summary || t('charNoRefBio')}
+                  <div className="bg-[var(--pastel-sky)] text-black border-3 border-[var(--border-ink)] shadow-[4px_4px_0px_var(--shadow-ink)] p-4 text-xs font-medium leading-relaxed">
+                    <span className="font-heading font-black block pb-1 border-b border-black/20 mb-1">
+                      {t('charRefBioLabel')} {selectedChar.name}:
+                    </span>
+                    <p className="text-black">{selectedChar.one_paragraph_summary || t('charNoRefBio')}</p>
                   </div>
 
-                  <div className="font-cairo">
-                    <md-outlined-text-field
-                      type="textarea"
-                      rows={10}
-                      label={t('charExtendedSynopsisLabel')}
+                  <div className="space-y-2">
+                    <label className="block text-xs font-heading font-bold text-[var(--text-primary)]">
+                      {t('charExtendedSynopsisLabel')}
+                    </label>
+                    <textarea
+                      rows={12}
                       value={selectedChar.full_synopsis || ''}
-                      onChange={(e: any) => {
+                      onChange={(e) => {
                         const updated = characters.map(c => c.id === selectedChar.id ? { ...c, full_synopsis: e.target.value } : c);
                         setCharacters(updated);
                       }}
-                      onBlur={(e: any) => handleSaveSynopsis(e.target.value)}
-                      className="w-full min-h-[300px]"
+                      onBlur={(e) => handleSaveSynopsis(e.target.value)}
                       placeholder={t('charExtendedSynopsisPlaceholder', { name: selectedChar.name })}
+                      className="w-full p-4 bg-[var(--bg-surface)] border-3 border-[var(--border-ink)] text-[var(--text-primary)] text-sm font-body shadow-[5px_5px_0px_var(--shadow-ink)] focus:outline-none focus:shadow-[7px_7px_0px_var(--shadow-ink)] transition-all min-h-[300px] leading-relaxed"
                     />
-                    <div className="flex justify-end mt-1">
+                    <div className="flex justify-end">
                       <WordCounter text={selectedChar.full_synopsis || ''} />
                     </div>
                   </div>
                 </>
               ) : (
-                <div className="h-[200px] flex items-center justify-center border border-dashed border-m3-outline-variant rounded-2xl text-m3-on-surface-variant text-xs bg-m3-surface/30">
+                <div className="h-[240px] flex items-center justify-center border-3 border-dashed border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-muted)] text-xs font-heading font-bold">
                   {t('selectCharPlaceholder')}
                 </div>
               )}
@@ -756,7 +864,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
   }
 
   // ----------------------------------------------------
-  // STEP 7: CHARACTER CHARTS (Detailed CRUD)
+  // STEP 7: CHARACTER CHARTS
   // ----------------------------------------------------
   if (activeStep === 7) {
     const selectedChar = characters.find(c => c.id === selectedCharIdStep7) || null;
@@ -771,120 +879,137 @@ export const Workspace: React.FC<WorkspaceProps> = ({
     };
 
     return (
-      <div className="flex-1 h-full flex flex-col overflow-hidden w-full p-8 max-w-4xl mx-auto space-y-6 fade-in font-cairo">
+      <div className="flex-1 h-full flex flex-col overflow-hidden w-full p-6 sm:p-8 max-w-5xl mx-auto space-y-5 nb-dots">
         {renderStepHeader()}
 
         {characters.length === 0 ? (
-          <div className="text-center py-10 bg-m3-surface border border-m3-outline-variant rounded-2xl text-m3-on-surface-variant text-xs">
-            {t('pleaseAddCharsFirst')}
+          <div className="text-center py-12 bg-[var(--bg-surface)] border-3 border-dashed border-[var(--border-ink)] p-6">
+            <p className="text-xs font-heading font-bold text-[var(--text-secondary)]">{t('pleaseAddCharsFirst')}</p>
           </div>
         ) : (
-          <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-6 text-start overflow-y-auto md:overflow-hidden min-h-0">
-            <div className={`md:col-span-1 flex flex-col md:overflow-hidden h-auto md:h-full ${language === 'ar' ? 'border-l pl-2' : 'border-r pr-2'} border-m3-outline-variant/35`}>
-              <span className="text-[10px] font-bold text-m3-on-surface-variant block pb-2 shrink-0">{t('charsSelectorLabel')}</span>
-              <div className="flex-1 overflow-y-auto space-y-1 pr-1 min-h-[150px] md:min-h-0">
+          <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-5 text-start overflow-y-auto md:overflow-hidden min-h-0">
+            {/* Character Selector Column */}
+            <div className={`md:col-span-1 flex flex-col md:overflow-hidden h-auto md:h-full ${language === 'ar' ? 'border-l-2' : 'border-r-2'} border-[var(--border-subtle)] pe-2`}>
+              <span className="text-xs font-heading font-black uppercase tracking-wider text-[var(--text-secondary)] pb-2 shrink-0">
+                {t('charsSelectorLabel')}
+              </span>
+              <div className="flex-1 overflow-y-auto space-y-1.5 pe-1">
                 {characters.map((char) => (
                   <button
                     key={char.id}
                     onClick={() => setSelectedCharIdStep7(char.id!)}
-                    className={`relative overflow-hidden w-full text-start p-2.5 rounded-xl text-xs transition-all cursor-pointer font-cairo ${
+                    className={`w-full text-start p-2.5 border-2 border-[var(--border-ink)] text-xs font-heading font-bold transition-all cursor-pointer truncate select-none ${
                       selectedCharIdStep7 === char.id
-                        ? 'bg-m3-primary-container text-m3-on-primary-container font-bold shadow-sm'
-                        : 'hover:bg-m3-surface-variant/45 text-m3-on-surface-variant'
+                        ? 'bg-[var(--pastel-yellow)] text-black font-black shadow-[3px_3px_0px_var(--shadow-ink)]'
+                        : 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--bg-surface-hover)]'
                     }`}
                     title={char.name}
                   >
-                    <span className="block truncate">{char.name}</span>
-                    <md-ripple></md-ripple>
+                    {char.name}
                   </button>
                 ))}
               </div>
             </div>
 
-            <div className="md:col-span-3 md:overflow-y-auto h-auto md:h-full pr-1 min-h-0">
+            {/* Chart Fields Column */}
+            <div className="md:col-span-3 md:overflow-y-auto h-auto md:h-full space-y-4 pe-1 min-h-0">
               {selectedChar ? (
-                <div className="bg-m3-surface p-5 border border-m3-outline-variant rounded-2xl space-y-4 shadow-sm">
-                  <h3 className="text-xs font-bold text-m3-on-surface-variant uppercase tracking-wider pb-1">{t('editCharacterTitle')}: {selectedChar.name}</h3>
+                <div className="bg-[var(--bg-surface)] border-3 border-[var(--border-ink)] shadow-[6px_6px_0px_var(--shadow-ink)] p-5 sm:p-6 space-y-4">
+                  <div className="flex items-center gap-2 pb-2 border-b-2 border-[var(--border-subtle)]">
+                    <span className="p-1.5 bg-[var(--pastel-yellow)] text-black border-2 border-[var(--border-ink)] shadow-[2px_2px_0px_var(--shadow-ink)]">
+                      <User className="w-4 h-4" />
+                    </span>
+                    <h3 className="text-xs font-heading font-black text-[var(--text-primary)] uppercase tracking-wider">
+                      {t('editCharacterTitle')}: {selectedChar.name}
+                    </h3>
+                  </div>
 
                   <div className="space-y-4">
-                    <div className="font-cairo">
-                      <md-outlined-text-field
-                        label={t('charNameLabel')}
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-heading font-bold text-[var(--text-primary)]">
+                        {t('charNameLabel')}
+                      </label>
+                      <input
+                        type="text"
                         value={selectedChar.name}
-                        onChange={(e: any) => {
+                        onChange={(e) => {
                           const updated = characters.map(c => c.id === selectedChar.id ? { ...c, name: e.target.value } : c);
                           setCharacters(updated);
                         }}
                         onBlur={() => handleSaveChart(selectedChar)}
-                        className="w-full"
+                        className="w-full px-3.5 py-2.5 bg-[var(--bg-surface)] border-3 border-[var(--border-ink)] text-[var(--text-primary)] text-xs font-medium shadow-[3px_3px_0px_var(--shadow-ink)] focus:outline-none focus:shadow-[5px_5px_0px_var(--shadow-ink)] transition-all"
                       />
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="font-cairo">
-                        <md-outlined-text-field
-                          type="textarea"
+                      <div className="space-y-1.5">
+                        <label className="block text-xs font-heading font-bold text-[var(--text-primary)]">
+                          {t('charMotivationLabel')}
+                        </label>
+                        <textarea
                           rows={3}
-                          label={t('charMotivationLabel')}
                           value={selectedChar.motivation}
-                          onChange={(e: any) => {
+                          onChange={(e) => {
                             const updated = characters.map(c => c.id === selectedChar.id ? { ...c, motivation: e.target.value } : c);
                             setCharacters(updated);
                           }}
                           onBlur={() => handleSaveChart(selectedChar)}
-                          className="w-full"
+                          className="w-full p-3 bg-[var(--bg-surface)] border-3 border-[var(--border-ink)] text-[var(--text-primary)] text-xs font-medium shadow-[3px_3px_0px_var(--shadow-ink)] focus:outline-none focus:shadow-[5px_5px_0px_var(--shadow-ink)] transition-all"
                         />
                       </div>
 
-                      <div className="font-cairo">
-                        <md-outlined-text-field
-                          type="textarea"
+                      <div className="space-y-1.5">
+                        <label className="block text-xs font-heading font-bold text-[var(--text-primary)]">
+                          {t('charGoalLabel')}
+                        </label>
+                        <textarea
                           rows={3}
-                          label={t('charGoalLabel')}
                           value={selectedChar.goal}
-                          onChange={(e: any) => {
+                          onChange={(e) => {
                             const updated = characters.map(c => c.id === selectedChar.id ? { ...c, goal: e.target.value } : c);
                             setCharacters(updated);
                           }}
                           onBlur={() => handleSaveChart(selectedChar)}
-                          className="w-full"
+                          className="w-full p-3 bg-[var(--bg-surface)] border-3 border-[var(--border-ink)] text-[var(--text-primary)] text-xs font-medium shadow-[3px_3px_0px_var(--shadow-ink)] focus:outline-none focus:shadow-[5px_5px_0px_var(--shadow-ink)] transition-all"
                         />
                       </div>
 
-                      <div className="font-cairo">
-                        <md-outlined-text-field
-                          type="textarea"
+                      <div className="space-y-1.5">
+                        <label className="block text-xs font-heading font-bold text-[var(--text-primary)]">
+                          {t('charConflictLabel')}
+                        </label>
+                        <textarea
                           rows={3}
-                          label={t('charConflictLabel')}
                           value={selectedChar.conflict}
-                          onChange={(e: any) => {
+                          onChange={(e) => {
                             const updated = characters.map(c => c.id === selectedChar.id ? { ...c, conflict: e.target.value } : c);
                             setCharacters(updated);
                           }}
                           onBlur={() => handleSaveChart(selectedChar)}
-                          className="w-full"
+                          className="w-full p-3 bg-[var(--bg-surface)] border-3 border-[var(--border-ink)] text-[var(--text-primary)] text-xs font-medium shadow-[3px_3px_0px_var(--shadow-ink)] focus:outline-none focus:shadow-[5px_5px_0px_var(--shadow-ink)] transition-all"
                         />
                       </div>
 
-                      <div className="font-cairo">
-                        <md-outlined-text-field
-                          type="textarea"
+                      <div className="space-y-1.5">
+                        <label className="block text-xs font-heading font-bold text-[var(--text-primary)]">
+                          {t('charEpiphanyLabel')}
+                        </label>
+                        <textarea
                           rows={3}
-                          label={t('charEpiphanyLabel')}
                           value={selectedChar.epiphany}
-                          onChange={(e: any) => {
+                          onChange={(e) => {
                             const updated = characters.map(c => c.id === selectedChar.id ? { ...c, epiphany: e.target.value } : c);
                             setCharacters(updated);
                           }}
                           onBlur={() => handleSaveChart(selectedChar)}
-                          className="w-full"
+                          className="w-full p-3 bg-[var(--bg-surface)] border-3 border-[var(--border-ink)] text-[var(--text-primary)] text-xs font-medium shadow-[3px_3px_0px_var(--shadow-ink)] focus:outline-none focus:shadow-[5px_5px_0px_var(--shadow-ink)] transition-all"
                         />
                       </div>
                     </div>
                   </div>
                 </div>
               ) : (
-                <div className="h-[200px] flex items-center justify-center border border-dashed border-m3-outline-variant rounded-2xl text-m3-on-surface-variant text-xs bg-m3-surface/30">
+                <div className="h-[240px] flex items-center justify-center border-3 border-dashed border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-muted)] text-xs font-heading font-bold">
                   {t('selectCharPlaceholder')}
                 </div>
               )}
@@ -900,27 +1025,32 @@ export const Workspace: React.FC<WorkspaceProps> = ({
   // ----------------------------------------------------
   if (activeStep === 8) {
     return (
-      <div className="flex-1 overflow-y-auto w-full p-8 max-w-3xl mx-auto space-y-6 fade-in font-cairo">
+      <div className="flex-1 overflow-y-auto w-full p-6 sm:p-8 max-w-5xl mx-auto space-y-6 nb-dots">
         {renderStepHeader()}
 
         {editingScene ? (
-          <div className="bg-m3-surface p-5 border border-m3-outline-variant rounded-2xl space-y-4 text-start shadow-sm">
-            <h3 className="text-xs font-bold text-m3-on-surface-variant uppercase tracking-wider pb-1">
-              {editingScene.id ? t('editSceneTitle') : t('addSceneTitle')}
-            </h3>
+          <div className="bg-[var(--bg-surface)] border-3 border-[var(--border-ink)] shadow-[6px_6px_0px_var(--shadow-ink)] p-5 sm:p-6 space-y-4 text-start">
+            <div className="flex items-center gap-2 pb-2 border-b-2 border-[var(--border-subtle)]">
+              <span className="p-1.5 bg-[var(--pastel-lavender)] text-black border-2 border-[var(--border-ink)] shadow-[2px_2px_0px_var(--shadow-ink)]">
+                <Film className="w-4 h-4" />
+              </span>
+              <h3 className="text-xs font-heading font-black text-[var(--text-primary)] uppercase tracking-wider">
+                {editingScene.id ? t('editSceneTitle') : t('addSceneTitle')}
+              </h3>
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="font-cairo">
-                <label className="text-[11px] font-bold text-m3-on-surface-variant block mb-1">{t('scenePovLabel')}</label>
+              <div className="space-y-1.5">
+                <label className="block text-xs font-heading font-bold text-[var(--text-primary)]">{t('scenePovLabel')}</label>
                 {characters.length === 0 ? (
-                  <div className="text-[10px] text-rose-500 p-2 bg-rose-50 dark:bg-rose-950/10 rounded-xl">
+                  <div className="text-xs text-black font-bold p-2.5 bg-[var(--pastel-coral)] border-2 border-[var(--border-ink)]">
                     {t('pleaseAddCharsWarning')}
                   </div>
                 ) : (
                   <select
                     value={editingScene.pov_character_id || ''}
                     onChange={(e) => setEditingScene({ ...editingScene, pov_character_id: Number(e.target.value) || null })}
-                    className="w-full text-xs rounded-xl border border-m3-outline bg-m3-background p-3 focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary cursor-pointer text-m3-on-surface transition-all"
+                    className="w-full text-xs font-medium border-3 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] p-2.5 shadow-[3px_3px_0px_var(--shadow-ink)] focus:outline-none cursor-pointer transition-all"
                   >
                     <option value="">{t('selectPovPlaceholder')}</option>
                     {characters.map(c => (
@@ -930,45 +1060,54 @@ export const Workspace: React.FC<WorkspaceProps> = ({
                 )}
               </div>
 
-              <div className="font-cairo mt-5 md:mt-0">
-                <md-outlined-text-field
-                  label={t('sceneSettingLabel')}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-heading font-bold text-[var(--text-primary)]">
+                  {t('sceneSettingLabel')}
+                </label>
+                <input
+                  type="text"
                   value={editingScene.setting || ''}
-                  onChange={(e: any) => setEditingScene({ ...editingScene, setting: e.target.value })}
+                  onChange={(e) => setEditingScene({ ...editingScene, setting: e.target.value })}
                   placeholder={t('sceneSettingCol')}
-                  className="w-full"
+                  className="w-full px-3.5 py-2.5 bg-[var(--bg-surface)] border-3 border-[var(--border-ink)] text-[var(--text-primary)] text-xs font-medium shadow-[3px_3px_0px_var(--shadow-ink)] focus:outline-none focus:shadow-[5px_5px_0px_var(--shadow-ink)] transition-all"
                 />
               </div>
 
-              <div className="font-cairo">
-                <md-outlined-text-field
-                  label={t('scenePlotLabel')}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-heading font-bold text-[var(--text-primary)]">
+                  {t('scenePlotLabel')}
+                </label>
+                <input
+                  type="text"
                   value={editingScene.plot_thread || ''}
-                  onChange={(e: any) => setEditingScene({ ...editingScene, plot_thread: e.target.value })}
+                  onChange={(e) => setEditingScene({ ...editingScene, plot_thread: e.target.value })}
                   placeholder={t('scenePlotCol')}
-                  className="w-full"
+                  className="w-full px-3.5 py-2.5 bg-[var(--bg-surface)] border-3 border-[var(--border-ink)] text-[var(--text-primary)] text-xs font-medium shadow-[3px_3px_0px_var(--shadow-ink)] focus:outline-none focus:shadow-[5px_5px_0px_var(--shadow-ink)] transition-all"
                 />
               </div>
 
-              <div className="font-cairo">
-                <md-outlined-text-field
+              <div className="space-y-1.5">
+                <label className="block text-xs font-heading font-bold text-[var(--text-primary)]">
+                  {t('sceneExpectedWordsLabel')}
+                </label>
+                <input
                   type="number"
-                  label={t('sceneExpectedWordsLabel')}
-                  value={String(editingScene.expected_word_count || '')}
-                  onChange={(e: any) => setEditingScene({ ...editingScene, expected_word_count: Number(e.target.value) || 0 })}
-                  className="w-full"
+                  value={editingScene.expected_word_count || ''}
+                  onChange={(e) => setEditingScene({ ...editingScene, expected_word_count: Number(e.target.value) || 0 })}
+                  className="w-full px-3.5 py-2.5 bg-[var(--bg-surface)] border-3 border-[var(--border-ink)] text-[var(--text-primary)] text-xs font-mono font-bold shadow-[3px_3px_0px_var(--shadow-ink)] focus:outline-none focus:shadow-[5px_5px_0px_var(--shadow-ink)] transition-all"
                 />
               </div>
 
-              <div className="md:col-span-2 font-cairo">
-                <md-outlined-text-field
-                  type="textarea"
+              <div className="md:col-span-2 space-y-1.5">
+                <label className="block text-xs font-heading font-bold text-[var(--text-primary)]">
+                  {t('sceneWhatHappensLabel')}
+                </label>
+                <textarea
                   rows={4}
-                  label={t('sceneWhatHappensLabel')}
                   value={editingScene.what_happens || ''}
-                  onChange={(e: any) => setEditingScene({ ...editingScene, what_happens: e.target.value })}
+                  onChange={(e) => setEditingScene({ ...editingScene, what_happens: e.target.value })}
                   placeholder={t('sceneWhatHappensLabel')}
-                  className="w-full"
+                  className="w-full p-3.5 bg-[var(--bg-surface)] border-3 border-[var(--border-ink)] text-[var(--text-primary)] text-xs font-medium shadow-[3px_3px_0px_var(--shadow-ink)] focus:outline-none focus:shadow-[5px_5px_0px_var(--shadow-ink)] transition-all"
                 />
                 <div className="flex justify-end mt-1">
                   <WordCounter text={editingScene.what_happens || ''} />
@@ -976,71 +1115,72 @@ export const Workspace: React.FC<WorkspaceProps> = ({
               </div>
             </div>
 
-            <div className="flex gap-2 justify-end pt-2">
+            <div className="flex gap-2 justify-end pt-3 border-t-2 border-[var(--border-subtle)]">
               <button
                 onClick={() => setEditingScene(null)}
-                className="relative overflow-hidden px-4 py-1.5 border border-m3-outline text-m3-primary hover:bg-m3-primary/10 text-xs rounded-full transition-colors cursor-pointer font-cairo font-bold"
+                className="px-4 py-2 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] text-xs font-heading font-bold shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--bg-surface-hover)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
               >
                 {t('cancel')}
-                <md-ripple></md-ripple>
               </button>
               <button
                 onClick={() => handleSaveScene(editingScene)}
-                className="relative overflow-hidden flex items-center gap-1.5 px-4 py-1.5 bg-m3-primary hover:opacity-90 text-m3-on-primary text-xs rounded-full transition-all font-bold cursor-pointer font-cairo shadow-sm"
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-[var(--pastel-lavender)] text-black text-xs font-heading font-black border-3 border-[var(--border-ink)] shadow-[3px_3px_0px_var(--shadow-ink)] hover:bg-[var(--accent-hover)] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[5px_5px_0px_var(--shadow-ink)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer select-none"
               >
-                <span className="material-symbols-rounded text-sm">save</span>
+                <Save className="w-3.5 h-3.5 stroke-[2.5]" />
                 <span>{t('save')}</span>
-                <md-ripple></md-ripple>
               </button>
             </div>
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-4">
             {scenes.length === 0 ? (
-              <div className="text-center py-10 bg-m3-surface border border-m3-outline-variant rounded-2xl text-m3-on-surface-variant text-xs font-semibold">
-                {t('noScenesYet')}
+              <div className="text-center py-12 bg-[var(--bg-surface)] border-3 border-dashed border-[var(--border-ink)] p-6 space-y-3">
+                <div className="inline-flex p-3 bg-[var(--pastel-lavender)] text-black border-2 border-[var(--border-ink)] shadow-[3px_3px_0px_var(--shadow-ink)]">
+                  <Film className="w-6 h-6" />
+                </div>
+                <p className="text-xs font-heading font-bold text-[var(--text-secondary)]">{t('noScenesYet')}</p>
               </div>
             ) : (
-              <div className="bg-m3-surface rounded-2xl border border-m3-outline-variant overflow-hidden shadow-sm">
+              <div className="bg-[var(--bg-surface)] border-3 border-[var(--border-ink)] shadow-[6px_6px_0px_var(--shadow-ink)] overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs text-start" dir={language === 'ar' ? 'rtl' : 'ltr'}>
-                    <thead className="text-m3-on-surface-variant uppercase bg-m3-surface-variant/40 border-b border-m3-outline-variant">
+                    <thead className="bg-[var(--pastel-yellow)] text-black uppercase font-heading font-black border-b-3 border-[var(--border-ink)]">
                       <tr>
-                        <th className="px-4 py-3 text-start font-bold">#</th>
-                        <th className="px-4 py-3 text-start font-bold">{t('scenePovCol')}</th>
-                        <th className="px-4 py-3 text-start font-bold">{t('sceneSettingCol')}</th>
-                        <th className="px-4 py-3 text-start font-bold">{t('scenePlotCol')}</th>
-                        <th className="px-4 py-3 text-start font-bold">{t('sceneWordsCol')}</th>
-                        <th className="px-4 py-3 text-start font-bold">{t('actions')}</th>
+                        <th className="px-4 py-3 text-start">#</th>
+                        <th className="px-4 py-3 text-start">{t('scenePovCol')}</th>
+                        <th className="px-4 py-3 text-start">{t('sceneSettingCol')}</th>
+                        <th className="px-4 py-3 text-start">{t('scenePlotCol')}</th>
+                        <th className="px-4 py-3 text-start">{t('sceneWordsCol')}</th>
+                        <th className="px-4 py-3 text-start">{t('actions')}</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-m3-outline-variant text-start">
+                    <tbody className="divide-y-2 divide-[var(--border-subtle)] text-start font-body">
                       {scenes.map((scn, idx) => {
                         const povName = characters.find(c => c.id === scn.pov_character_id)?.name || t('sceneNotPlanned');
                         return (
-                          <tr key={scn.id} className="hover:bg-m3-surface-variant/20 transition-all">
-                            <td className="px-4 py-3.5 font-bold text-m3-on-surface">{idx + 1}</td>
-                            <td className="px-4 py-3.5 text-m3-on-surface-variant font-medium">{povName}</td>
-                            <td className="px-4 py-3.5 text-m3-on-surface-variant font-medium truncate max-w-[120px]">{scn.setting || '_'}</td>
-                            <td className="px-4 py-3.5 text-m3-on-surface-variant font-medium">{scn.plot_thread || '_'}</td>
-                            <td className="px-4 py-3.5 text-m3-on-surface-variant font-medium font-mono">{scn.expected_word_count} / {scn.actual_word_count || 0}</td>
-                            <td className="px-4 py-3.5 flex gap-2 font-cairo">
-                              <button
-                                onClick={() => setEditingScene(scn)}
-                                className="relative overflow-hidden p-1.5 text-m3-on-surface-variant hover:text-m3-primary rounded-full cursor-pointer flex items-center justify-center"
-                                title={t('edit')}
-                              >
-                                <span className="material-symbols-rounded text-sm">edit</span>
-                                <md-ripple></md-ripple>
-                              </button>
-                              <button
-                                onClick={() => handleDeleteScene(scn.id!)}
-                                className="relative overflow-hidden p-1.5 text-rose-500 hover:text-rose-600 rounded-full cursor-pointer flex items-center justify-center"
-                                title={t('delete')}
-                              >
-                                <span className="material-symbols-rounded text-sm">delete</span>
-                                <md-ripple></md-ripple>
-                              </button>
+                          <tr key={scn.id} className="hover:bg-[var(--bg-surface-hover)] transition-all">
+                            <td className="px-4 py-3 font-mono font-black text-[var(--text-primary)]">{idx + 1}</td>
+                            <td className="px-4 py-3 font-heading font-bold text-[var(--text-primary)]">{povName}</td>
+                            <td className="px-4 py-3 text-[var(--text-secondary)] truncate max-w-[130px] font-medium">{scn.setting || '_'}</td>
+                            <td className="px-4 py-3 text-[var(--text-secondary)] font-medium">{scn.plot_thread || '_'}</td>
+                            <td className="px-4 py-3 font-mono font-bold text-[var(--text-primary)]">{scn.expected_word_count} / {scn.actual_word_count || 0}</td>
+                            <td className="px-4 py-3">
+                              <div className="flex gap-1.5">
+                                <button
+                                  onClick={() => setEditingScene(scn)}
+                                  className="p-1 border border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--pastel-yellow)] hover:text-black shadow-[1px_1px_0px_var(--shadow-ink)] transition-all cursor-pointer"
+                                  title={t('edit')}
+                                >
+                                  <Edit3 className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteScene(scn.id!)}
+                                  className="p-1 border border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--pastel-coral)] hover:text-black shadow-[1px_1px_0px_var(--shadow-ink)] transition-all cursor-pointer"
+                                  title={t('delete')}
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         );
@@ -1085,90 +1225,98 @@ export const Workspace: React.FC<WorkspaceProps> = ({
     };
 
     return (
-      <div className="flex-1 h-full flex flex-col overflow-hidden w-full p-8 max-w-4xl mx-auto space-y-6 fade-in font-cairo">
+      <div className="flex-1 h-full flex flex-col overflow-hidden w-full p-6 sm:p-8 max-w-5xl mx-auto space-y-5 nb-dots">
         {renderStepHeader()}
 
         {scenes.length === 0 ? (
-          <div className="text-center py-10 bg-m3-surface border border-m3-outline-variant rounded-2xl text-m3-on-surface-variant text-xs">
-            {t('pleaseAddScenesFirst')}
+          <div className="text-center py-12 bg-[var(--bg-surface)] border-3 border-dashed border-[var(--border-ink)] p-6">
+            <p className="text-xs font-heading font-bold text-[var(--text-secondary)]">{t('pleaseAddScenesFirst')}</p>
           </div>
         ) : (
-          <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-6 text-start overflow-y-auto md:overflow-hidden min-h-0">
-            <div className={`md:col-span-1 flex flex-col md:overflow-hidden h-auto md:h-full ${language === 'ar' ? 'border-l pl-2' : 'border-r pr-2'} border-m3-outline-variant/35`}>
-              <span className="text-[10px] font-bold text-m3-on-surface-variant block pb-2 shrink-0">{t('scenesListLabel')}</span>
-              <div className="flex-1 overflow-y-auto space-y-1 pr-1 min-h-[150px] md:min-h-0">
+          <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-5 text-start overflow-y-auto md:overflow-hidden min-h-0">
+            {/* Scene Selector Column */}
+            <div className={`md:col-span-1 flex flex-col md:overflow-hidden h-auto md:h-full ${language === 'ar' ? 'border-l-2' : 'border-r-2'} border-[var(--border-subtle)] pe-2`}>
+              <span className="text-xs font-heading font-black uppercase tracking-wider text-[var(--text-secondary)] pb-2 shrink-0">
+                {t('scenesListLabel')}
+              </span>
+              <div className="flex-1 overflow-y-auto space-y-1.5 pe-1">
                 {scenes.map((scn, idx) => (
                   <button
                     key={scn.id}
                     onClick={() => setSelectedSceneIdStep9(scn.id!)}
-                    className={`relative overflow-hidden w-full text-start p-2.5 rounded-xl text-xs transition-all cursor-pointer font-cairo ${
+                    className={`w-full text-start p-2.5 border-2 border-[var(--border-ink)] text-xs font-heading font-bold transition-all cursor-pointer truncate select-none ${
                       selectedSceneIdStep9 === scn.id
-                        ? 'bg-m3-primary-container text-m3-on-primary-container font-bold shadow-sm'
-                        : 'hover:bg-m3-surface-variant/45 text-m3-on-surface-variant'
+                        ? 'bg-[var(--pastel-yellow)] text-black font-black shadow-[3px_3px_0px_var(--shadow-ink)]'
+                        : 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--bg-surface-hover)]'
                     }`}
                     title={`${t('sceneNumber')} ${idx + 1}: ${scn.setting || t('sceneNotPlanned')}`}
                   >
-                    <span className="block truncate">{t('sceneNumber')} {idx + 1}: {scn.setting || t('sceneNotPlanned')}</span>
-                    <md-ripple></md-ripple>
+                    {t('sceneNumber')} {idx + 1}: {scn.setting || t('sceneNotPlanned')}
                   </button>
                 ))}
               </div>
             </div>
 
-            <div className="md:col-span-3 md:overflow-y-auto h-auto md:h-full space-y-4 pr-1 min-h-0">
+            {/* Narrative Column */}
+            <div className="md:col-span-3 md:overflow-y-auto h-auto md:h-full space-y-4 pe-1 min-h-0">
               {selectedScene ? (
                 <>
-                  <div className="bg-m3-primary-container/20 border border-m3-outline-variant p-4 rounded-2xl text-xs leading-relaxed text-m3-on-surface-variant shadow-sm">
-                    <div className="grid grid-cols-2 gap-2 font-medium">
-                      <div><span className="font-bold">{t('scenePovCol')}:</span> {characters.find(c => c.id === selectedScene.pov_character_id)?.name || t('sceneNotPlanned')}</div>
-                      <div><span className="font-bold">{t('scenePlotCol')}:</span> {selectedScene.plot_thread || t('sceneNotPlanned')}</div>
-                      <div className="col-span-2"><span className="font-bold">{t('sceneSettingCol')}:</span> {selectedScene.setting || t('sceneNotPlanned')}</div>
+                  <div className="bg-[var(--pastel-lavender)] text-black border-3 border-[var(--border-ink)] shadow-[4px_4px_0px_var(--shadow-ink)] p-4 text-xs font-medium leading-relaxed">
+                    <div className="grid grid-cols-2 gap-2">
+                      <div><span className="font-heading font-black">{t('scenePovCol')}:</span> {characters.find(c => c.id === selectedScene.pov_character_id)?.name || t('sceneNotPlanned')}</div>
+                      <div><span className="font-heading font-black">{t('scenePlotCol')}:</span> {selectedScene.plot_thread || t('sceneNotPlanned')}</div>
+                      <div className="col-span-2"><span className="font-heading font-black">{t('sceneSettingCol')}:</span> {selectedScene.setting || t('sceneNotPlanned')}</div>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-1 font-cairo">
-                      <span className="text-[10px] font-bold text-m3-on-surface-variant">{t('sceneExpectedWordsLabel')}</span>
-                      <div className="bg-m3-surface-variant text-m3-on-surface text-xs px-3 py-2.5 rounded-xl font-bold">
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-heading font-bold text-[var(--text-primary)]">
+                        {t('sceneExpectedWordsLabel')}
+                      </label>
+                      <div className="bg-[var(--bg-surface-raised)] text-[var(--text-primary)] text-xs px-3.5 py-2.5 border-3 border-[var(--border-ink)] font-mono font-black shadow-[2px_2px_0px_var(--shadow-ink)]">
                         {selectedScene.expected_word_count} {t('words')}
                       </div>
                     </div>
-                    <div className="font-cairo">
-                      <md-outlined-text-field
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-heading font-bold text-[var(--text-primary)]">
+                        {t('sceneActualWordsLabel')}
+                      </label>
+                      <input
                         type="number"
-                        label={t('sceneActualWordsLabel')}
-                        value={String(selectedScene.actual_word_count || '')}
-                        onChange={(e: any) => {
+                        value={selectedScene.actual_word_count || ''}
+                        onChange={(e) => {
                           const updated = scenes.map(s => s.id === selectedScene.id ? { ...s, actual_word_count: Number(e.target.value) || 0 } : s);
                           setScenes(updated);
                         }}
-                        onBlur={(e: any) => handleSaveNarrative(selectedScene.what_happens, Number(e.target.value) || 0)}
-                        className="w-full"
+                        onBlur={(e) => handleSaveNarrative(selectedScene.what_happens, Number(e.target.value) || 0)}
+                        className="w-full px-3.5 py-2.5 bg-[var(--bg-surface)] border-3 border-[var(--border-ink)] text-[var(--text-primary)] text-xs font-mono font-bold shadow-[3px_3px_0px_var(--shadow-ink)] focus:outline-none focus:shadow-[5px_5px_0px_var(--shadow-ink)] transition-all"
                       />
                     </div>
                   </div>
 
-                  <div className="font-cairo">
-                    <md-outlined-text-field
-                      type="textarea"
+                  <div className="space-y-2">
+                    <label className="block text-xs font-heading font-bold text-[var(--text-primary)]">
+                      {t('sceneNarrativeTextareaLabel')}
+                    </label>
+                    <textarea
                       rows={10}
-                      label={t('sceneNarrativeTextareaLabel')}
                       value={selectedScene.what_happens}
-                      onChange={(e: any) => {
+                      onChange={(e) => {
                         const updated = scenes.map(s => s.id === selectedScene.id ? { ...s, what_happens: e.target.value } : s);
                         setScenes(updated);
                       }}
-                      onBlur={(e: any) => handleSaveNarrative(e.target.value, selectedScene.actual_word_count)}
-                      className="w-full min-h-[300px]"
+                      onBlur={(e) => handleSaveNarrative(e.target.value, selectedScene.actual_word_count)}
                       placeholder={t('sceneNarrativePlaceholder')}
+                      className="w-full p-4 bg-[var(--bg-surface)] border-3 border-[var(--border-ink)] text-[var(--text-primary)] text-sm font-body shadow-[5px_5px_0px_var(--shadow-ink)] focus:outline-none focus:shadow-[7px_7px_0px_var(--shadow-ink)] transition-all min-h-[280px] leading-relaxed"
                     />
-                    <div className="flex justify-end mt-1">
+                    <div className="flex justify-end">
                       <WordCounter text={selectedScene.what_happens} />
                     </div>
                   </div>
                 </>
               ) : (
-                <div className="h-[200px] flex items-center justify-center border border-dashed border-m3-outline-variant rounded-2xl text-m3-on-surface-variant text-xs bg-m3-surface/30">
+                <div className="h-[240px] flex items-center justify-center border-3 border-dashed border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-muted)] text-xs font-heading font-bold">
                   {t('selectScenePlaceholder')}
                 </div>
               )}
@@ -1180,17 +1328,17 @@ export const Workspace: React.FC<WorkspaceProps> = ({
   }
 
   // ----------------------------------------------------
-  // STEP 10: GENERATE EXPORT VIEW
+  // STEP 10: FIRST DRAFT & EXPORT
   // ----------------------------------------------------
   if (activeStep === 10) {
     const mdContent = getExportMarkdown();
 
     return (
-      <div className="flex-1 overflow-y-auto w-full p-8 max-w-3xl mx-auto space-y-6 fade-in font-cairo">
+      <div className="flex-1 overflow-y-auto w-full p-6 sm:p-8 max-w-4xl mx-auto space-y-5 nb-dots">
         {renderStepHeader()}
 
-        <div className="bg-m3-surface p-5 border border-m3-outline-variant rounded-2xl max-h-[500px] overflow-y-auto text-start select-text shadow-sm">
-          <pre className="text-xs font-cairo whitespace-pre-wrap leading-relaxed text-m3-on-surface font-semibold">
+        <div className="bg-[var(--bg-surface)] border-3 border-[var(--border-ink)] shadow-[6px_6px_0px_var(--shadow-ink)] p-5 max-h-[520px] overflow-y-auto text-start select-text">
+          <pre className="text-xs font-mono whitespace-pre-wrap leading-relaxed text-[var(--text-primary)] font-medium">
             {mdContent}
           </pre>
         </div>
