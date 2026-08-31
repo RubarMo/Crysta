@@ -22,6 +22,7 @@ export interface Character {
   id?: number;
   novel_id: number;
   name: string;
+  one_sentence_summary?: string;
   motivation: string;
   goal: string;
   conflict: string;
@@ -37,8 +38,68 @@ export interface Scene {
   setting: string;
   plot_thread: string;
   what_happens: string;
+  narrative_outline?: string;
   expected_word_count: number;
   actual_word_count: number;
+  sort_order?: number;
+}
+
+export interface Chapter {
+  id?: number;
+  novel_id: number;
+  title: string;
+  content: string;
+  sort_order: number;
+}
+
+export interface BookFormatConfig {
+  id?: number;
+  novel_id: number;
+  has_title_page: boolean;
+  subtitle: string;
+  author_name: string;
+  publisher_name: string;
+  has_copyright_page: boolean;
+  copyright_year: string;
+  isbn: string;
+  edition_notice: string;
+  has_dedication: boolean;
+  dedication_text: string;
+  has_epigraph: boolean;
+  epigraph_quote: string;
+  epigraph_author: string;
+  has_table_of_contents: boolean;
+  has_foreword: boolean;
+  foreword_title: string;
+  foreword_content: string;
+  has_epilogue: boolean;
+  epilogue_title: string;
+  epilogue_content: string;
+  has_acknowledgments: boolean;
+  acknowledgments_content: string;
+  has_about_author: boolean;
+  about_author_bio: string;
+  preset_theme: string;
+  trim_size: string;
+  font_family: string;
+  font_size: number;
+  line_spacing: number;
+  first_line_indent: boolean;
+  first_paragraph_drop_cap: boolean;
+  chapter_numbering_style: string;
+  scene_break_ornament: string;
+  header_verso: string;
+  header_recto: string;
+  include_page_numbers: boolean;
+}
+
+export interface SnapshotInfo {
+  file_path: string;
+  file_name: string;
+  timestamp: string;
+  file_size_bytes: number;
+  custom_label: string | null;
+  is_manual: boolean;
 }
 
 // Commands Wrapper
@@ -122,6 +183,57 @@ export async function saveScene(scene: Scene): Promise<number> {
 
 export async function deleteScene(id: number, novelId: number): Promise<void> {
   return invoke<void>("delete_scene", { id, novelId });
+}
+
+export async function reorderScenes(novelId: number, sceneIds: number[]): Promise<void> {
+  return invoke<void>("reorder_scenes", { novelId, sceneIds });
+}
+
+// Chapters CRUD
+export async function getChapters(novelId: number): Promise<Chapter[]> {
+  return invoke<Chapter[]>("get_chapters", { novelId });
+}
+
+export async function saveChapter(chapter: Chapter): Promise<number> {
+  return invoke<number>("save_chapter", { chapter });
+}
+
+export async function deleteChapter(id: number, novelId: number): Promise<void> {
+  return invoke<void>("delete_chapter", { id, novelId });
+}
+
+export async function reorderChapters(novelId: number, chapterIds: number[]): Promise<void> {
+  return invoke<void>("reorder_chapters", { novelId, chapterIds });
+}
+
+// Book Formatting Config
+export async function getBookFormatting(novelId: number): Promise<BookFormatConfig> {
+  return invoke<BookFormatConfig>("get_book_formatting", { novelId });
+}
+
+export async function saveBookFormatting(config: BookFormatConfig): Promise<number> {
+  return invoke<number>("save_book_formatting", { config });
+}
+
+// Snapshots & Backups
+export async function takeSnapshot(customLabel?: string, isManual = false): Promise<SnapshotInfo> {
+  return invoke<SnapshotInfo>("take_snapshot", { customLabel: customLabel || null, isManual });
+}
+
+export async function listSnapshots(): Promise<SnapshotInfo[]> {
+  return invoke<SnapshotInfo[]>("list_snapshots");
+}
+
+export async function restoreSnapshot(snapshotPath: string): Promise<void> {
+  return invoke<void>("restore_snapshot", { snapshotPath });
+}
+
+export async function deleteSnapshot(snapshotPath: string): Promise<void> {
+  return invoke<void>("delete_snapshot", { snapshotPath });
+}
+
+export async function openBackupsDirectory(): Promise<void> {
+  return invoke<void>("open_backups_directory");
 }
 
 // Project Lifecycle API Bindings

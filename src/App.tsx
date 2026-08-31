@@ -3,6 +3,8 @@ import { Sidebar } from "./components/Sidebar";
 import { Workspace } from "./components/Workspace";
 import { ThemeToggle } from "./components/ThemeToggle";
 import { useLanguage } from "./LanguageContext";
+import { SnapshotsModal } from "./components/workspace/SnapshotsModal";
+import { CommandPaletteDialog } from "./components/workspace/CommandPaletteDialog";
 import { check } from "@tauri-apps/plugin-updater";
 import { relaunch, exit } from "@tauri-apps/plugin-process";
 import { onBackButtonPress } from "@tauri-apps/api/app";
@@ -16,8 +18,8 @@ import {
   BookOpen, 
   RefreshCw, 
   FileCode,
-  FolderKanban,
-  Clock
+  Clock,
+  SlidersHorizontal
 } from 'lucide-react';
 import { 
   Novel, 
@@ -27,7 +29,8 @@ import {
   createProjectFile,
   listProjectFiles,
   openProject,
-  closeProject
+  closeProject,
+  takeSnapshot
 } from "./lib";
 
 interface RecentProject {
@@ -49,6 +52,11 @@ function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
   const [mobileProjects, setMobileProjects] = useState<string[]>([]);
   const [showPickerModal, setShowPickerModal] = useState<boolean>(false);
+
+  // New Modals: Snapshots and Command Palette
+  const [isSnapshotsOpen, setIsSnapshotsOpen] = useState<boolean>(false);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState<boolean>(false);
+
   const [updateInfo, setUpdateInfo] = useState<{
     available: boolean;
     version: string;
@@ -58,11 +66,25 @@ function App() {
     error: string | null;
   } | null>(null);
 
+  // Global Keyboard Shortcuts (Ctrl+K for Command Palette)
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
+        e.preventDefault();
+        setIsCommandPaletteOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, []);
+
   // Back button navigation state ref
   const navStateRef = useRef({
     showHelpModal,
     showPickerModal,
     isSidebarOpen,
+    isSnapshotsOpen,
+    isCommandPaletteOpen,
     activeNovelId,
     activeStep,
   });
@@ -73,10 +95,12 @@ function App() {
       showHelpModal,
       showPickerModal,
       isSidebarOpen,
+      isSnapshotsOpen,
+      isCommandPaletteOpen,
       activeNovelId,
       activeStep,
     };
-  }, [showHelpModal, showPickerModal, isSidebarOpen, activeNovelId, activeStep]);
+  }, [showHelpModal, showPickerModal, isSidebarOpen, isSnapshotsOpen, isCommandPaletteOpen, activeNovelId, activeStep]);
 
   // Handle Android back button
   useEffect(() => {
@@ -89,11 +113,17 @@ function App() {
             showHelpModal: helpOpen,
             showPickerModal: pickerOpen,
             isSidebarOpen: sidebarOpen,
+            isSnapshotsOpen: snapshotsOpen,
+            isCommandPaletteOpen: cmdOpen,
             activeNovelId: novelId,
             activeStep: step,
           } = navStateRef.current;
 
-          if (helpOpen) {
+          if (cmdOpen) {
+            setIsCommandPaletteOpen(false);
+          } else if (snapshotsOpen) {
+            setIsSnapshotsOpen(false);
+          } else if (helpOpen) {
             setShowHelpModal(false);
           } else if (pickerOpen) {
             setShowPickerModal(false);
@@ -237,6 +267,11 @@ function App() {
       setActiveStep(0);
       addRecentProject(path, novel.title);
       setErrorMessage(null);
+
+      // Trigger automatic snapshot in background (smart backup)
+      takeSnapshot(undefined, false).catch((e) => {
+        console.warn("Auto-snapshot on session open skipped/failed:", e);
+      });
     } catch (err: any) {
       console.error("Failed to open project path", err);
       setErrorMessage(`${t("failedToOpenProject")}: ${err}`);
@@ -340,6 +375,7 @@ function App() {
         stepsProgress={stepsProgress}
         isSidebarOpen={isSidebarOpen}
         onCloseSidebar={() => setIsSidebarOpen(false)}
+        onOpenSnapshots={() => setIsSnapshotsOpen(true)}
       />
 
       {/* Backdrop Dimming on Mobile */}
@@ -353,11 +389,11 @@ function App() {
       {/* Main Container */}
       <div className="flex-1 flex flex-col h-full overflow-hidden min-w-0">
         {/* Top Header App Bar */}
-        <header className="h-16 border-b-3 border-[var(--border-ink)] bg-[var(--bg-surface)] px-4 sm:px-6 flex items-center justify-between shrink-0 z-10">
-          <div className="flex items-center gap-3">
+        <header className="h-16 border-b-3 border-[var(--border-ink)] bg-[var(--bg-surface)] px-3 sm:px-6 flex items-center justify-between shrink-0 z-10 min-w-0 gap-2">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <button
               onClick={() => setIsSidebarOpen(true)}
-              className="md:hidden p-1.5 text-[var(--text-primary)] border-2 border-[var(--border-ink)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-yellow)] hover:text-black active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center justify-center"
+              className="md:hidden p-1.5 text-[var(--text-primary)] border-2 border-[var(--border-ink)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-yellow)] hover:text-black active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center justify-center shrink-0"
               title={t("openSidebar")}
               aria-label="Open sidebar"
             >
@@ -365,7 +401,7 @@ function App() {
             </button>
 
             {/* Brand Title */}
-            <div className="flex items-center gap-2 select-none">
+            <div className="flex items-center gap-2 select-none shrink-0">
               <span className="p-1 bg-[var(--pastel-yellow)] text-black border-2 border-[var(--border-ink)] shadow-[2px_2px_0px_var(--shadow-ink)] flex items-center justify-center">
                 <Sparkles className="w-4 h-4" />
               </span>
@@ -373,37 +409,37 @@ function App() {
                 {t("appName")}
               </span>
             </div>
-
-            {activeNovelId !== null && (
-              <button
-                onClick={handleCloseProject}
-                className="inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1 border-2 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] text-[var(--text-secondary)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-yellow)] hover:text-black hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer font-heading font-bold whitespace-nowrap"
-              >
-                <FolderKanban className="w-3.5 h-3.5" />
-                <span>{t("projectsBtn")}</span>
-              </button>
-            )}
           </div>
           
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 ms-auto">
+            {/* Quick Command Palette Button */}
+            <button
+              onClick={() => setIsCommandPaletteOpen(true)}
+              className="inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1.5 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-yellow)] hover:text-black transition-all font-heading font-black cursor-pointer shrink-0"
+              title="Command Palette (Ctrl+K)"
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5" />
+              <span className="font-mono text-[10px]">Ctrl+K</span>
+            </button>
+
             {errorMessage && (
-              <span className="text-[11px] font-bold text-black bg-[var(--pastel-coral)] border-2 border-[var(--border-ink)] px-2.5 py-1 shadow-[2px_2px_0px_var(--shadow-ink)] truncate max-w-[200px]">
+              <span className="text-[11px] font-bold text-black bg-[var(--pastel-coral)] border-2 border-[var(--border-ink)] px-2.5 py-1 shadow-[2px_2px_0px_var(--shadow-ink)] truncate max-w-[160px] shrink-0">
                 {errorMessage}
               </span>
             )}
             <button
               onClick={() => setShowHelpModal(true)}
-              className="inline-flex items-center gap-1 text-xs px-3 py-1.5 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[3px_3px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-yellow)] hover:text-black hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_var(--shadow-ink)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all font-heading font-black cursor-pointer whitespace-nowrap"
+              className="inline-flex items-center gap-1 text-xs px-2.5 sm:px-3 py-1.5 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-yellow)] hover:text-black hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all font-heading font-black cursor-pointer whitespace-nowrap shrink-0"
             >
               <HelpCircle className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">{t("helpGuideBtn")}</span>
+              <span className="hidden md:inline">{t("helpGuideBtn")}</span>
             </button>
             <ThemeToggle />
           </div>
         </header>
 
         {/* Workspace or Projects Launcher */}
-        <main className="flex-1 overflow-hidden bg-[var(--bg-canvas)] flex flex-col min-h-0">
+        <main className="flex-1 overflow-hidden bg-[var(--bg-canvas)] flex flex-col min-h-0 nb-dots">
           {loading ? (
             <div className="h-full flex flex-col items-center justify-center gap-3 text-xs font-heading font-bold text-[var(--text-secondary)]">
               <div className="p-3 bg-[var(--pastel-yellow)] text-black border-3 border-[var(--border-ink)] shadow-[4px_4px_0px_var(--shadow-ink)] animate-bounce">
@@ -420,7 +456,7 @@ function App() {
               activeStep={activeStep}
             />
           ) : (
-            <div className="flex-1 overflow-y-auto w-full max-w-4xl mx-auto p-6 sm:p-8 space-y-8 select-text nb-dots">
+            <div className="flex-1 overflow-y-auto w-full max-w-6xl mx-auto p-6 sm:p-8 space-y-8 select-text">
               {/* Hero Banner */}
               <div className="bg-[var(--bg-surface)] border-3 border-[var(--border-ink)] shadow-[6px_6px_0px_var(--shadow-ink)] p-6 sm:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                 <div className="space-y-2 min-w-0 flex-1">
@@ -522,6 +558,29 @@ function App() {
           )}
         </main>
       </div>
+
+      {/* Snapshots & Backups Modal */}
+      {isSnapshotsOpen && (
+        <SnapshotsModal
+          onClose={() => setIsSnapshotsOpen(false)}
+          onRestored={() => {
+            if (activeProjectPath) {
+              handleOpenProjectPath(activeProjectPath);
+            }
+          }}
+        />
+      )}
+
+      {/* Command Palette Dialog (Ctrl+K) */}
+      <CommandPaletteDialog
+        isOpen={isCommandPaletteOpen}
+        onClose={() => setIsCommandPaletteOpen(false)}
+        onSelectStep={(step) => {
+          setActiveStep(step);
+          setIsSidebarOpen(false);
+        }}
+        onOpenSnapshots={() => setIsSnapshotsOpen(true)}
+      />
 
       {/* Help Modal */}
       {showHelpModal && (

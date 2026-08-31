@@ -6,9 +6,12 @@ import {
   X, 
   Check, 
   Sparkles, 
-  FolderKanban,
-  Languages,
-  LayoutDashboard
+  FolderKanban, 
+  Languages, 
+  LayoutDashboard, 
+  PenTool, 
+  BookOpen, 
+  History
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -20,6 +23,7 @@ interface SidebarProps {
   stepsProgress: StepProgress[];
   isSidebarOpen?: boolean;
   onCloseSidebar?: () => void;
+  onOpenSnapshots?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -31,6 +35,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   stepsProgress,
   isSidebarOpen = false,
   onCloseSidebar,
+  onOpenSnapshots,
 }) => {
   const { language, setLanguage, t } = useLanguage();
   const [appVersion, setAppVersion] = useState<string>('');
@@ -85,23 +90,37 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 {projectFileName}
               </p>
             </div>
-            <button
-              onClick={onCloseProject}
-              className="px-2.5 py-1 text-[10px] font-heading font-black border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-coral)] hover:text-black hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer whitespace-nowrap shrink-0"
-              title={t('closeProjectTitle')}
-            >
-              {t('close')}
-            </button>
-            {onCloseSidebar && (
+            
+            <div className="flex items-center gap-1.5 shrink-0">
+              {onOpenSnapshots && (
+                <button
+                  onClick={onOpenSnapshots}
+                  className="h-7 px-2 flex items-center justify-center gap-1 border-2 border-[var(--border-ink)] bg-[var(--pastel-lavender)] text-black shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-yellow)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
+                  title={t('backupsTitle')}
+                >
+                  <History className="w-3.5 h-3.5" />
+                </button>
+              )}
+
               <button
-                onClick={onCloseSidebar}
-                className="md:hidden p-1 text-[var(--text-primary)] hover:bg-[var(--pastel-coral)] hover:text-black border-2 border-[var(--border-ink)] shadow-[2px_2px_0px_var(--shadow-ink)] transition-all shrink-0 flex items-center justify-center cursor-pointer"
-                title={t('closeSidebar')}
-                aria-label="Close sidebar"
+                onClick={onCloseProject}
+                className="h-7 px-2.5 flex items-center justify-center text-[10px] font-heading font-black border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-coral)] hover:text-black hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer whitespace-nowrap"
+                title={t('closeProjectTitle')}
               >
-                <X className="w-3.5 h-3.5" />
+                {t('close')}
               </button>
-            )}
+
+              {onCloseSidebar && (
+                <button
+                  onClick={onCloseSidebar}
+                  className="md:hidden h-7 w-7 flex items-center justify-center text-[var(--text-primary)] hover:bg-[var(--pastel-coral)] hover:text-black border-2 border-[var(--border-ink)] shadow-[2px_2px_0px_var(--shadow-ink)] transition-all shrink-0 cursor-pointer"
+                  title={t('closeSidebar')}
+                  aria-label="Close sidebar"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
           </div>
         ) : (
           <div className="flex items-center justify-between w-full">
@@ -128,15 +147,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {novel ? (
         <>
           {/* Progress Section */}
-          <div className="p-3.5 border-b-3 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] space-y-2">
+          <div className="p-3 border-b-3 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] space-y-2">
             <div className="flex justify-between items-center text-[11px] font-heading font-black">
               <span className="text-[var(--text-secondary)] uppercase tracking-wider">{t('completedSteps')}</span>
               <span className="font-mono bg-[var(--pastel-yellow)] text-black px-1.5 py-0.5 border border-[var(--border-ink)] font-bold text-[10px]">
                 {completedSteps} / 10
               </span>
             </div>
-            {/* Tactile Neubrutalist Progress Bar */}
-            <div className="w-full bg-[var(--bg-surface)] h-3 border-2 border-[var(--border-ink)] shadow-[2px_2px_0px_var(--shadow-ink)] overflow-hidden">
+            <div className="w-full bg-[var(--bg-surface)] h-2.5 border-2 border-[var(--border-ink)] shadow-[2px_2px_0px_var(--shadow-ink)] overflow-hidden">
               <div 
                 className="bg-[var(--pastel-mint)] h-full transition-all duration-300 ease-out border-e-2 border-[var(--border-ink)]"
                 style={{ width: `${(completedSteps / 10) * 100}%` }}
@@ -145,14 +163,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
 
           {/* Navigation Steps List */}
-          <nav className="flex-1 overflow-y-auto p-3 space-y-1.5">
+          <nav className="flex-1 overflow-y-auto p-2.5 space-y-1.5">
             {/* Dashboard Step 0 */}
             <button
               onClick={() => onSelectStep(0)}
               className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs font-heading font-black border-2 border-[var(--border-ink)] transition-all cursor-pointer text-start select-none ${
                 activeStep === 0
-                  ? 'bg-[var(--pastel-yellow)] text-black shadow-[4px_4px_0px_var(--shadow-ink)] translate-x-0.5'
-                  : 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--bg-surface-hover)] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_var(--shadow-ink)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none'
+                  ? 'bg-[var(--pastel-yellow)] text-black shadow-[3px_3px_0px_var(--shadow-ink)] translate-x-0.5'
+                  : 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[1px_1px_0px_var(--shadow-ink)] hover:bg-[var(--bg-surface-hover)]'
               }`}
             >
               <span className="p-1 bg-[var(--pastel-sky)] text-black border border-[var(--border-ink)] shrink-0 flex items-center justify-center">
@@ -161,7 +179,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <span className="truncate">{t('dashboard')}</span>
             </button>
 
-            <div className="py-1">
+            <div className="py-0.5">
               <div className="border-t-2 border-dashed border-[var(--border-subtle)]" />
             </div>
 
@@ -174,13 +192,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <button
                   key={step.num}
                   onClick={() => onSelectStep(step.num)}
-                  className={`w-full flex items-center justify-between gap-2 px-3 py-2 text-xs font-heading font-bold border-2 border-[var(--border-ink)] transition-all cursor-pointer text-start select-none ${
+                  className={`w-full flex items-center justify-between gap-2 px-2.5 py-1.5 text-xs font-heading font-bold border-2 border-[var(--border-ink)] transition-all cursor-pointer text-start select-none ${
                     isActive
-                      ? 'bg-[var(--pastel-yellow)] text-black font-black shadow-[4px_4px_0px_var(--shadow-ink)] translate-x-0.5'
-                      : 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--bg-surface-hover)] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_var(--shadow-ink)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none'
+                      ? 'bg-[var(--pastel-yellow)] text-black font-black shadow-[3px_3px_0px_var(--shadow-ink)] translate-x-0.5'
+                      : 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[1px_1px_0px_var(--shadow-ink)] hover:bg-[var(--bg-surface-hover)]'
                   }`}
                 >
-                  <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="flex items-center gap-2 min-w-0">
                     <span className={`w-5 h-5 font-mono text-[10px] font-black border border-[var(--border-ink)] shrink-0 flex items-center justify-center ${
                       isActive 
                         ? 'bg-black text-[var(--pastel-yellow)]' 
@@ -194,7 +212,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   {isStepCompleted && (
                     <span 
                       className="p-0.5 bg-[var(--pastel-mint)] text-black border border-[var(--border-ink)] shadow-[1px_1px_0px_var(--shadow-ink)] shrink-0" 
-                      title={t('markAsCompleted')}
+                      title={t('confirm')}
                     >
                       <Check className="w-2.5 h-2.5 stroke-[3]" />
                     </span>
@@ -202,6 +220,40 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 </button>
               );
             })}
+
+            <div className="py-1">
+              <div className="border-t-2 border-dashed border-[var(--border-subtle)]" />
+            </div>
+
+            {/* TAB 11: Write Novel */}
+            <button
+              onClick={() => onSelectStep(11)}
+              className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs font-heading font-black border-2 border-[var(--border-ink)] transition-all cursor-pointer text-start select-none ${
+                activeStep === 11
+                  ? 'bg-[var(--pastel-sky)] text-black shadow-[3px_3px_0px_var(--shadow-ink)] translate-x-0.5'
+                  : 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[1px_1px_0px_var(--shadow-ink)] hover:bg-[var(--bg-surface-hover)]'
+              }`}
+            >
+              <span className="p-1 bg-[var(--pastel-yellow)] text-black border border-[var(--border-ink)] shrink-0 flex items-center justify-center">
+                <PenTool className="w-3.5 h-3.5" />
+              </span>
+              <span className="truncate">{t('step11Title')}</span>
+            </button>
+
+            {/* TAB 12: Book Studio */}
+            <button
+              onClick={() => onSelectStep(12)}
+              className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs font-heading font-black border-2 border-[var(--border-ink)] transition-all cursor-pointer text-start select-none ${
+                activeStep === 12
+                  ? 'bg-[var(--pastel-mint)] text-black shadow-[3px_3px_0px_var(--shadow-ink)] translate-x-0.5'
+                  : 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[1px_1px_0px_var(--shadow-ink)] hover:bg-[var(--bg-surface-hover)]'
+              }`}
+            >
+              <span className="p-1 bg-[var(--pastel-lavender)] text-black border border-[var(--border-ink)] shrink-0 flex items-center justify-center">
+                <BookOpen className="w-3.5 h-3.5" />
+              </span>
+              <span className="truncate">{t('step12Title')}</span>
+            </button>
           </nav>
         </>
       ) : (
@@ -215,13 +267,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Sidebar Footer */}
       <footer className="p-3 border-t-3 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] flex items-center justify-between text-xs text-[var(--text-secondary)] shrink-0 select-text">
-        <div className="flex items-center gap-2 font-heading font-bold text-[11px]">
+        <div className="flex items-center gap-1.5 font-heading font-bold text-[11px]">
           <span>{t('builtBy')}</span>
           <a 
             href="https://github.com/RubarMo" 
             target="_blank" 
             rel="noopener noreferrer"
-            className="text-[var(--text-primary)] hover:bg-[var(--pastel-yellow)] hover:text-black px-1 border border-[var(--border-ink)] shadow-[1px_1px_0px_var(--shadow-ink)] transition-all font-black flex items-center gap-1"
+            className="text-[var(--text-primary)] hover:bg-[var(--pastel-yellow)] hover:text-black px-1 border border-[var(--border-ink)] shadow-[1px_1px_0px_var(--shadow-ink)] transition-all font-black"
             title="GitHub Profile"
           >
             Rubar
@@ -236,11 +288,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Language Switcher */}
         <button
           onClick={() => setLanguage(language === 'ar' ? 'en' : 'ar')}
-          className="inline-flex items-center gap-1 px-2.5 py-1 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-sky)] hover:text-black hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all text-[10px] font-heading font-black tracking-wider cursor-pointer"
+          className="inline-flex items-center gap-1 px-2 py-1 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-sky)] hover:text-black transition-all text-[10px] font-heading font-black cursor-pointer"
           title={language === 'ar' ? 'Switch to English' : 'التحويل للعربية'}
         >
           <Languages className="w-3 h-3" />
-          <span>{language === 'ar' ? 'English' : 'العربية'}</span>
+          <span>{language === 'ar' ? 'EN' : 'عربي'}</span>
         </button>
       </footer>
     </aside>
