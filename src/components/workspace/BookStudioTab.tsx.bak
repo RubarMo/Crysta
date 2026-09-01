@@ -42,32 +42,60 @@ export interface TrimDimensions {
   footerHeight: number;
 }
 
-const INCH = 96;
-const MM = 96 / 25.4;
-
 export function getTrimDimensions(trimSize: string = 'us_trade_6x9'): TrimDimensions {
-  const margin = 20 * MM;
-  const footerHeight = 36;
-  
-  let width, height;
   switch (trimSize) {
-    case 'digest_5_5x8_5': width = 5.5 * INCH; height = 8.5 * INCH; break;
-    case 'pocket_5x8': width = 5 * INCH; height = 8 * INCH; break;
-    case 'a5': width = 148 * MM; height = 210 * MM; break;
-    case 'letter': width = 8.5 * INCH; height = 11 * INCH; break;
-    case 'us_trade_6x9': 
-    default: width = 6 * INCH; height = 9 * INCH; break;
+    case 'digest_5_5x8_5':
+      return {
+        pageWidth: 440,
+        pageHeight: 680,
+        contentWidth: 340,
+        contentHeight: 570,
+        paddingX: 48,
+        paddingTop: 44,
+        footerHeight: 36,
+      };
+    case 'pocket_5x8':
+      return {
+        pageWidth: 400,
+        pageHeight: 640,
+        contentWidth: 310,
+        contentHeight: 535,
+        paddingX: 44,
+        paddingTop: 40,
+        footerHeight: 36,
+      };
+    case 'a5':
+      return {
+        pageWidth: 460,
+        pageHeight: 652,
+        contentWidth: 355,
+        contentHeight: 545,
+        paddingX: 50,
+        paddingTop: 42,
+        footerHeight: 36,
+      };
+    case 'letter':
+      return {
+        pageWidth: 540,
+        pageHeight: 700,
+        contentWidth: 425,
+        contentHeight: 585,
+        paddingX: 55,
+        paddingTop: 48,
+        footerHeight: 36,
+      };
+    case 'us_trade_6x9':
+    default:
+      return {
+        pageWidth: 470,
+        pageHeight: 705,
+        contentWidth: 360,
+        contentHeight: 590,
+        paddingX: 52,
+        paddingTop: 45,
+        footerHeight: 36,
+      };
   }
-  
-  return {
-    pageWidth: width,
-    pageHeight: height,
-    contentWidth: width - (margin * 2),
-    contentHeight: height - (margin * 2) - footerHeight,
-    paddingX: margin,
-    paddingTop: margin,
-    footerHeight,
-  };
 }
 
 export interface PageElement {
@@ -201,44 +229,304 @@ export const BookStudioTab: React.FC<BookStudioTabProps> = ({
     return Math.max(1, Math.ceil(totalManuscriptWords / 220));
   }, [totalManuscriptWords]);
 
-  const [totalPages, setTotalPages] = useState(1);
-  const multicolRef = useRef<HTMLDivElement>(null);
+  // MS Word-like Line-by-Line Paged Layout Engine
+  const previewPages: BookPreviewPage[] = useMemo(() => {
+    if (!config) return [];
 
-  React.useLayoutEffect(() => {
-    if (multicolRef.current && activeSubTab === 'preview') {
-      const sw = multicolRef.current.scrollWidth;
-      const W = trimDims.contentWidth;
-      const G = trimDims.paddingX * 2;
-      const cols = Math.ceil((sw + G) / (W + G));
-      setTotalPages(Math.max(1, cols));
+    const pages: BookPreviewPage[] = [];
+    let pageRunner = 0;
+
+    // 0. Cover Page
+    if (coverImage) {
+      pageRunner++;
+      pages.push({
+        id: 'cover_page',
+        type: 'cover',
+        title: activeNovel.title,
+        author: config.author_name,
+        coverImage,
+        pageNumber: null,
+        side: 'recto',
+      });
     }
-  }, [activeSubTab, config, chapters, trimDims, previewTheme, isSpreadView]);
 
-  useEffect(() => {
-    if (previewPageIndex >= totalPages && totalPages > 0) {
-      setPreviewPageIndex(Math.max(0, totalPages - 1));
+    // 1. Title Page
+    if (config.has_title_page) {
+      pageRunner++;
+      pages.push({
+        id: 'title_page',
+        type: 'title',
+        title: activeNovel.title,
+        subtitle: config.subtitle,
+        author: config.author_name || (isRtl ? 'المؤلف' : 'Author'),
+        publisher: config.publisher_name,
+        pageNumber: null,
+        side: pageRunner % 2 === 1 ? 'recto' : 'verso',
+      });
     }
-  }, [totalPages, previewPageIndex]);
 
-  const approximateTocEntries = useMemo(() => {
-    let currentPage = config?.has_title_page ? 2 : 1;
-    if (config?.has_copyright_page) currentPage++;
-    if (config?.has_dedication) currentPage++;
-    
-    return chapters.map((ch, idx) => {
-      const entry = {
-        title: ch.title || (isRtl ? 'الفصل ' + (idx + 1) : 'Chapter ' + (idx + 1)),
-        pageNumber: currentPage
-      };
-      
-      const words = ch.content.split(/\s+/).length;
-      // ~250 words per page
-      const pagesForChapter = Math.max(1, Math.ceil(words / 250));
-      currentPage += pagesForChapter;
-      
-      return entry;
+    // 2. Copyright Page
+    if (config.has_copyright_page) {
+      pageRunner++;
+      pages.push({
+        id: 'copyright_page',
+        type: 'copyright',
+        title: activeNovel.title,
+        author: config.author_name || '',
+        pageNumber: null,
+        side: pageRunner % 2 === 1 ? 'recto' : 'verso',
+      });
+    }
+
+    // 3. Dedication Page
+    if (config.has_dedication && config.dedication_text) {
+      pageRunner++;
+      pages.push({
+        id: 'dedication_page',
+        type: 'dedication',
+        paragraphs: config.dedication_text.split('\n').filter(Boolean),
+        pageNumber: null,
+        side: pageRunner % 2 === 1 ? 'recto' : 'verso',
+      });
+    }
+
+    // 4. Epigraph Page
+    if (config.has_epigraph && config.epigraph_quote) {
+      pageRunner++;
+      pages.push({
+        id: 'epigraph_page',
+        type: 'epigraph',
+        title: config.epigraph_quote,
+        author: config.epigraph_author,
+        pageNumber: null,
+        side: pageRunner % 2 === 1 ? 'recto' : 'verso',
+      });
+    }
+
+    // Characters per line & Lines per page calculations
+    const fontSize = config.font_size || 11;
+    const lineSpacing = config.line_spacing || 1.45;
+    const linePitch = fontSize * 1.333 * lineSpacing;
+    const charsPerLine = Math.max(28, Math.floor(trimDims.contentWidth / (isRtl ? 8.2 : 7.2)));
+    const maxLinesPerPage = Math.max(18, Math.floor(trimDims.contentHeight / linePitch));
+
+    const paginateSection = (
+      secTitle: string | undefined,
+      rawContent: string,
+      type: 'chapter' | 'foreword' | 'epilogue' | 'acknowledgments' | 'about_author',
+      secIdPrefix: string,
+      chIdx?: number
+    ) => {
+      const rawParas = rawContent.trim().split('\n\n').filter(Boolean);
+      const paras = rawParas.length > 0 ? rawParas : [isRtl ? '(لا يوجد نص مكتوب بعد...)' : '(No content yet...)'];
+
+      let currentElements: PageElement[] = [];
+      let remainingLines = maxLinesPerPage;
+
+      if (secTitle) {
+        currentElements.push({ type: 'h2', text: secTitle });
+        remainingLines -= 3; // Title takes ~3 line slots
+      }
+
+      paras.forEach((pText, pIdx) => {
+        const isSceneBreak = pText.trim() === '* * *' || pText.trim() === config.scene_break_ornament;
+        if (isSceneBreak) {
+          if (remainingLines < 2) {
+            // Commit current page
+            pageRunner++;
+            pages.push({
+              id: `${secIdPrefix}_page_${pages.length + 1}`,
+              type,
+              title: secTitle,
+              pageNumber: config.include_page_numbers ? pageRunner : null,
+              side: pageRunner % 2 === 1 ? 'recto' : 'verso',
+              chapterIndex: chIdx,
+              elements: currentElements,
+            });
+            currentElements = [];
+            remainingLines = maxLinesPerPage;
+          }
+          currentElements.push({ type: 'ornament', text: config.scene_break_ornament || '* * *' });
+          remainingLines -= 2;
+          return;
+        }
+
+        let textToPlace = pText.trim();
+        let isFirst = pIdx === 0 && !secTitle ? false : pIdx === 0;
+
+        while (textToPlace.length > 0) {
+          const estimatedLines = Math.max(1, Math.ceil(textToPlace.length / charsPerLine));
+
+          if (estimatedLines <= remainingLines) {
+            currentElements.push({
+              type: 'p',
+              text: textToPlace,
+              isFirstParagraph: isFirst && currentElements.filter(e => e.type === 'p').length === 0,
+              isContinuation: !isFirst && textToPlace !== pText.trim(),
+            });
+            remainingLines -= estimatedLines;
+            textToPlace = '';
+          } else {
+            // Paragraph overflows current page
+            if (remainingLines >= 2) {
+              // Split paragraph cleanly at word boundary
+              const sliceChars = Math.floor(remainingLines * charsPerLine);
+              let splitIndex = textToPlace.lastIndexOf(' ', sliceChars);
+              if (splitIndex === -1 || splitIndex < sliceChars * 0.6) {
+                splitIndex = textToPlace.indexOf(' ', sliceChars);
+              }
+              if (splitIndex === -1) splitIndex = sliceChars;
+
+              const part1 = textToPlace.slice(0, splitIndex).trim();
+              const part2 = textToPlace.slice(splitIndex).trim();
+
+              currentElements.push({
+                type: 'p',
+                text: part1,
+                isFirstParagraph: isFirst && currentElements.filter(e => e.type === 'p').length === 0,
+                isContinuation: textToPlace !== pText.trim(),
+              });
+
+              // Commit full page
+              pageRunner++;
+              pages.push({
+                id: `${secIdPrefix}_page_${pages.length + 1}`,
+                type,
+                title: secTitle,
+                pageNumber: config.include_page_numbers ? pageRunner : null,
+                side: pageRunner % 2 === 1 ? 'recto' : 'verso',
+                chapterIndex: chIdx,
+                elements: currentElements,
+              });
+
+              currentElements = [];
+              remainingLines = maxLinesPerPage;
+              textToPlace = part2;
+              isFirst = false;
+            } else {
+              // Commit current page and put entire paragraph on next page
+              pageRunner++;
+              pages.push({
+                id: `${secIdPrefix}_page_${pages.length + 1}`,
+                type,
+                title: secTitle,
+                pageNumber: config.include_page_numbers ? pageRunner : null,
+                side: pageRunner % 2 === 1 ? 'recto' : 'verso',
+                chapterIndex: chIdx,
+                elements: currentElements,
+              });
+
+              currentElements = [];
+              remainingLines = maxLinesPerPage;
+            }
+          }
+        }
+      });
+
+      if (currentElements.length > 0) {
+        pageRunner++;
+        pages.push({
+          id: `${secIdPrefix}_page_${pages.length + 1}`,
+          type,
+          title: secTitle,
+          pageNumber: config.include_page_numbers ? pageRunner : null,
+          side: pageRunner % 2 === 1 ? 'recto' : 'verso',
+          chapterIndex: chIdx,
+          elements: currentElements,
+        });
+      }
+    };
+
+    // 5. Foreword
+    if (config.has_foreword && config.foreword_content) {
+      paginateSection(config.foreword_title || (isRtl ? 'مقدمة' : 'Foreword'), config.foreword_content, 'foreword', 'foreword');
+    }
+
+    // Pre-calculate Table of Contents page numbers
+    const chapterTocEntries: { title: string; pageNumber: number }[] = [];
+    const tocSlot = config.has_table_of_contents ? 1 : 0;
+    let tocChapterRunner = pageRunner + tocSlot;
+
+    chapters.forEach((ch, chIdx) => {
+      const chTitle = ch.title || `${isRtl ? 'الفصل' : 'Chapter'} ${chIdx + 1}`;
+      chapterTocEntries.push({
+        title: chTitle,
+        pageNumber: tocChapterRunner + 1,
+      });
+
+      // Quick estimate of chapter page count for TOC
+      const rawParas = ch.content.trim().split('\n\n').filter(Boolean);
+      let totalLines = 3; // for title
+      rawParas.forEach((p) => {
+        totalLines += Math.max(1, Math.ceil(p.length / charsPerLine));
+      });
+      const estPages = Math.max(1, Math.ceil(totalLines / maxLinesPerPage));
+      tocChapterRunner += estPages;
     });
-  }, [chapters, config, isRtl]);
+
+    // 6. Table of Contents Page
+    if (config.has_table_of_contents) {
+      pageRunner++;
+      pages.push({
+        id: 'toc_page',
+        type: 'toc',
+        title: isRtl ? 'فهرس المحتويات' : 'Table of Contents',
+        tocEntries: chapterTocEntries,
+        pageNumber: null,
+        side: pageRunner % 2 === 1 ? 'recto' : 'verso',
+      });
+    }
+
+    // 7. Chapters
+    chapters.forEach((ch, chIdx) => {
+      const chTitle = ch.title || `${isRtl ? 'الفصل' : 'Chapter'} ${chIdx + 1}`;
+      paginateSection(chTitle, ch.content, 'chapter', `ch_${ch.id || chIdx}`, chIdx);
+    });
+
+    // 8. Epilogue
+    if (config.has_epilogue && config.epilogue_content) {
+      paginateSection(config.epilogue_title || (isRtl ? 'خاتمة' : 'Epilogue'), config.epilogue_content, 'epilogue', 'epilogue');
+    }
+
+    // 9. Acknowledgments
+    if (config.has_acknowledgments && config.acknowledgments_content) {
+      paginateSection(isRtl ? 'شكر وتقدير' : 'Acknowledgments', config.acknowledgments_content, 'acknowledgments', 'ack');
+    }
+
+    // 10. About the Author
+    if (config.has_about_author && config.about_author_bio) {
+      paginateSection(isRtl ? 'عن المؤلف' : 'About the Author', config.about_author_bio, 'about_author', 'about_author');
+    }
+
+    return pages;
+  }, [config, activeNovel, chapters, isRtl, coverImage, trimDims]);
+
+  // Keep preview page index within valid bounds
+  useEffect(() => {
+    if (previewPageIndex >= previewPages.length && previewPages.length > 0) {
+      setPreviewPageIndex(previewPages.length - 1);
+    }
+  }, [previewPages.length, previewPageIndex]);
+
+  // Pre-calculate chapter start pages for TOC from the actual paginated pages
+  const realChapterTocEntries = useMemo(() => {
+    const entries: { title: string; pageNumber: number }[] = [];
+    const seenChapters = new Set<number>();
+
+    previewPages.forEach((page) => {
+      if (page.type === 'chapter' && page.chapterIndex !== undefined && !seenChapters.has(page.chapterIndex)) {
+        seenChapters.add(page.chapterIndex);
+        const ch = chapters[page.chapterIndex];
+        const chTitle = ch?.title || `${isRtl ? 'الفصل' : 'Chapter'} ${page.chapterIndex + 1}`;
+        entries.push({
+          title: chTitle,
+          pageNumber: page.pageNumber || 1,
+        });
+      }
+    });
+
+    return entries;
+  }, [previewPages, chapters, isRtl]);
 
   const handleExport = async (format: 'pdf' | 'epub' | 'docx') => {
     if (!config) return;
@@ -249,7 +537,7 @@ export const BookStudioTab: React.FC<BookStudioTabProps> = ({
       } else if (format === 'docx') {
         await BookExportService.exportDocx(activeNovel, chapters, config, isRtl);
       } else if (format === 'pdf') {
-        BookExportService.exportPrintPdf(activeNovel, chapters, config, isRtl, coverImage, approximateTocEntries);
+        BookExportService.exportPrintPdf(activeNovel, chapters, config, isRtl, coverImage, realChapterTocEntries);
       }
 
       setExportSuccessBanner(t('exportSuccess'));
@@ -320,12 +608,12 @@ export const BookStudioTab: React.FC<BookStudioTabProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
-            {exportSuccessBanner && (
-              <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-50 px-6 py-4 text-lg font-heading font-black bg-[var(--pastel-mint)] text-black border-4 border-[var(--border-ink)] shadow-[8px_8px_0px_var(--shadow-ink)] flex items-center gap-3 animate-bounce">
-                <CheckCircle2 className="w-8 h-8 stroke-[3]" />
-                {exportSuccessBanner}
-              </div>
-            )}
+          {exportSuccessBanner && (
+            <span className="px-3 py-1.5 text-xs font-heading font-black bg-[var(--pastel-mint)] text-black border-2 border-[var(--border-ink)] shadow-[3px_3px_0px_var(--shadow-ink)] flex items-center gap-1.5 animate-bounce">
+              <CheckCircle2 className="w-4 h-4 stroke-[3]" />
+              {exportSuccessBanner}
+            </span>
+          )}
 
           {saveSuccess && (
             <span className="px-2.5 py-1 text-xs font-mono font-bold bg-[var(--pastel-mint)] text-black border-2 border-[var(--border-ink)] shadow-[2px_2px_0px_var(--shadow-ink)] flex items-center gap-1">
@@ -937,13 +1225,13 @@ export const BookStudioTab: React.FC<BookStudioTabProps> = ({
                 </button>
                 <span className="text-xs font-heading font-black px-2 py-1 bg-[var(--bg-surface)] border-2 border-[var(--border-ink)] shadow-[1px_1px_0px_var(--shadow-ink)]">
                   {isSpreadView
-                    ? `${previewPageIndex + 1} - ${Math.min(totalPages, previewPageIndex + 2)} / ${totalPages}`
-                    : `${previewPageIndex + 1} / ${totalPages}`}
+                    ? `${previewPageIndex + 1} - ${Math.min(previewPages.length, previewPageIndex + 2)} / ${previewPages.length}`
+                    : `${previewPageIndex + 1} / ${previewPages.length}`}
                 </span>
                 <button
                   type="button"
-                  onClick={() => setPreviewPageIndex((prev) => Math.min(totalPages - 1, prev + (isSpreadView ? 2 : 1)))}
-                  disabled={isSpreadView ? previewPageIndex >= totalPages - 2 : previewPageIndex >= totalPages - 1}
+                  onClick={() => setPreviewPageIndex((prev) => Math.min(previewPages.length - 1, prev + (isSpreadView ? 2 : 1)))}
+                  disabled={isSpreadView ? previewPageIndex >= previewPages.length - 2 : previewPageIndex >= previewPages.length - 1}
                   className="p-1.5 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-yellow)] hover:text-black hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
                   title={t('nextPage')}
                 >
@@ -1010,20 +1298,27 @@ export const BookStudioTab: React.FC<BookStudioTabProps> = ({
                 previewTheme === 'paper' ? 'bg-[#2A2B2E]' : previewTheme === 'sepia' ? 'bg-[#3D312A]' : 'bg-[#09090B]'
               }`}
             >
-              <div className="flex justify-center items-stretch max-w-full">
-                <MulticolumnBookPreview
-                  config={config!}
-                  chapters={chapters}
-                  novel={activeNovel}
-                  trimDims={trimDims}
-                  fontFamily={currentFontFamily}
-                  isRtl={isRtl}
-                  coverImage={coverImage}
-                  pageIndex={previewPageIndex}
-                  theme={previewTheme}
-                  isSpreadView={isSpreadView}
-                  multicolRef={multicolRef}
-                />
+              <div className="flex gap-4 md:gap-8 justify-center items-stretch max-w-full">
+                {previewPages[previewPageIndex] && (
+                  <RenderPreviewPaperPage
+                    page={previewPages[previewPageIndex]}
+                    config={config}
+                    trimDims={trimDims}
+                    fontFamily={currentFontFamily}
+                    isRtl={isRtl}
+                    theme={previewTheme}
+                  />
+                )}
+                {isSpreadView && previewPages[previewPageIndex + 1] && (
+                  <RenderPreviewPaperPage
+                    page={previewPages[previewPageIndex + 1]}
+                    config={config}
+                    trimDims={trimDims}
+                    fontFamily={currentFontFamily}
+                    isRtl={isRtl}
+                    theme={previewTheme}
+                  />
+                )}
               </div>
             </div>
           </div>
@@ -1052,7 +1347,7 @@ export const BookStudioTab: React.FC<BookStudioTabProps> = ({
                 </div>
                 <div className="p-3 border-2 border-[var(--border-ink)] bg-[var(--pastel-lavender)] text-black shadow-[2px_2px_0px_var(--shadow-ink)]">
                   <span className="text-[10px] font-mono font-bold block opacity-75">{t('statsTotalPagesEst')}</span>
-                  <span className="text-lg font-heading font-black">{totalPages} {isRtl ? 'صفحة' : 'pages'}</span>
+                  <span className="text-lg font-heading font-black">{previewPages.length} {isRtl ? 'صفحة' : 'pages'}</span>
                 </div>
                 <div className="p-3 border-2 border-[var(--border-ink)] bg-[var(--pastel-coral)] text-black shadow-[2px_2px_0px_var(--shadow-ink)]">
                   <span className="text-[10px] font-mono font-bold block opacity-75">{t('statsChaptersCount')}</span>
@@ -1140,129 +1435,186 @@ export const BookStudioTab: React.FC<BookStudioTabProps> = ({
 };
 
 /**
- * Multicolumn WYSIWYG Book Preview
+ * Individual Page Paper Component for Live WYSIWYG Book Preview
  */
-const MulticolumnBookPreview: React.FC<{
+const RenderPreviewPaperPage: React.FC<{
+  page: BookPreviewPage;
   config: BookFormatConfig;
-  chapters: Chapter[];
-  novel: Novel;
   trimDims: TrimDimensions;
   fontFamily: string;
   isRtl: boolean;
-  coverImage?: string | null;
-  pageIndex: number;
   theme: 'paper' | 'sepia' | 'dark';
-  isSpreadView: boolean;
-  multicolRef: React.RefObject<HTMLDivElement | null>;
-}> = ({ config, chapters, novel, trimDims, fontFamily, isRtl, coverImage, pageIndex, theme, isSpreadView, multicolRef }) => {
+}> = ({ page, config, trimDims, fontFamily, isRtl, theme }) => {
   const paperColors = {
     paper: { bg: '#FFFFFC', text: '#111111', border: '#000000' },
     sepia: { bg: '#FDF6E2', text: '#3B2F2F', border: '#3B2F2F' },
     dark: { bg: '#18181B', text: '#F4F4F5', border: '#3F3F46' },
   }[theme];
 
-  const step = trimDims.contentWidth + trimDims.paddingX * 2;
-  const translateX = pageIndex * (isSpreadView ? step * 2 : step);
-  
-  const viewportWidth = isSpreadView ? trimDims.pageWidth * 2 : trimDims.pageWidth;
-
   return (
-    <div 
-      className="relative overflow-hidden border-2 shadow-[6px_6px_0px_var(--shadow-ink)] flex shrink-0 transition-all duration-300"
+    <div
+      className="border-2 shadow-[6px_6px_0px_var(--shadow-ink)] flex flex-col justify-between shrink-0 select-text transition-all relative overflow-hidden"
       style={{
-        width: `${viewportWidth}px`,
+        width: `${trimDims.pageWidth}px`,
         height: `${trimDims.pageHeight}px`,
+        padding: `${trimDims.paddingTop}px ${trimDims.paddingX}px ${trimDims.footerHeight / 2}px ${trimDims.paddingX}px`,
         backgroundColor: paperColors.bg,
         color: paperColors.text,
         borderColor: paperColors.border,
-        padding: `${trimDims.paddingTop}px 0 ${trimDims.footerHeight}px 0`,
       }}
     >
-      <div
-        ref={multicolRef as React.LegacyRef<HTMLDivElement>}
-        className="multicol-content-wrapper"
-        style={{
-          columnWidth: `${trimDims.contentWidth}px`,
-          columnGap: `${trimDims.paddingX * 2}px`,
-          height: `${trimDims.contentHeight}px`,
-          columnFill: 'auto',
-          transform: `translateX(${isRtl ? translateX : -translateX}px)`,
-          transition: 'transform 0.3s cubic-bezier(0.2, 0, 0, 1)',
-          fontFamily,
-          fontSize: `${config.font_size || 11}pt`,
-          lineHeight: config.line_spacing || 1.45,
-          direction: isRtl ? 'rtl' : 'ltr',
-          textAlign: 'justify',
-          marginLeft: `${trimDims.paddingX}px`,
-          wordWrap: 'break-word',
-          overflowWrap: 'break-word',
-          hyphens: 'auto'
-        }}
-      >
-        {coverImage && (
-          <div style={{ breakAfter: 'column', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <img src={coverImage} alt="Cover" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+      {/* 0. Cover Page */}
+      {page.type === 'cover' && page.coverImage && (
+        <div className="flex-1 flex items-center justify-center -m-12 bg-black overflow-hidden relative">
+          <img src={page.coverImage} alt="Cover" className="w-full h-full object-cover" />
+        </div>
+      )}
+
+      {/* 1. Title Page */}
+      {page.type === 'title' && (
+        <div className="flex-1 flex flex-col justify-between text-center py-12">
+          <div className="space-y-4 mt-12">
+            <h1 className="text-3xl sm:text-4xl font-black leading-tight">{page.title}</h1>
+            {page.subtitle && <p className="text-base font-serif opacity-80">{page.subtitle}</p>}
           </div>
-        )}
+          <div className="space-y-3 mb-6">
+            <p className="text-lg font-bold">{page.author}</p>
+            {page.publisher && <p className="text-xs opacity-75">{page.publisher}</p>}
+          </div>
+        </div>
+      )}
 
-        {config.has_title_page && (
-           <div style={{ breakAfter: 'column', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', textAlign: 'center' }}>
-             <h1 style={{ fontSize: '2.5em', fontWeight: 900, marginBottom: '0.5em' }}>{novel.title}</h1>
-             {config.subtitle && <p style={{ fontSize: '1.2em', opacity: 0.8, marginBottom: '2em' }}>{config.subtitle}</p>}
-             <p style={{ fontSize: '1.4em', fontWeight: 'bold' }}>{config.author_name}</p>
-           </div>
-        )}
+      {/* 2. Copyright Page */}
+      {page.type === 'copyright' && (
+        <div className="flex-1 flex flex-col justify-end text-center text-xs space-y-2.5 pb-8 leading-relaxed opacity-90">
+          <p className="font-bold text-sm">{page.title}</p>
+          <p>© {config.copyright_year || '2026'} {page.author}</p>
+          {config.edition_notice && <p>{config.edition_notice}</p>}
+          {config.isbn && <p>ISBN: {config.isbn}</p>}
+          <p className="text-[11px] opacity-75 pt-4">
+            {isRtl
+              ? 'جميع الحقوق محفوظة. لا يجوز نسخ أو إعادة إنتاج أي جزء من هذا الكتاب دون إذن مسبق.'
+              : 'All rights reserved. No part of this publication may be reproduced without prior permission.'}
+          </p>
+        </div>
+      )}
 
-        {config.has_copyright_page && (
-           <div style={{ breakAfter: 'column', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', textAlign: 'center', fontSize: '0.85em', paddingBottom: '2em' }}>
-             <p><strong>{novel.title}</strong></p>
-             <p>© {config.copyright_year || '2026'} {config.author_name}</p>
-             {config.isbn && <p>ISBN: {config.isbn}</p>}
-             <p style={{ marginTop: '1em', opacity: 0.7 }}>{isRtl ? 'جميع الحقوق محفوظة.' : 'All rights reserved.'}</p>
-           </div>
-        )}
+      {/* 3. Dedication Page */}
+      {page.type === 'dedication' && (
+        <div className="flex-1 flex flex-col justify-center text-center italic space-y-4 px-8">
+          {page.paragraphs?.map((line, i) => (
+            <p key={i} className="font-serif text-[13pt] leading-relaxed m-0">{line}</p>
+          ))}
+        </div>
+      )}
 
-        {config.has_dedication && config.dedication_text && (
-           <div style={{ breakAfter: 'column', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', textAlign: 'center', fontStyle: 'italic', fontSize: '1.1em' }}>
-             {config.dedication_text.split('\n').map((l, i) => <p key={i}>{l}</p>)}
-           </div>
-        )}
+      {/* 4. Epigraph Page */}
+      {page.type === 'epigraph' && (
+        <div className="flex-1 flex flex-col justify-center text-center italic space-y-5 px-8">
+          <p className="text-base font-serif leading-relaxed">«{page.title}»</p>
+          {page.author && <p className="text-sm font-bold not-italic opacity-85">— {page.author}</p>}
+        </div>
+      )}
 
-        {chapters.map((ch, idx) => {
-          const chTitle = ch.title || (isRtl ? 'الفصل ' + (idx + 1) : 'Chapter ' + (idx + 1));
-          return (
-            <div key={idx} style={{ breakBefore: 'column', width: '100%' }}>
-              <h2 style={{ textAlign: 'center', fontSize: '1.8em', fontWeight: 900, marginTop: '1em', marginBottom: '1.5em' }}>{chTitle}</h2>
-              {ch.content.split('\n\n').filter(Boolean).map((p, pIdx) => {
-                if (p.trim() === '* * *' || p.trim() === config.scene_break_ornament) {
-                  return <div key={pIdx} style={{ textAlign: 'center', margin: '1.5em 0', letterSpacing: '0.2em' }}>{config.scene_break_ornament || '* * *'}</div>;
-                }
-                const isFirst = pIdx === 0;
-                const indent = (!isFirst && config.first_line_indent) ? '1.5em' : '0';
-                return (
-                  <p key={pIdx} style={{ margin: '0 0 1em 0', textIndent: indent }}>
-                    {isFirst && config.first_paragraph_drop_cap ? (
-                      <>
-                        <span style={{ display: 'inline-block', float: isRtl ? 'right' : 'left', fontSize: '3.5em', lineHeight: '0.8', paddingRight: isRtl ? '0' : '8px', paddingLeft: isRtl ? '8px' : '0', paddingTop: '4px', fontWeight: 'bold', fontFamily: 'serif' }}>
-                            {p.charAt(0)}
-                        </span>
-                        {p.slice(1)}
-                      </>
-                    ) : (
-                      p
-                    )}
-                  </p>
-                );
-              })}
-            </div>
-          );
-        })}
+      {/* 5. Table of Contents Page */}
+      {page.type === 'toc' && (
+        <div className="flex-1 flex flex-col pt-10 px-4">
+          <h2 className="text-center font-black text-2xl mb-8 pb-3">
+            {page.title}
+          </h2>
+          <div className="space-y-3.5 text-xs font-sans flex-1 overflow-y-auto pr-1 rtl:pr-0 rtl:pl-1">
+            {page.tocEntries?.map((entry, idx) => (
+              <div key={idx} className="flex items-baseline justify-between w-full">
+                <span className="font-bold text-sm truncate max-w-[240px]">{entry.title}</span>
+                <span className="flex-1 border-b border-dotted border-current/40 mx-2 mb-1 min-w-[20px]" />
+                <span className="font-mono font-bold text-sm shrink-0">{entry.pageNumber}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 6. Paged Content Elements (Chapters, Foreword, Epilogue, Acknowledgments, About Author) */}
+      {page.elements && (
+        <div
+          className="w-full flex-1 overflow-hidden"
+          style={{
+            fontFamily,
+            fontSize: `${config.font_size || 11}pt`,
+            lineHeight: config.line_spacing || 1.45,
+            direction: isRtl ? 'rtl' : 'ltr',
+            textAlign: 'justify',
+          }}
+        >
+          {page.elements.map((el, elIdx) => {
+            if (el.type === 'h2') {
+              return (
+                <h2
+                  key={elIdx}
+                  className="font-black text-center mb-6 mt-1 leading-snug"
+                  style={{ fontSize: `${(config.font_size || 11) * 1.5}pt` }}
+                >
+                  {el.text}
+                </h2>
+              );
+            }
+
+            if (el.type === 'ornament') {
+              return (
+                <div
+                  key={elIdx}
+                  className="text-center font-mono font-bold my-4 text-xs tracking-widest"
+                >
+                  {el.text}
+                </div>
+              );
+            }
+
+            const isDrop = el.isFirstParagraph && config.first_paragraph_drop_cap;
+
+            return (
+              <p
+                key={elIdx}
+                className="leading-relaxed"
+                style={{
+                  margin: '0 0 0.55em 0',
+                  textIndent:
+                    el.isFirstParagraph || el.isContinuation
+                      ? '0'
+                      : config.first_line_indent
+                      ? '1.5em'
+                      : '0',
+                }}
+              >
+                {isDrop ? (
+                  <>
+                    <span 
+                      className="font-black float-left rtl:float-right text-3xl sm:text-4xl leading-none pr-2 rtl:pl-2 pt-1 font-serif"
+                    >
+                      {el.text.charAt(0)}
+                    </span>
+                    {el.text.slice(1)}
+                  </>
+                ) : (
+                  el.text
+                )}
+              </p>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Running Footer with Page Number */}
+      <div 
+        className="flex items-center justify-center font-serif font-bold shrink-0 select-none text-[11pt] pb-2"
+        style={{ height: `${trimDims.footerHeight}px` }}
+      >
+        {page.pageNumber !== null ? (
+          <span>{page.pageNumber}</span>
+        ) : (
+          <span className="opacity-0">-</span>
+        )}
       </div>
-      <style>{`
-        .multicol-content-wrapper > div {
-          transform: translateZ(0);
-        }
-      `}</style>
     </div>
   );
 };

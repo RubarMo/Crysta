@@ -3,13 +3,14 @@ import { Novel, Chapter, BookFormatConfig } from '../lib';
 
 export class BookExportService {
   /**
-   * Generates and downloads an EPUB 3 archive with full RTL metadata.
+   * Generates and downloads an EPUB 3 archive with full RTL metadata and optional cover image.
    */
   static async exportEpub(
     novel: Novel,
     chapters: Chapter[],
     config: BookFormatConfig,
-    isRtl = true
+    isRtl = true,
+    coverImageDataUrl?: string | null
   ): Promise<void> {
     const zip = new JSZip();
 
@@ -25,13 +26,49 @@ export class BookExportService {
 </container>`;
     zip.file('META-INF/container.xml', containerXml);
 
+    const manifestItems: string[] = [
+      '<item id="css" href="styles.css" media-type="text/css"/>',
+      '<item id="toc" href="toc.xhtml" media-type="application/xhtml+xml" properties="nav"/>'
+    ];
+    const spineItems: string[] = [];
+    const tocItems: { title: string; href: string }[] = [];
+
+    // Cover Image processing if available
+    if (coverImageDataUrl && coverImageDataUrl.startsWith('data:image/')) {
+      const match = coverImageDataUrl.match(/^data:image\/([a-zA-Z0-9]+);base64,(.+)$/);
+      if (match) {
+        const rawExt = match[1].toLowerCase();
+        const ext = rawExt === 'jpeg' ? 'jpg' : rawExt;
+        const mime = `image/${match[1]}`;
+        const base64Data = match[2];
+        zip.file(`OEBPS/cover.${ext}`, base64Data, { base64: true });
+        zip.file(
+          'OEBPS/cover.xhtml',
+          `<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="${isRtl ? 'ar' : 'en'}" dir="${isRtl ? 'rtl' : 'ltr'}">
+<head>
+  <title>${escapeXml(novel.title)}</title>
+  <style>body { margin: 0; padding: 0; text-align: center; background-color: #000; } img { max-width: 100%; max-height: 100vh; height: auto; object-fit: contain; }</style>
+</head>
+<body>
+  <img src="cover.${ext}" alt="Cover"/>
+</body>
+</html>`
+        );
+        manifestItems.unshift(`<item id="cover-image" href="cover.${ext}" media-type="${mime}" properties="cover-image"/>`);
+        manifestItems.unshift('<item id="cover-page" href="cover.xhtml" media-type="application/xhtml+xml"/>');
+        spineItems.unshift('<itemref idref="cover-page"/>');
+      }
+    }
+
     // 3. CSS Stylesheet
     const css = `
 @charset "utf-8";
 body {
   font-family: ${config.font_family || 'sans-serif'}, serif;
   font-size: ${config.font_size || 11}pt;
-  line-height: ${config.line_spacing || 1.3};
+  line-height: ${config.line_spacing || 1.45};
   direction: ${isRtl ? 'rtl' : 'ltr'};
   text-align: justify;
   margin: 5%;
@@ -43,7 +80,7 @@ h1, h2, h3 {
   margin-bottom: 0.8em;
 }
 p {
-  margin: 0;
+  margin: 0 0 0.5em 0;
   text-indent: ${config.first_line_indent ? '1.5em' : '0'};
 }
 .first-paragraph {
@@ -85,18 +122,11 @@ p {
 `;
     zip.file('OEBPS/styles.css', css);
 
-    const manifestItems: string[] = [
-      '<item id="css" href="styles.css" media-type="text/css"/>',
-      '<item id="toc" href="toc.xhtml" media-type="application/xhtml+xml" properties="nav"/>'
-    ];
-    const spineItems: string[] = [];
-    const tocItems: { title: string; href: string }[] = [];
-
     // Helper to add XHTML section
     const addXhtml = (id: string, filename: string, title: string, bodyContent: string) => {
       const xhtml = `<?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="${isRtl ? 'ar' : 'en'}" dir="${isRtl ? 'rtl' : 'ltr'}">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="${isRtl ? 'ar' : 'en'}" dir="${isRtl ? 'rtl' : 'ltr'}">
 <head>
   <title>${escapeXml(title)}</title>
   <link rel="stylesheet" type="text/css" href="styles.css"/>
@@ -133,11 +163,7 @@ p {
   ${config.edition_notice ? `<p>${escapeXml(config.edition_notice)}</p>` : ''}
   ${config.isbn ? `<p>ISBN: ${escapeXml(config.isbn)}</p>` : ''}
   ${config.publisher_name ? `<p>${escapeXml(config.publisher_name)}</p>` : ''}
-  <p style="margin-top: 1.5em; font-size: 0.8em; opacity: 0.8;">
-    ${isRtl 
-      ? 'جميع الحقوق محفوظة. لا يجوز نسخ أو إعادة إنتاج أي جزء من هذا الكتاب دون إذن مسبق.'
-      : 'All rights reserved. No part of this publication may be reproduced without prior permission.'}
-  </p>
+  <p style="margin-top: 2em; font-size: 0.9em;">${isRtl ? 'جميع الحقوق محفوظة.' : 'All rights reserved.'}</p>
 </div>`;
       addXhtml('copyright', 'copyright.xhtml', isRtl ? 'حقوق النشر' : 'Copyright', content);
     }
@@ -146,126 +172,133 @@ p {
     if (config.has_dedication && config.dedication_text) {
       const content = `
 <div class="dedication">
-  <p>${escapeXml(config.dedication_text)}</p>
+  ${config.dedication_text
+    .split('\n')
+    .map((l) => `<p>${escapeXml(l)}</p>`)
+    .join('\n')}
 </div>`;
-      addXhtml('dedication', 'dedication.xhtml', isRtl ? 'الإهداء' : 'Dedication', content);
+      addXhtml('dedication', 'dedication.xhtml', isRtl ? 'إهداء' : 'Dedication', content);
     }
 
     // Front Matter: Epigraph
     if (config.has_epigraph && config.epigraph_quote) {
       const content = `
 <div class="dedication">
-  <p>«${escapeXml(config.epigraph_quote)}»</p>
-  ${config.epigraph_author ? `<p style="margin-top: 1em; font-weight: bold;">— ${escapeXml(config.epigraph_author)}</p>` : ''}
+  <p style="font-size: 1.1em; font-style: italic;">«${escapeXml(config.epigraph_quote)}»</p>
+  ${config.epigraph_author ? `<p style="margin-top: 1.5em; font-style: normal; font-weight: bold;">— ${escapeXml(config.epigraph_author)}</p>` : ''}
 </div>`;
       addXhtml('epigraph', 'epigraph.xhtml', isRtl ? 'تصدير' : 'Epigraph', content);
     }
 
     // Front Matter: Foreword
     if (config.has_foreword && config.foreword_content) {
-      const paras = config.foreword_content.split('\n\n').filter(Boolean).map(p => `<p>${escapeXml(p)}</p>`).join('\n');
       const content = `
-<h1>${escapeXml(config.foreword_title || 'Foreword')}</h1>
-${paras}`;
+<h2>${escapeXml(config.foreword_title || (isRtl ? 'مقدمة' : 'Foreword'))}</h2>
+${config.foreword_content
+  .split('\n\n')
+  .map((p) => `<p>${escapeXml(p)}</p>`)
+  .join('\n')}`;
       addXhtml('foreword', 'foreword.xhtml', config.foreword_title || 'Foreword', content);
     }
 
     // Chapters
     chapters.forEach((chapter, index) => {
-      const chNum = index + 1;
-      const chTitle = chapter.title || `${isRtl ? 'الفصل' : 'Chapter'} ${chNum}`;
+      const chTitle = chapter.title || `${isRtl ? 'الفصل' : 'Chapter'} ${index + 1}`;
       const paras = chapter.content
         .split('\n\n')
-        .filter(Boolean)
-        .map((p, pIdx) => {
-          if (p.trim() === config.scene_break_ornament || p.trim() === '* * *') {
-            return `<div class="scene-break">${escapeXml(config.scene_break_ornament || '* * *')}</div>`;
+        .map((p, idx) => {
+          if (p.trim() === '* * *' || p.trim() === config.scene_break_ornament) {
+            return `<p class="scene-break">${escapeXml(config.scene_break_ornament || '* * *')}</p>`;
           }
-          return `<p class="${pIdx === 0 ? 'first-paragraph' : ''}">${escapeXml(p)}</p>`;
+          const cls = idx === 0 ? 'class="first-paragraph"' : '';
+          return `<p ${cls}>${escapeXml(p)}</p>`;
         })
         .join('\n');
 
       const content = `
-<h1>${escapeXml(chTitle)}</h1>
+<h2>${escapeXml(chTitle)}</h2>
 ${paras}`;
-      addXhtml(`chapter_${chNum}`, `chapter_${chNum}.xhtml`, chTitle, content);
+      addXhtml(`chapter_${index + 1}`, `chapter_${index + 1}.xhtml`, chTitle, content);
     });
 
     // Back Matter: Epilogue
     if (config.has_epilogue && config.epilogue_content) {
-      const paras = config.epilogue_content.split('\n\n').filter(Boolean).map(p => `<p>${escapeXml(p)}</p>`).join('\n');
       const content = `
-<h1>${escapeXml(config.epilogue_title || 'Epilogue')}</h1>
-${paras}`;
+<h2>${escapeXml(config.epilogue_title || (isRtl ? 'خاتمة' : 'Epilogue'))}</h2>
+${config.epilogue_content
+  .split('\n\n')
+  .map((p) => `<p>${escapeXml(p)}</p>`)
+  .join('\n')}`;
       addXhtml('epilogue', 'epilogue.xhtml', config.epilogue_title || 'Epilogue', content);
     }
 
     // Back Matter: Acknowledgments
     if (config.has_acknowledgments && config.acknowledgments_content) {
-      const paras = config.acknowledgments_content.split('\n\n').filter(Boolean).map(p => `<p>${escapeXml(p)}</p>`).join('\n');
       const content = `
-<h1>${isRtl ? 'شكر وتقدير' : 'Acknowledgments'}</h1>
-${paras}`;
+<h2>${isRtl ? 'شكر وتقدير' : 'Acknowledgments'}</h2>
+${config.acknowledgments_content
+  .split('\n\n')
+  .map((p) => `<p>${escapeXml(p)}</p>`)
+  .join('\n')}`;
       addXhtml('acknowledgments', 'acknowledgments.xhtml', isRtl ? 'شكر وتقدير' : 'Acknowledgments', content);
     }
 
-    // Back Matter: About the Author
+    // Back Matter: About Author
     if (config.has_about_author && config.about_author_bio) {
-      const paras = config.about_author_bio.split('\n\n').filter(Boolean).map(p => `<p>${escapeXml(p)}</p>`).join('\n');
       const content = `
-<h1>${isRtl ? 'عن المؤلف' : 'About the Author'}</h1>
-${paras}`;
+<h2>${isRtl ? 'عن المؤلف' : 'About the Author'}</h2>
+<p>${escapeXml(config.about_author_bio)}</p>`;
       addXhtml('about_author', 'about_author.xhtml', isRtl ? 'عن المؤلف' : 'About the Author', content);
     }
 
-    // Navigation Document (toc.xhtml)
-    const navList = tocItems.map(item => `    <li><a href="${item.href}">${escapeXml(item.title)}</a></li>`).join('\n');
-    const tocXhtml = `<?xml version="1.0" encoding="utf-8"?>
+    // 4. Navigation Document (toc.xhtml)
+    const tocNav = `<?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="${isRtl ? 'ar' : 'en'}" dir="${isRtl ? 'rtl' : 'ltr'}">
 <head>
-  <title>${isRtl ? 'الفهرس' : 'Table of Contents'}</title>
+  <title>${escapeXml(novel.title)} - Table of Contents</title>
   <link rel="stylesheet" type="text/css" href="styles.css"/>
 </head>
 <body>
   <nav epub:type="toc" id="toc">
-    <h1>${isRtl ? 'جدول المحتويات' : 'Table of Contents'}</h1>
+    <h1>${isRtl ? 'فهرس المحتويات' : 'Table of Contents'}</h1>
     <ol>
-${navList}
+      ${tocItems.map((item) => `<li><a href="${item.href}">${escapeXml(item.title)}</a></li>`).join('\n      ')}
     </ol>
   </nav>
 </body>
 </html>`;
-    zip.file('OEBPS/toc.xhtml', tocXhtml);
+    zip.file('OEBPS/toc.xhtml', tocNav);
 
-    // Package Document (OEBPS/content.opf)
-    const contentOpf = `<?xml version="1.0" encoding="utf-8"?>
-<package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="pub-id" prefix="rendition: http://www.idpf.org/vocab/rendition/#" dir="${isRtl ? 'rtl' : 'ltr'}" xml:lang="${isRtl ? 'ar' : 'en'}">
+    // 5. Package Document (content.opf)
+    const bookId = generateUuid();
+    const opf = `<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="BookId" dir="${isRtl ? 'rtl' : 'ltr'}">
   <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
-    <dc:identifier id="pub-id">urn:uuid:${generateUuid()}</dc:identifier>
+    <dc:identifier id="BookId">urn:uuid:${bookId}</dc:identifier>
     <dc:title>${escapeXml(novel.title)}</dc:title>
-    <dc:creator>${escapeXml(config.author_name || 'Author')}</dc:creator>
     <dc:language>${isRtl ? 'ar' : 'en'}</dc:language>
+    <dc:creator>${escapeXml(config.author_name || 'Author')}</dc:creator>
+    <dc:publisher>${escapeXml(config.publisher_name || 'Crysta')}</dc:publisher>
     <dc:date>${new Date().toISOString()}</dc:date>
-    <meta property="dcterms:modified">${new Date().toISOString().replace(/\\.[0-9]{3}/, '')}</meta>
-    ${isRtl ? '<meta property="page-progression-direction">rtl</meta>' : ''}
+    <meta property="dcterms:modified">${new Date().toISOString().replace(/\\.[0-9]+Z$/, 'Z')}</meta>
   </metadata>
   <manifest>
     ${manifestItems.join('\n    ')}
   </manifest>
-  <spine ${isRtl ? 'page-progression-direction="rtl"' : ''}>
+  <spine page-progression-direction="${isRtl ? 'rtl' : 'ltr'}">
     ${spineItems.join('\n    ')}
   </spine>
 </package>`;
-    zip.file('OEBPS/content.opf', contentOpf);
+    zip.file('OEBPS/content.opf', opf);
 
-    // Generate Blob & Trigger Download
+    // Generate and trigger download
     const blob = await zip.generateAsync({ type: 'blob', mimeType: 'application/epub+zip' });
     downloadBlob(blob, `${sanitizeFilename(novel.title)}.epub`);
   }
 
   /**
-   * Generates and downloads a Word DOCX OpenXML manuscript document.
+   * Generates and downloads a clean Word Manuscript (.docx) file.
    */
   static async exportDocx(
     novel: Novel,
@@ -280,7 +313,6 @@ ${navList}
   <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
   <Default Extension="xml" ContentType="application/xml"/>
   <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
-  <Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>
 </Types>`);
 
     zip.file('_rels/.rels', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -288,61 +320,45 @@ ${navList}
   <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
 </Relationships>`);
 
-    zip.file('word/_rels/document.xml.rels', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
-  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>
-</Relationships>`);
-
-    // Styles XML
-    zip.file('word/styles.xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
-  <w:docDefaults>
-    <w:rPrDefault>
-      <w:rPr>
-        <w:rFonts w:ascii="${config.font_family || 'Garamond'}" w:hAnsi="${config.font_family || 'Garamond'}" w:cs="${config.font_family || 'Amiri'}"/>
-        <w:sz w:val="${Math.round((config.font_size || 11) * 2)}"/>
-        <w:szCs w:val="${Math.round((config.font_size || 11) * 2)}"/>
-        ${isRtl ? '<w:rtl/>' : ''}
-      </w:rPr>
-    </w:rPrDefault>
-  </w:docDefaults>
-</w:styles>`);
-
-    // Build paragraphs for Document.xml
     const docParagraphs: string[] = [];
+
+    const addParagraph = (text: string, isFirst = false) => {
+      docParagraphs.push(`
+<w:p>
+  <w:pPr>
+    <w:bidi w:val="${isRtl ? '1' : '0'}"/>
+    <w:jc w:val="both"/>
+    <w:spacing w:line="360" w:lineRule="auto" w:after="120"/>
+    ${isFirst || !config.first_line_indent ? '' : '<w:ind w:firstLine="720"/>'}
+  </w:pPr>
+  <w:r>
+    <w:rPr>
+      <w:rFonts w:ascii="${config.font_family || 'Arial'}" w:hAnsi="${config.font_family || 'Arial'}" w:cs="${config.font_family || 'Arial'}"/>
+      <w:sz w:val="${Math.round((config.font_size || 12) * 2)}"/>
+    </w:rPr>
+    <w:t xml:space="preserve">${escapeXml(text)}</w:t>
+  </w:r>
+</w:p>`);
+    };
 
     const addHeading = (text: string) => {
       docParagraphs.push(`
 <w:p>
   <w:pPr>
     <w:jc w:val="center"/>
-    <w:spacing w:before="400" w:after="240"/>
-    ${isRtl ? '<w:bidi/>' : ''}
+    <w:spacing w:before="480" w:after="240"/>
   </w:pPr>
   <w:r>
-    <w:rPr><w:b/><w:sz w:val="36"/><w:szCs w:val="36"/>${isRtl ? '<w:rtl/>' : ''}</w:rPr>
+    <w:rPr>
+      <w:b/>
+      <w:sz w:val="${Math.round((config.font_size || 12) * 2.8)}"/>
+    </w:rPr>
     <w:t>${escapeXml(text)}</w:t>
   </w:r>
 </w:p>`);
     };
 
-    const addParagraph = (text: string, isFirst = false) => {
-      docParagraphs.push(`
-<w:p>
-  <w:pPr>
-    <w:jc w:val="both"/>
-    <w:spacing w:line="${Math.round((config.line_spacing || 1.3) * 240)}" w:lineRule="auto"/>
-    ${config.first_line_indent && !isFirst ? '<w:ind w:firstLine="400"/>' : ''}
-    ${isRtl ? '<w:bidi/>' : ''}
-  </w:pPr>
-  <w:r>
-    <w:rPr>${isRtl ? '<w:rtl/>' : ''}</w:rPr>
-    <w:t xml:space="preserve">${escapeXml(text)}</w:t>
-  </w:r>
-</w:p>`);
-    };
-
-    // Title Page
+    // Title page
     if (config.has_title_page) {
       addHeading(novel.title);
       if (config.subtitle) addParagraph(config.subtitle, true);
@@ -389,97 +405,56 @@ ${navList}
   }
 
   /**
-   * Generates standalone Print-Ready HTML with exact CSS @page trim sizes, typography, and page breaks.
+   * Generates clean, professional standard Print-Ready HTML with standard @page dimensions and margins.
    */
   static generatePrintHtml(
     novel: Novel,
     chapters: Chapter[],
     config: BookFormatConfig,
-    isRtl = true
+    isRtl = true,
+    coverImageDataUrl?: string | null,
+    tocEntries?: { title: string; pageNumber: number }[]
   ): string {
-    const trimSizes: Record<string, { width: string; height: string; name: string }> = {
-      us_trade_6x9: { width: '6in', height: '9in', name: 'US Trade 6"x9"' },
-      digest_5_5x8_5: { width: '5.5in', height: '8.5in', name: 'Digest 5.5"x8.5"' },
-      pocket_5x8: { width: '5in', height: '8in', name: 'Pocket 5"x8"' },
-      mass_market: { width: '4.25in', height: '6.87in', name: 'Mass Market' },
-      a5: { width: '5.83in', height: '8.27in', name: 'A5 Standard' },
-      letter: { width: '8.5in', height: '11in', name: 'Standard Letter' },
+    const trimSizes: Record<string, { width: string; height: string }> = {
+      us_trade_6x9: { width: '6in', height: '9in' },
+      digest_5_5x8_5: { width: '5.5in', height: '8.5in' },
+      pocket_5x8: { width: '5in', height: '8in' },
+      mass_market: { width: '4.25in', height: '6.87in' },
+      a5: { width: '5.83in', height: '8.27in' },
+      letter: { width: '8.5in', height: '11in' },
     };
 
     const trim = trimSizes[config.trim_size || 'us_trade_6x9'] || trimSizes.us_trade_6x9;
     const fontCss = getFontFamilyCss(config.font_family || 'Amiri');
 
-    const dedicationLines = config.has_dedication && config.dedication_text
-      ? config.dedication_text
-          .split('\n')
-          .map((l) => l.trim())
-          .filter(Boolean)
-          .map((line) => `<p class="dedication-line">${escapeXml(line)}</p>`)
-          .join('\n')
-      : '';
-
     return `<!DOCTYPE html>
 <html lang="${isRtl ? 'ar' : 'en'}" dir="${isRtl ? 'rtl' : 'ltr'}">
 <head>
   <meta charset="utf-8"/>
-  <title>${escapeXml(novel.title)} - Print Edition</title>
+  <title>${escapeXml(novel.title)}</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Cairo:wght@400;600;700;800;900&family=Cinzel:wght@400;700&family=EB+Garamond:ital,wght@0,400;0,700;1,400;1,700&family=IBM+Plex+Sans+Arabic:wght@400;600;700&family=Inter:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,700;1,400;1,700&family=Merriweather:ital,wght@0,400;0,700;1,400;1,700&family=Noto+Naskh+Arabic:wght@400;700&family=Readex+Pro:wght@400;600;700&family=Scheherazade+New:wght@400;700&display=swap');
     
     @page {
       size: ${trim.width} ${trim.height};
-      margin-top: 0.8in;
-      margin-bottom: 0.8in;
-      margin-left: ${isRtl ? '0.85in' : '0.65in'};
-      margin-right: ${isRtl ? '0.65in' : '0.85in'};
+      margin: 20mm;
     }
 
-    /* Mirrored Gutter Margins */
-    @page :left {
-      margin-left: ${isRtl ? '0.85in' : '0.65in'};
-      margin-right: ${isRtl ? '0.65in' : '0.85in'};
-    }
-
-    @page :right {
-      margin-left: ${isRtl ? '0.65in' : '0.85in'};
-      margin-right: ${isRtl ? '0.85in' : '0.65in'};
-    }
-
-    /* All front-matter pages (Title, Copyright, Dedication, Epigraph, Foreword) omit page numbers */
-    @page front-matter {
-      @bottom-center { content: none !important; }
-      @bottom-left { content: none !important; }
-      @bottom-right { content: none !important; }
-      @top-left { content: none !important; }
-      @top-right { content: none !important; }
-    }
-
-    /* Main body chapters display page numbers */
-    @page chapter-page {
-      ${config.include_page_numbers ? `
-      @bottom-center {
-        content: counter(page);
-        font-family: ${fontCss};
-        font-size: 9pt;
-        color: #333;
-      }` : ''}
-    }
-
-    * {
+    *, *:before, *:after {
       box-sizing: border-box;
     }
 
-    body {
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #FFF;
+      color: #000;
       font-family: ${fontCss};
       font-size: ${config.font_size || 11}pt;
       line-height: ${config.line_spacing || 1.45};
       direction: ${isRtl ? 'rtl' : 'ltr'};
       text-align: justify;
-      color: #111;
-      background: #FFF;
-      margin: 0;
-      padding: 0;
-      -webkit-font-smoothing: antialiased;
+      width: 100%;
     }
 
     .page-break {
@@ -487,58 +462,65 @@ ${navList}
       break-after: page;
     }
 
-    .front-matter {
-      page: front-matter;
+    .chapter-start {
+      page-break-before: always;
+      break-before: page;
+      width: 100%;
+    }
+
+    /* Cover Page */
+    .cover-page {
+      width: 100%;
+      height: 100%;
+      min-height: 80vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #000;
       page-break-after: always;
       break-after: page;
     }
-
-    .first-chapter {
-      page: chapter-page;
-      page-break-before: always;
-      break-before: page;
-    }
-
-    .chapter-start {
-      page: chapter-page;
-      page-break-before: always;
-      break-before: page;
+    .cover-img {
+      max-width: 100%;
+      max-height: 80vh;
+      object-fit: contain;
     }
 
     /* Title Page */
     .title-page {
       text-align: center;
-      padding-top: 30%;
-      height: 75vh;
+      padding-top: 20%;
+      min-height: 70vh;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
+      page-break-after: always;
+      break-after: page;
     }
-
     h1.novel-title {
-      font-size: 2.4em;
-      margin-bottom: 0.25em;
+      font-size: 2.2em;
+      margin-bottom: 0.3em;
       font-weight: 800;
       line-height: 1.2;
     }
-
     .subtitle {
-      font-size: 1.2em;
+      font-size: 1.15em;
       color: #444;
-      margin-bottom: 3em;
+      margin-bottom: 2em;
     }
-
     .author-name {
-      font-size: 1.5em;
-      font-weight: 700;
+      font-size: 1.4em;
+      font-weight: bold;
     }
 
     /* Copyright Page */
     .copyright-box {
       font-size: 0.85em;
       text-align: center;
-      padding-top: 45%;
+      padding-top: 40%;
       line-height: 1.7;
+      page-break-after: always;
+      break-after: page;
     }
 
     /* Dedication Page */
@@ -546,58 +528,80 @@ ${navList}
       text-align: center;
       padding-top: 35%;
       font-style: italic;
+      page-break-after: always;
+      break-after: page;
     }
 
-    .dedication-line {
-      margin: 0.5em 0 !important;
-      text-indent: 0 !important;
-      font-size: 1.15em;
-    }
-
-    /* Chapter Headings */
-    .chapter-heading {
+    /* Headings */
+    h2.chapter-heading {
       text-align: center;
       font-size: 1.6em;
       font-weight: 800;
-      margin-top: 2.5em;
-      margin-bottom: 1.8em;
+      margin-top: 2em;
+      margin-bottom: 1.5em;
       line-height: 1.3;
     }
 
     p {
-      margin: 0 0 0 0;
+      margin: 0 0 1em 0;
       text-indent: ${config.first_line_indent ? '1.5em' : '0'};
+      orphans: 2;
+      widows: 2;
     }
 
     p.no-indent {
-      text-indent: 0;
+      text-indent: 0 !important;
     }
 
     .first-paragraph {
       text-indent: 0 !important;
     }
 
+    ${config.first_paragraph_drop_cap ? `
+    .first-paragraph::first-letter {
+      font-size: 3em;
+      float: ${isRtl ? 'right' : 'left'};
+      line-height: 0.8;
+      padding-top: 4px;
+      padding-${isRtl ? 'left' : 'right'}: 8px;
+      font-family: serif;
+      font-weight: bold;
+    }` : ''}
+
     .scene-ornament {
       text-align: center;
-      margin: 1.8em 0;
+      margin: 1.5em 0;
+      font-family: monospace;
       font-weight: bold;
-      letter-spacing: 0.3em;
-      font-size: 1.1em;
+      letter-spacing: 0.2em;
     }
 
-    @media print {
-      body {
-        padding: 0;
-      }
-      .no-print {
-        display: none !important;
-      }
+    /* Table of Contents */
+    .toc-container {
+      padding-top: 15%;
+      page-break-after: always;
+      break-after: page;
     }
+    .toc-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 0.8em;
+      line-height: 2;
+    }
+    .toc-title { font-weight: bold; font-size: 1.05em; }
+    .toc-dots { flex: 1; border-bottom: 1px dotted #888; margin: 0 0.6em; min-width: 20px; }
+    .toc-num { font-family: monospace; font-weight: bold; font-size: 1.05em; }
   </style>
 </head>
 <body>
+  ${coverImageDataUrl ? `
+  <div class="cover-page">
+    <img src="${coverImageDataUrl}" class="cover-img" alt="Cover" />
+  </div>` : ''}
+
   ${config.has_title_page ? `
-  <div class="front-matter title-page">
+  <div class="title-page">
     <div>
       <h1 class="novel-title">${escapeXml(novel.title)}</h1>
       ${config.subtitle ? `<div class="subtitle">${escapeXml(config.subtitle)}</div>` : ''}
@@ -607,32 +611,49 @@ ${navList}
   </div>` : ''}
 
   ${config.has_copyright_page ? `
-  <div class="front-matter copyright-box">
+  <div class="copyright-box">
     <p><strong>${escapeXml(novel.title)}</strong></p>
     <p>© ${escapeXml(config.copyright_year || '2026')} ${escapeXml(config.author_name || '')}</p>
     ${config.edition_notice ? `<p>${escapeXml(config.edition_notice)}</p>` : ''}
     ${config.isbn ? `<p>ISBN: ${escapeXml(config.isbn)}</p>` : ''}
     ${config.publisher_name ? `<p>${escapeXml(config.publisher_name)}</p>` : ''}
     <p style="margin-top: 2em; font-size: 0.85em; opacity: 0.85;">
-      ${isRtl ? 'جميع الحقوق محفوظة. لا يجوز إعادة إنتاج أي جزء من هذا العمل بأي شكل دون إذن مسبق.' : 'All rights reserved. No part of this book may be reproduced without written permission.'}
+      ${isRtl ? 'جميع الحقوق محفوظة.' : 'All rights reserved.'}
     </p>
   </div>` : ''}
 
   ${config.has_dedication && config.dedication_text ? `
-  <div class="front-matter dedication-page">
-    ${dedicationLines}
+  <div class="dedication-page">
+    ${config.dedication_text.split('\n').filter(Boolean).map((line) => `<p style="margin: 0.5em 0;">${escapeXml(line)}</p>`).join('\n')}
   </div>` : ''}
 
   ${config.has_epigraph && config.epigraph_quote ? `
-  <div class="front-matter" style="text-align: center; padding-top: 35%; font-style: italic;">
+  <div class="dedication-page">
     <p style="font-size: 1.15em;">«${escapeXml(config.epigraph_quote)}»</p>
     ${config.epigraph_author ? `<p style="margin-top: 1.5em; font-weight: bold; font-style: normal;">— ${escapeXml(config.epigraph_author)}</p>` : ''}
   </div>` : ''}
 
   ${config.has_foreword && config.foreword_content ? `
-  <div class="front-matter">
+  <div class="page-break">
     <h2 class="chapter-heading">${escapeXml(config.foreword_title || (isRtl ? 'مقدمة' : 'Foreword'))}</h2>
     ${config.foreword_content.split('\n\n').filter(Boolean).map((p, i) => `<p class="${i === 0 ? 'no-indent' : ''}">${escapeXml(p)}</p>`).join('\n')}
+  </div>` : ''}
+
+  ${config.has_table_of_contents ? `
+  <div class="toc-container">
+    <h2 class="chapter-heading">${isRtl ? 'فهرس المحتويات' : 'Table of Contents'}</h2>
+    <div style="margin-top: 2em;">
+      ${(tocEntries && tocEntries.length > 0 ? tocEntries : chapters.map((ch, idx) => ({
+        title: ch.title || `${isRtl ? 'الفصل' : 'Chapter'} ${idx + 1}`,
+        pageNumber: idx + 1
+      }))).map((entry) => `
+        <div class="toc-row">
+          <span class="toc-title">${escapeXml(entry.title)}</span>
+          <span class="toc-dots"></span>
+          <span class="toc-num">${entry.pageNumber}</span>
+        </div>
+      `).join('\n')}
+    </div>
   </div>` : ''}
 
   ${chapters.map((ch, idx) => {
@@ -644,18 +665,23 @@ ${navList}
       return `<p class="${pIdx === 0 ? 'first-paragraph' : ''}">${escapeXml(p)}</p>`;
     }).join('\n');
 
-    const isFirstChapter = idx === 0;
     return `
-    <div class="${isFirstChapter ? 'first-chapter' : 'chapter-start'} ${idx < chapters.length - 1 ? 'page-break' : ''}">
+    <div class="chapter-start">
       <h2 class="chapter-heading">${escapeXml(chTitle)}</h2>
       ${paras}
     </div>`;
   }).join('\n')}
 
   ${config.has_epilogue && config.epilogue_content ? `
-  <div class="chapter-start ${config.has_about_author && config.about_author_bio ? 'page-break' : ''}">
+  <div class="chapter-start">
     <h2 class="chapter-heading">${escapeXml(config.epilogue_title || (isRtl ? 'خاتمة' : 'Epilogue'))}</h2>
     ${config.epilogue_content.split('\n\n').filter(Boolean).map((p, i) => `<p class="${i === 0 ? 'no-indent' : ''}">${escapeXml(p)}</p>`).join('\n')}
+  </div>` : ''}
+
+  ${config.has_acknowledgments && config.acknowledgments_content ? `
+  <div class="chapter-start">
+    <h2 class="chapter-heading">${isRtl ? 'شكر وتقدير' : 'Acknowledgments'}</h2>
+    ${config.acknowledgments_content.split('\n\n').filter(Boolean).map((p, i) => `<p class="${i === 0 ? 'no-indent' : ''}">${escapeXml(p)}</p>`).join('\n')}
   </div>` : ''}
 
   ${config.has_about_author && config.about_author_bio ? `
@@ -668,25 +694,28 @@ ${navList}
   }
 
   /**
-   * Generates a Print-Ready PDF / Printable Window with alternating binding gutters (RTL/LTR mirrored margins).
+   * Triggers the native browser print / save-as-PDF dialog.
    */
   static exportPrintPdf(
     novel: Novel,
     chapters: Chapter[],
     config: BookFormatConfig,
-    isRtl = true
+    isRtl = true,
+    coverImageDataUrl?: string | null,
+    tocEntries?: { title: string; pageNumber: number }[]
   ): void {
-    const html = BookExportService.generatePrintHtml(novel, chapters, config, isRtl);
+    const html = BookExportService.generatePrintHtml(novel, chapters, config, isRtl, coverImageDataUrl, tocEntries);
 
-    // Create an invisible iframe to print without triggering popup blockers in Tauri / WebView2
     const iframe = document.createElement('iframe');
     iframe.style.position = 'fixed';
     iframe.style.right = '0';
     iframe.style.bottom = '0';
-    iframe.style.width = '0';
-    iframe.style.height = '0';
+    iframe.style.width = '100vw';
+    iframe.style.height = '100vh';
     iframe.style.border = '0';
     iframe.style.zIndex = '-9999';
+    iframe.style.opacity = '0';
+    iframe.style.pointerEvents = 'none';
     iframe.setAttribute('aria-hidden', 'true');
     document.body.appendChild(iframe);
 
@@ -717,20 +746,6 @@ ${navList}
         }, 3000);
       }
     }, 400);
-  }
-
-  /**
-   * Downloads the standalone print-ready HTML document.
-   */
-  static downloadPrintHtml(
-    novel: Novel,
-    chapters: Chapter[],
-    config: BookFormatConfig,
-    isRtl = true
-  ): void {
-    const html = BookExportService.generatePrintHtml(novel, chapters, config, isRtl);
-    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-    downloadBlob(blob, `${sanitizeFilename(novel.title)}_PrintEdition.html`);
   }
 }
 
