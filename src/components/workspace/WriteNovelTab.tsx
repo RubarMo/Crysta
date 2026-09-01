@@ -246,152 +246,184 @@ export const WriteNovelTab: React.FC<WriteNovelTabProps> = ({
   return (
     <div className="flex-1 flex h-full overflow-hidden bg-[var(--bg-canvas)] nb-dots relative">
       {/* 1. UNIFIED STUDIO SIDE PANEL: Chapters OR Reference Companion */}
-      {activeSidePanel === 'chapters' && (
-        <div className="w-80 border-e-3 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] flex flex-col h-full select-none shrink-0 z-10">
-          {/* Header */}
-          <div className="h-14 border-b-3 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] flex items-center justify-between px-3 shrink-0">
-            <div className="flex items-center gap-1.5 min-w-0">
-              <span className="p-1 bg-[var(--pastel-sky)] text-black border border-[var(--border-ink)] shadow-[1px_1px_0px_var(--shadow-ink)]">
-                <FileText className="w-3.5 h-3.5" />
-              </span>
-              <h3 className="text-xs font-heading font-black text-[var(--text-primary)] truncate">
-                {t('chapters')} ({chapters.length})
-              </h3>
-            </div>
-            <div className="flex items-center gap-1 shrink-0">
+      {activeSidePanel && (
+        <div className="w-80 border-e-3 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] flex flex-col h-full select-none shrink-0 z-10 overflow-hidden">
+          {/* Top Header Bar: Segmented Switcher for Chapters & Reference */}
+          <div className="h-14 border-b-3 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] flex items-center justify-between px-2.5 shrink-0 gap-1.5">
+            {/* Tab Switcher Buttons */}
+            <div className="flex items-center gap-1 min-w-0">
+              {/* Chapters Tab Button */}
               <button
                 type="button"
-                onClick={handleAddChapter}
-                className="px-2 py-1 text-[10px] font-heading font-black border-2 border-[var(--border-ink)] bg-[var(--pastel-yellow)] text-black shadow-[2px_2px_0px_var(--shadow-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center gap-1"
-                title={t('addChapter')}
+                onClick={() => setActiveSidePanel('chapters')}
+                className={`px-2.5 py-1.5 text-xs font-heading font-black border-2 border-[var(--border-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
+                  activeSidePanel === 'chapters'
+                    ? 'bg-[var(--pastel-sky)] text-black shadow-[2px_2px_0px_var(--shadow-ink)]'
+                    : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:bg-[var(--bg-surface-hover)] shadow-[1px_1px_0px_var(--shadow-ink)]'
+                }`}
+                title={t('chapters')}
               >
-                <Plus className="w-3 h-3 stroke-[3]" />
-                <span>{t('create')}</span>
+                <FileText className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">{t('chapters')}</span>
+                <span className="font-mono text-[9px] bg-black text-white px-1 font-bold shrink-0">
+                  {chapters.length}
+                </span>
               </button>
+
+              {/* Reference Tab Button */}
+              <button
+                type="button"
+                onClick={() => setActiveSidePanel('reference')}
+                className={`px-2.5 py-1.5 text-xs font-heading font-black border-2 border-[var(--border-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
+                  activeSidePanel === 'reference'
+                    ? 'bg-[var(--pastel-mint)] text-black shadow-[2px_2px_0px_var(--shadow-ink)]'
+                    : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:bg-[var(--bg-surface-hover)] shadow-[1px_1px_0px_var(--shadow-ink)]'
+                }`}
+                title={t('referenceDrawerTitle')}
+              >
+                <StickyNote className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">{t('referenceShort')}</span>
+              </button>
+            </div>
+
+            {/* Action Buttons: Add Chapter (if in chapters mode) & Close Sidebar */}
+            <div className="flex items-center gap-1 shrink-0">
+              {activeSidePanel === 'chapters' && (
+                <button
+                  type="button"
+                  onClick={handleAddChapter}
+                  className="p-1.5 text-xs font-heading font-black border-2 border-[var(--border-ink)] bg-[var(--pastel-yellow)] text-black shadow-[1px_1px_0px_var(--shadow-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center"
+                  title={t('addChapter')}
+                >
+                  <Plus className="w-3.5 h-3.5 stroke-[3]" />
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => setActiveSidePanel(null)}
-                className="p-1 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--pastel-coral)] hover:text-black shadow-[1px_1px_0px_var(--shadow-ink)] transition-all cursor-pointer"
+                className="p-1.5 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--pastel-coral)] hover:text-black shadow-[1px_1px_0px_var(--shadow-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
                 title={t('close')}
               >
-                <X className="w-3 h-3" />
+                <X className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
 
-          {/* Aggregate Word Count Metrics */}
-          <div className="p-2.5 border-b-2 border-[var(--border-ink)] bg-[var(--bg-surface)] space-y-1">
-            <div className="flex justify-between items-center text-[10px] font-heading font-bold text-[var(--text-secondary)]">
-              <span>{t('totalNovelWords')}</span>
-              <span className="font-mono font-black text-[var(--text-primary)]">
-                {totalNovelWords.toLocaleString()} / {activeNovel.target_word_count.toLocaleString()}
-              </span>
-            </div>
-            <div className="w-full bg-[var(--bg-surface-raised)] h-2 border border-[var(--border-ink)] overflow-hidden">
-              <div
-                className="bg-[var(--pastel-mint)] h-full transition-all duration-300 ease-out"
-                style={{
-                  width: `${Math.min(100, activeNovel.target_word_count > 0 ? (totalNovelWords / activeNovel.target_word_count) * 100 : 0)}%`,
-                }}
-              />
-            </div>
-          </div>
-
-          {/* Chapters Navigation List */}
-          <div className="flex-1 overflow-y-auto p-2 space-y-1.5">
-            {chapters.length === 0 ? (
-              <div className="p-4 border-2 border-dashed border-[var(--border-subtle)] text-center text-[var(--text-muted)] text-xs mt-2">
-                {t('noChaptersYet')}
-              </div>
-            ) : (
-              chapters.map((ch, idx) => {
-                const isSelected = ch.id === selectedChapterId;
-                const chWords = (ch.id === selectedChapterId ? activeContent : ch.content)
-                  .trim()
-                  .split(/\s+/)
-                  .filter(Boolean).length;
-
-                return (
+          {/* Body Content Under Header */}
+          {activeSidePanel === 'chapters' ? (
+            <div className="flex-1 min-h-0 flex flex-col bg-[var(--bg-surface-raised)] overflow-hidden">
+              {/* Aggregate Word Count Metrics */}
+              <div className="p-2.5 border-b-2 border-[var(--border-ink)] bg-[var(--bg-surface)] space-y-1 shrink-0">
+                <div className="flex justify-between items-center text-[10px] font-heading font-bold text-[var(--text-secondary)]">
+                  <span>{t('totalNovelWords')}</span>
+                  <span className="font-mono font-black text-[var(--text-primary)]">
+                    {totalNovelWords.toLocaleString()} / {activeNovel.target_word_count.toLocaleString()}
+                  </span>
+                </div>
+                <div className="w-full bg-[var(--bg-surface-raised)] h-2 border border-[var(--border-ink)] overflow-hidden">
                   <div
-                    key={ch.id || idx}
-                    className={`group flex items-center justify-between gap-1.5 p-2 border-2 border-[var(--border-ink)] transition-all cursor-pointer ${
-                      isSelected
-                        ? 'bg-[var(--pastel-yellow)] text-black font-black shadow-[3px_3px_0px_var(--shadow-ink)] translate-x-0.5'
-                        : 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[1px_1px_0px_var(--shadow-ink)] hover:bg-[var(--bg-surface-hover)]'
-                    }`}
-                    onClick={() => setSelectedChapterId(ch.id || null)}
-                  >
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5 mb-0.5">
-                        <span className="font-mono text-[9px] px-1 bg-black text-white font-bold">
-                          #{idx + 1}
-                        </span>
-                        <h4 className="text-xs font-heading truncate">
-                          {ch.id === selectedChapterId ? activeTitle : ch.title}
-                        </h4>
-                      </div>
-                      <span className="text-[10px] font-mono text-[var(--text-muted)] block">
-                        {chWords} {t('words')}
-                      </span>
-                    </div>
+                    className="bg-[var(--pastel-mint)] h-full transition-all duration-300 ease-out"
+                    style={{
+                      width: `${Math.min(100, activeNovel.target_word_count > 0 ? (totalNovelWords / activeNovel.target_word_count) * 100 : 0)}%`,
+                    }}
+                  />
+                </div>
+              </div>
 
-                    {/* Move Up/Down & Delete Actions */}
-                    <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        type="button"
-                        disabled={idx === 0}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleMoveChapter(idx, 'up');
-                        }}
-                        className="p-1 hover:bg-black hover:text-white transition-colors disabled:opacity-20"
-                        title="Move Up"
-                      >
-                        <ArrowUp className="w-3 h-3" />
-                      </button>
-                      <button
-                        type="button"
-                        disabled={idx === chapters.length - 1}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleMoveChapter(idx, 'down');
-                        }}
-                        className="p-1 hover:bg-black hover:text-white transition-colors disabled:opacity-20"
-                        title="Move Down"
-                      >
-                        <ArrowDown className="w-3 h-3" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          ch.id && handleDeleteChapter(ch.id);
-                        }}
-                        className="p-1 hover:bg-[var(--pastel-coral)] hover:text-black transition-colors"
-                        title={t('delete')}
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </button>
-                    </div>
+              {/* Chapters Navigation List */}
+              <div className="flex-1 min-h-0 overflow-y-auto p-2 space-y-1.5 pb-16">
+                {chapters.length === 0 ? (
+                  <div className="p-4 border-2 border-dashed border-[var(--border-subtle)] text-center text-[var(--text-muted)] text-xs mt-2">
+                    {t('noChaptersYet')}
                   </div>
-                );
-              })
-            )}
-          </div>
-        </div>
-      )}
+                ) : (
+                  chapters.map((ch, idx) => {
+                    const isSelected = ch.id === selectedChapterId;
+                    const chWords = (ch.id === selectedChapterId ? activeContent : ch.content)
+                      .trim()
+                      .split(/\s+/)
+                      .filter(Boolean).length;
 
-      {activeSidePanel === 'reference' && (
-        <div className="w-80 border-e-3 border-[var(--border-ink)] h-full shrink-0 z-10 bg-[var(--bg-surface)]">
-          <ReferenceDrawerPanel
-            scenes={scenes}
-            characters={characters}
-            stepsProgress={stepsProgress}
-            onClose={() => setActiveSidePanel('chapters')}
-            onInsertText={handleInsertAtCursor}
-            scratchpadText={scratchpadText}
-            onScratchpadChange={handleScratchpadChange}
-          />
+                    return (
+                      <div
+                        key={ch.id || idx}
+                        className={`group flex items-center justify-between gap-1.5 p-2 border-2 border-[var(--border-ink)] transition-all cursor-pointer ${
+                          isSelected
+                            ? 'bg-[var(--pastel-yellow)] text-black font-black shadow-[3px_3px_0px_var(--shadow-ink)] translate-x-0.5'
+                            : 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[1px_1px_0px_var(--shadow-ink)] hover:bg-[var(--bg-surface-hover)]'
+                        }`}
+                        onClick={() => setSelectedChapterId(ch.id || null)}
+                      >
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5 mb-0.5">
+                            <span className="font-mono text-[9px] px-1 bg-black text-white font-bold">
+                              #{idx + 1}
+                            </span>
+                            <h4 className="text-xs font-heading truncate">
+                              {ch.id === selectedChapterId ? activeTitle : ch.title}
+                            </h4>
+                          </div>
+                          <span className="text-[10px] font-mono text-[var(--text-muted)] block">
+                            {chWords} {t('words')}
+                          </span>
+                        </div>
+
+                        {/* Move Up/Down & Delete Actions */}
+                        <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            type="button"
+                            disabled={idx === 0}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleMoveChapter(idx, 'up');
+                            }}
+                            className="p-1 hover:bg-black hover:text-white transition-colors disabled:opacity-20"
+                            title="Move Up"
+                          >
+                            <ArrowUp className="w-3 h-3" />
+                          </button>
+                          <button
+                            type="button"
+                            disabled={idx === chapters.length - 1}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleMoveChapter(idx, 'down');
+                            }}
+                            className="p-1 hover:bg-black hover:text-white transition-colors disabled:opacity-20"
+                            title="Move Down"
+                          >
+                            <ArrowDown className="w-3 h-3" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              ch.id && handleDeleteChapter(ch.id);
+                            }}
+                            className="p-1 hover:bg-[var(--pastel-coral)] hover:text-black transition-colors"
+                            title={t('delete')}
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          ) : (
+            <ReferenceDrawerPanel
+              scenes={scenes}
+              characters={characters}
+              stepsProgress={stepsProgress}
+              onClose={() => setActiveSidePanel(null)}
+              onInsertText={handleInsertAtCursor}
+              scratchpadText={scratchpadText}
+              onScratchpadChange={handleScratchpadChange}
+              hideHeader={true}
+            />
+          )}
         </div>
       )}
 
@@ -402,38 +434,34 @@ export const WriteNovelTab: React.FC<WriteNovelTabProps> = ({
             {/* Top Action Toolbar */}
             <div className="h-14 border-b-3 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] flex items-center justify-between px-3 shrink-0 min-w-0 gap-2 select-none">
               <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
-                {/* Toggle Chapters Panel Button */}
-                <button
-                  type="button"
-                  onClick={() => setActiveSidePanel(activeSidePanel === 'chapters' ? null : 'chapters')}
-                  className={`px-2 sm:px-2.5 py-1.5 text-xs font-heading font-black border-2 border-[var(--border-ink)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-yellow)] hover:text-black transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
-                    activeSidePanel === 'chapters'
-                      ? 'bg-[var(--pastel-sky)] text-black font-black'
-                      : 'bg-[var(--bg-surface)] text-[var(--text-primary)]'
-                  }`}
-                  title={t('chapters')}
-                >
-                  <FileText className="w-3.5 h-3.5" />
-                  <span>{t('chapters')}</span>
-                  <span className="font-mono text-[9px] bg-black text-white px-1 font-bold">
-                    {chapters.length}
-                  </span>
-                </button>
+                {!activeSidePanel && (
+                  <>
+                    {/* Toggle Chapters Panel Button */}
+                    <button
+                      type="button"
+                      onClick={() => setActiveSidePanel('chapters')}
+                      className="px-2 sm:px-2.5 py-1.5 text-xs font-heading font-black border-2 border-[var(--border-ink)] shadow-[2px_2px_0px_var(--shadow-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--pastel-sky)] hover:text-black hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center gap-1.5 shrink-0"
+                      title={t('chapters')}
+                    >
+                      <FileText className="w-3.5 h-3.5" />
+                      <span>{t('chapters')}</span>
+                      <span className="font-mono text-[9px] bg-black text-white px-1 font-bold">
+                        {chapters.length}
+                      </span>
+                    </button>
 
-                {/* Toggle Reference Companion Button */}
-                <button
-                  type="button"
-                  onClick={() => setActiveSidePanel(activeSidePanel === 'reference' ? null : 'reference')}
-                  className={`px-2 sm:px-2.5 py-1.5 text-xs font-heading font-black border-2 border-[var(--border-ink)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-yellow)] hover:text-black transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
-                    activeSidePanel === 'reference'
-                      ? 'bg-[var(--pastel-mint)] text-black font-black'
-                      : 'bg-[var(--bg-surface)] text-[var(--text-primary)]'
-                  }`}
-                  title={t('referenceDrawerTitle')}
-                >
-                  <StickyNote className="w-3.5 h-3.5 stroke-[2.5]" />
-                  <span>{t('referenceShort')}</span>
-                </button>
+                    {/* Toggle Reference Companion Button */}
+                    <button
+                      type="button"
+                      onClick={() => setActiveSidePanel('reference')}
+                      className="px-2 sm:px-2.5 py-1.5 text-xs font-heading font-black border-2 border-[var(--border-ink)] shadow-[2px_2px_0px_var(--shadow-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--pastel-mint)] hover:text-black hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center gap-1.5 shrink-0"
+                      title={t('referenceDrawerTitle')}
+                    >
+                      <StickyNote className="w-3.5 h-3.5 stroke-[2.5]" />
+                      <span>{t('referenceShort')}</span>
+                    </button>
+                  </>
+                )}
               </div>
 
               <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
@@ -451,35 +479,33 @@ export const WriteNovelTab: React.FC<WriteNovelTabProps> = ({
             </div>
 
             {/* Prose Editor Manuscript Page */}
-            <div className="flex-1 p-3 sm:p-5 md:p-6 overflow-y-auto flex justify-center bg-[var(--bg-canvas)] nb-dots min-w-0">
-              <div className="w-full max-w-4xl flex flex-col min-h-full min-w-0 border-3 border-[var(--border-ink)] bg-[var(--bg-surface)] shadow-[4px_4px_0px_var(--shadow-ink)]">
+            <div className="flex-1 p-3 sm:p-5 md:p-6 overflow-hidden flex justify-center bg-[var(--bg-canvas)] nb-dots min-w-0">
+              <div className="w-full max-w-4xl flex flex-col h-full min-w-0 border-3 border-[var(--border-ink)] bg-[var(--bg-surface)] shadow-[4px_4px_0px_var(--shadow-ink)] overflow-hidden">
                 {/* Manuscript Header with Chapter Title */}
-                <div className="p-4 sm:p-6 border-b-3 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] space-y-2">
+                <div className="p-4 sm:p-5 border-b-3 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] space-y-2.5 shrink-0">
                   <div className="flex items-center justify-between text-xs font-mono font-bold text-[var(--text-secondary)]">
-                    <span className="bg-black text-white px-2 py-0.5 font-heading text-[11px] font-black">
+                    <span className="bg-black text-white px-2.5 py-1 font-heading text-[11px] font-black">
                       {t('chapter')} #{chapters.findIndex((c) => c.id === selectedChapter.id) + 1}
                     </span>
-                    <span className="px-2 py-0.5 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] font-mono font-bold text-[11px] text-[var(--text-primary)] shadow-[1px_1px_0px_var(--shadow-ink)]">
-                      <WordCounter text={activeContent} />
-                    </span>
+                    <WordCounter text={activeContent} />
                   </div>
                   <input
                     type="text"
                     value={activeTitle}
                     onChange={(e) => setActiveTitle(e.target.value)}
                     placeholder={t('chapterTitlePlaceholder')}
-                    className="w-full text-base sm:text-lg md:text-xl font-heading font-black bg-transparent text-[var(--text-primary)] focus:outline-none placeholder:text-[var(--text-muted)] border-b-2 border-transparent focus:border-[var(--border-ink)] pb-1 transition-all"
+                    className="w-full px-3.5 py-2 text-sm sm:text-base md:text-lg font-heading font-bold border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] focus:outline-none focus:bg-[var(--bg-surface-raised)] placeholder:text-[var(--text-muted)] transition-all"
                   />
                 </div>
 
                 {/* Manuscript Text Body */}
-                <div className="flex-1 p-4 sm:p-6 flex flex-col min-h-[420px]">
+                <div className="flex-1 min-h-0 flex flex-col relative bg-[var(--bg-surface)]">
                   <textarea
                     ref={editorRef}
                     value={activeContent}
                     onChange={(e) => setActiveContent(e.target.value)}
                     placeholder={t('chapterContentPlaceholder')}
-                    className="w-full flex-1 min-h-[380px] text-sm sm:text-base font-serif leading-loose bg-transparent text-[var(--text-primary)] focus:outline-none resize-none"
+                    className="w-full h-full flex-1 p-4 sm:p-6 md:p-8 text-sm sm:text-base font-serif leading-loose bg-transparent text-[var(--text-primary)] focus:outline-none focus:ring-0 resize-none overflow-y-auto border-none"
                     style={{ lineHeight: 1.9 }}
                   />
                 </div>

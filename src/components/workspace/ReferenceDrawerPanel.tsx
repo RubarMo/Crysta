@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Scene, Character, StepProgress } from '../../lib';
 import { useLanguage } from '../../LanguageContext';
 import { 
@@ -10,17 +11,19 @@ import {
   StickyNote, 
   CornerDownLeft, 
   Check, 
-  Filter
+  Filter,
+  Copy
 } from 'lucide-react';
 
 interface ReferenceDrawerPanelProps {
   scenes: Scene[];
   characters: Character[];
   stepsProgress: StepProgress[];
-  onClose: () => void;
+  onClose?: () => void;
   onInsertText: (text: string) => void;
   scratchpadText: string;
   onScratchpadChange: (text: string) => void;
+  hideHeader?: boolean;
 }
 
 export const ReferenceDrawerPanel: React.FC<ReferenceDrawerPanelProps> = ({
@@ -31,6 +34,7 @@ export const ReferenceDrawerPanel: React.FC<ReferenceDrawerPanelProps> = ({
   onInsertText,
   scratchpadText,
   onScratchpadChange,
+  hideHeader = false,
 }) => {
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<'scenes' | 'characters' | 'synopses' | 'scratchpad'>('scenes');
@@ -40,6 +44,11 @@ export const ReferenceDrawerPanel: React.FC<ReferenceDrawerPanelProps> = ({
   const [selectedPovId, setSelectedPovId] = useState<number | 'all'>('all');
   const [expandedSceneId, setExpandedSceneId] = useState<number | null>(null);
 
+  // Scene outline modal state
+  const [selectedOutlineScene, setSelectedOutlineScene] = useState<Scene | null>(null);
+  const [copiedOutline, setCopiedOutline] = useState(false);
+  const [insertedOutline, setInsertedOutline] = useState(false);
+
   // Character search state
   const [charSearch, setCharSearch] = useState('');
   const [expandedCharId, setExpandedCharId] = useState<number | null>(null);
@@ -47,14 +56,14 @@ export const ReferenceDrawerPanel: React.FC<ReferenceDrawerPanelProps> = ({
   // Synopsis step selection
   const [selectedSynopsisStep, setSelectedSynopsisStep] = useState<1 | 2 | 4 | 6>(1);
 
-  // Feedback on text insert
-  const [insertedId, setInsertedId] = useState<string | null>(null);
-
-  const handleInsert = (text: string, id: string) => {
+  const handleInsert = (text: string) => {
     if (!text.trim()) return;
     onInsertText(text);
-    setInsertedId(id);
-    setTimeout(() => setInsertedId(null), 1500);
+    setInsertedOutline(true);
+    setTimeout(() => {
+      setInsertedOutline(false);
+      setSelectedOutlineScene(null);
+    }, 1000);
   };
 
   // Filtered scenes
@@ -87,87 +96,91 @@ export const ReferenceDrawerPanel: React.FC<ReferenceDrawerPanelProps> = ({
   };
 
   return (
-    <div className="w-full flex flex-col h-full bg-[var(--bg-surface)] select-none min-w-0">
-      {/* Header Bar */}
-      <div className="h-14 border-b-3 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] flex items-center justify-between px-3 shrink-0">
-        <div className="flex items-center gap-2 min-w-0">
-          <span className="p-1 bg-[var(--pastel-yellow)] text-black border-2 border-[var(--border-ink)] shadow-[1px_1px_0px_var(--shadow-ink)]">
-            <StickyNote className="w-3.5 h-3.5" />
-          </span>
-          <h3 className="text-xs font-heading font-black text-[var(--text-primary)] truncate">
-            {t('referenceDrawerTitle')}
-          </h3>
+    <div className="w-full flex-1 min-h-0 flex flex-col bg-[var(--bg-surface)] select-none overflow-hidden">
+      {/* Optional Header Bar */}
+      {!hideHeader && (
+        <div className="h-14 border-b-3 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] flex items-center justify-between px-3 shrink-0">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="p-1 bg-[var(--pastel-yellow)] text-black border-2 border-[var(--border-ink)] shadow-[1px_1px_0px_var(--shadow-ink)]">
+              <StickyNote className="w-3.5 h-3.5" />
+            </span>
+            <h3 className="text-xs font-heading font-black text-[var(--text-primary)] truncate">
+              {t('referenceDrawerTitle')}
+            </h3>
+          </div>
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="p-1 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--pastel-coral)] hover:text-black shadow-[2px_2px_0px_var(--shadow-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
+              title={t('close')}
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
-        <button
-          onClick={onClose}
-          className="p-1 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--pastel-coral)] hover:text-black shadow-[2px_2px_0px_var(--shadow-ink)] transition-all cursor-pointer"
-          title={t('close')}
-        >
-          <X className="w-3.5 h-3.5" />
-        </button>
-      </div>
+      )}
 
       {/* Segmented Navigation Tabs */}
       <div className="grid grid-cols-4 p-1.5 gap-1 border-b-3 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] shrink-0">
         <button
           type="button"
           onClick={() => setActiveTab('scenes')}
-          className={`py-1.5 px-1 text-[10px] font-heading font-bold flex flex-col items-center gap-0.5 border-2 border-[var(--border-ink)] transition-all cursor-pointer ${
+          className={`py-1.5 px-1 text-[10px] font-heading font-bold flex flex-col items-center gap-0.5 border-2 border-[var(--border-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer min-w-0 overflow-hidden ${
             activeTab === 'scenes'
               ? 'bg-[var(--pastel-sky)] text-black shadow-[2px_2px_0px_var(--shadow-ink)] font-black'
-              : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:bg-[var(--bg-surface-hover)]'
+              : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:bg-[var(--bg-surface-hover)] shadow-[1px_1px_0px_var(--shadow-ink)]'
           }`}
           title={t('tabScenes')}
         >
-          <Film className="w-3.5 h-3.5" />
-          <span className="truncate">{t('tabScenes')}</span>
+          <Film className="w-3.5 h-3.5 shrink-0" />
+          <span className="truncate w-full text-center">{t('tabScenes')}</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab('characters')}
-          className={`py-1.5 px-1 text-[10px] font-heading font-bold flex flex-col items-center gap-0.5 border-2 border-[var(--border-ink)] transition-all cursor-pointer ${
+          className={`py-1.5 px-1 text-[10px] font-heading font-bold flex flex-col items-center gap-0.5 border-2 border-[var(--border-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer min-w-0 overflow-hidden ${
             activeTab === 'characters'
               ? 'bg-[var(--pastel-mint)] text-black shadow-[2px_2px_0px_var(--shadow-ink)] font-black'
-              : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:bg-[var(--bg-surface-hover)]'
+              : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:bg-[var(--bg-surface-hover)] shadow-[1px_1px_0px_var(--shadow-ink)]'
           }`}
           title={t('tabCharacters')}
         >
-          <Users className="w-3.5 h-3.5" />
-          <span className="truncate">{t('tabCharacters')}</span>
+          <Users className="w-3.5 h-3.5 shrink-0" />
+          <span className="truncate w-full text-center">{t('tabCharacters')}</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab('synopses')}
-          className={`py-1.5 px-1 text-[10px] font-heading font-bold flex flex-col items-center gap-0.5 border-2 border-[var(--border-ink)] transition-all cursor-pointer ${
+          className={`py-1.5 px-1 text-[10px] font-heading font-bold flex flex-col items-center gap-0.5 border-2 border-[var(--border-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer min-w-0 overflow-hidden ${
             activeTab === 'synopses'
               ? 'bg-[var(--pastel-lavender)] text-black shadow-[2px_2px_0px_var(--shadow-ink)] font-black'
-              : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:bg-[var(--bg-surface-hover)]'
+              : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:bg-[var(--bg-surface-hover)] shadow-[1px_1px_0px_var(--shadow-ink)]'
           }`}
           title={t('tabSynopses')}
         >
-          <FileText className="w-3.5 h-3.5" />
-          <span className="truncate">{t('tabSynopses')}</span>
+          <FileText className="w-3.5 h-3.5 shrink-0" />
+          <span className="truncate w-full text-center">{t('tabSynopses')}</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab('scratchpad')}
-          className={`py-1.5 px-1 text-[10px] font-heading font-bold flex flex-col items-center gap-0.5 border-2 border-[var(--border-ink)] transition-all cursor-pointer ${
+          className={`py-1.5 px-1 text-[10px] font-heading font-bold flex flex-col items-center gap-0.5 border-2 border-[var(--border-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer min-w-0 overflow-hidden ${
             activeTab === 'scratchpad'
               ? 'bg-[var(--pastel-yellow)] text-black shadow-[2px_2px_0px_var(--shadow-ink)] font-black'
-              : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:bg-[var(--bg-surface-hover)]'
+              : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:bg-[var(--bg-surface-hover)] shadow-[1px_1px_0px_var(--shadow-ink)]'
           }`}
           title={t('tabScratchpad')}
         >
-          <StickyNote className="w-3.5 h-3.5" />
-          <span className="truncate">{t('tabScratchpad')}</span>
+          <StickyNote className="w-3.5 h-3.5 shrink-0" />
+          <span className="truncate w-full text-center">{t('tabScratchpad')}</span>
         </button>
       </div>
 
       {/* Tab Contents Area */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-3">
+      <div className="flex-1 min-h-0 overflow-y-auto p-3 space-y-3 pb-16">
         {/* TAB 1: SCENES */}
         {activeTab === 'scenes' && (
           <div className="space-y-3">
@@ -212,7 +225,6 @@ export const ReferenceDrawerPanel: React.FC<ReferenceDrawerPanelProps> = ({
               <div className="space-y-2">
                 {filteredScenes.map((scene, idx) => {
                   const isExpanded = expandedSceneId === scene.id;
-                  const isInserted = insertedId === `scene-${scene.id}`;
                   return (
                     <div
                       key={scene.id || idx}
@@ -236,32 +248,22 @@ export const ReferenceDrawerPanel: React.FC<ReferenceDrawerPanelProps> = ({
                           </h4>
                         </div>
 
-                        {/* 1-Click Insert Button */}
+                        {/* Button to open Scene Outline Popup */}
                         <button
                           type="button"
-                          onClick={() => handleInsert(scene.narrative_outline || scene.what_happens || scene.setting, `scene-${scene.id}`)}
-                          className={`px-2 py-1 text-[10px] font-heading font-black border-2 border-[var(--border-ink)] shadow-[2px_2px_0px_var(--shadow-ink)] transition-all cursor-pointer flex items-center gap-1 shrink-0 ${
-                            isInserted
-                              ? 'bg-[var(--pastel-mint)] text-black'
-                              : 'bg-[var(--pastel-yellow)] text-black hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none'
-                          }`}
-                          title={t('insertAtCursor')}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedOutlineScene(scene);
+                          }}
+                          className="px-2 py-1 text-[10px] font-heading font-black border-2 border-[var(--border-ink)] bg-[var(--pastel-yellow)] text-black shadow-[2px_2px_0px_var(--shadow-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center gap-1 shrink-0"
+                          title={t('viewSceneOutline')}
                         >
-                          {isInserted ? (
-                            <>
-                              <Check className="w-3 h-3 stroke-[3]" />
-                              <span>{t('inserted')}</span>
-                            </>
-                          ) : (
-                            <>
-                              <CornerDownLeft className="w-3 h-3 stroke-[2.5]" />
-                              <span>{t('insertAtCursor')}</span>
-                            </>
-                          )}
+                          <FileText className="w-3 h-3 stroke-[2.5]" />
+                          <span>{t('viewSceneOutline')}</span>
                         </button>
                       </div>
 
-                      {/* Expandable Scene Beats */}
+                      {/* Expandable Scene Beats Preview */}
                       {isExpanded && (
                         <div className="p-2.5 bg-[var(--bg-surface)] border-t border-[var(--border-subtle)] text-xs text-[var(--text-primary)] space-y-2">
                           {scene.plot_thread && (
@@ -284,7 +286,7 @@ export const ReferenceDrawerPanel: React.FC<ReferenceDrawerPanelProps> = ({
                               <span className="text-[10px] font-mono font-bold text-[var(--text-muted)] uppercase block mb-0.5">
                                 {t('exportSceneOutline')}
                               </span>
-                              <p className="whitespace-pre-wrap font-sans text-xs leading-relaxed">
+                              <p className="whitespace-pre-wrap font-sans text-xs leading-relaxed max-h-32 overflow-y-auto">
                                 {scene.narrative_outline}
                               </p>
                             </div>
@@ -303,7 +305,7 @@ export const ReferenceDrawerPanel: React.FC<ReferenceDrawerPanelProps> = ({
           </div>
         )}
 
-        {/* TAB 2: CHARACTERS */}
+        {/* TAB 2: CHARACTERS (Reference Only - No Insert Button) */}
         {activeTab === 'characters' && (
           <div className="space-y-3">
             <div className="relative">
@@ -325,17 +327,16 @@ export const ReferenceDrawerPanel: React.FC<ReferenceDrawerPanelProps> = ({
               <div className="space-y-2">
                 {filteredCharacters.map((char) => {
                   const isExpanded = expandedCharId === char.id;
-                  const isInserted = insertedId === `char-${char.id}`;
                   return (
                     <div
                       key={char.id}
                       className="border-2 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] shadow-[2px_2px_0px_var(--shadow-ink)] overflow-hidden"
                     >
-                      <div className="p-2.5 flex items-center justify-between gap-2">
-                        <div
-                          className="min-w-0 flex-1 cursor-pointer"
-                          onClick={() => setExpandedCharId(isExpanded ? null : (char.id || null))}
-                        >
+                      <div 
+                        className="p-2.5 flex items-center justify-between gap-2 cursor-pointer hover:bg-[var(--bg-surface-hover)] transition-colors"
+                        onClick={() => setExpandedCharId(isExpanded ? null : (char.id || null))}
+                      >
+                        <div className="min-w-0 flex-1">
                           <h4 className="text-xs font-heading font-black text-[var(--text-primary)] truncate">
                             {char.name}
                           </h4>
@@ -345,29 +346,9 @@ export const ReferenceDrawerPanel: React.FC<ReferenceDrawerPanelProps> = ({
                             </p>
                           )}
                         </div>
-
-                        <button
-                          type="button"
-                          onClick={() => handleInsert(`${char.name}: ${char.one_sentence_summary || char.motivation || char.one_paragraph_summary}`, `char-${char.id}`)}
-                          className={`px-2 py-1 text-[10px] font-heading font-black border-2 border-[var(--border-ink)] shadow-[2px_2px_0px_var(--shadow-ink)] transition-all cursor-pointer flex items-center gap-1 shrink-0 ${
-                            isInserted
-                              ? 'bg-[var(--pastel-mint)] text-black'
-                              : 'bg-[var(--pastel-mint)] text-black hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none'
-                          }`}
-                          title={t('insertAtCursor')}
-                        >
-                          {isInserted ? (
-                            <>
-                              <Check className="w-3 h-3 stroke-[3]" />
-                              <span>{t('inserted')}</span>
-                            </>
-                          ) : (
-                            <>
-                              <CornerDownLeft className="w-3 h-3 stroke-[2.5]" />
-                              <span>{t('insertAtCursor')}</span>
-                            </>
-                          )}
-                        </button>
+                        <span className="text-[10px] font-mono font-bold text-[var(--text-muted)] px-1.5 py-0.5 border border-[var(--border-subtle)]">
+                          {isExpanded ? '▲' : '▼'}
+                        </span>
                       </div>
 
                       {/* Expandable Character Bio Details */}
@@ -439,7 +420,7 @@ export const ReferenceDrawerPanel: React.FC<ReferenceDrawerPanelProps> = ({
           </div>
         )}
 
-        {/* TAB 3: SYNOPSES */}
+        {/* TAB 3: SYNOPSES (Reference Only - No Insert Button) */}
         {activeTab === 'synopses' && (
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-1.5">
@@ -465,33 +446,10 @@ export const ReferenceDrawerPanel: React.FC<ReferenceDrawerPanelProps> = ({
             </div>
 
             <div className="border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] shadow-[2px_2px_0px_var(--shadow-ink)] p-3 space-y-2.5">
-              <div className="flex items-center justify-between border-b border-[var(--border-subtle)] pb-2">
+              <div className="border-b border-[var(--border-subtle)] pb-2">
                 <span className="text-xs font-heading font-black text-[var(--text-primary)]">
                   {t('step')} {selectedSynopsisStep}
                 </span>
-                <button
-                  type="button"
-                  onClick={() => handleInsert(getSynopsisContent(selectedSynopsisStep), `synopsis-${selectedSynopsisStep}`)}
-                  disabled={!getSynopsisContent(selectedSynopsisStep)}
-                  className={`px-2 py-1 text-[10px] font-heading font-black border-2 border-[var(--border-ink)] shadow-[2px_2px_0px_var(--shadow-ink)] transition-all cursor-pointer flex items-center gap-1 ${
-                    insertedId === `synopsis-${selectedSynopsisStep}`
-                      ? 'bg-[var(--pastel-mint)] text-black'
-                      : 'bg-[var(--pastel-lavender)] text-black hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none disabled:opacity-50 disabled:cursor-not-allowed'
-                  }`}
-                  title={t('insertAtCursor')}
-                >
-                  {insertedId === `synopsis-${selectedSynopsisStep}` ? (
-                    <>
-                      <Check className="w-3 h-3 stroke-[3]" />
-                      <span>{t('inserted')}</span>
-                    </>
-                  ) : (
-                    <>
-                      <CornerDownLeft className="w-3 h-3 stroke-[2.5]" />
-                      <span>{t('insertAtCursor')}</span>
-                    </>
-                  )}
-                </button>
               </div>
 
               {getSynopsisContent(selectedSynopsisStep) ? (
@@ -522,6 +480,164 @@ export const ReferenceDrawerPanel: React.FC<ReferenceDrawerPanelProps> = ({
           </div>
         )}
       </div>
+
+      {/* Scene Outline Detail Modal Dialog (Portaled to document.body with z-[100] so it always stays on top) */}
+      {selectedOutlineScene && typeof document !== 'undefined' && createPortal(
+        <div 
+          className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 select-text"
+          onClick={() => setSelectedOutlineScene(null)}
+        >
+          <div 
+            className="w-full max-w-2xl max-h-[85vh] flex flex-col border-3 border-[var(--border-ink)] bg-[var(--bg-surface)] shadow-[6px_6px_0px_var(--shadow-ink)] overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="h-14 border-b-3 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] flex items-center justify-between px-4 shrink-0 gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="font-mono text-xs font-black px-2 py-0.5 bg-[var(--pastel-sky)] text-black border-2 border-[var(--border-ink)] shrink-0">
+                  #{scenes.findIndex((s) => s.id === selectedOutlineScene.id) + 1}
+                </span>
+                <h3 className="text-sm font-heading font-black text-[var(--text-primary)] truncate">
+                  {selectedOutlineScene.setting || t('uncategorized')}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedOutlineScene(null)}
+                className="p-1.5 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--pastel-coral)] hover:text-black shadow-[2px_2px_0px_var(--shadow-ink)] transition-all cursor-pointer"
+                title={t('close')}
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+              {/* Scene Quick Metadata Badges */}
+              <div className="flex flex-wrap items-center gap-2 text-xs font-heading">
+                <div className="flex items-center gap-1.5 px-2.5 py-1 border-2 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] font-bold text-[var(--text-primary)] shadow-[1px_1px_0px_var(--shadow-ink)]">
+                  <Users className="w-3.5 h-3.5 text-[var(--text-muted)]" />
+                  <span>{t('exportScenePOV')}:</span>
+                  <span className="font-black text-black bg-[var(--pastel-mint)] px-1">
+                    {getCharName(selectedOutlineScene.pov_character_id)}
+                  </span>
+                </div>
+
+                {selectedOutlineScene.plot_thread && (
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 border-2 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] font-bold text-[var(--text-primary)] shadow-[1px_1px_0px_var(--shadow-ink)]">
+                    <span>{t('scenePlotLabel')}:</span>
+                    <span className="font-black">{selectedOutlineScene.plot_thread}</span>
+                  </div>
+                )}
+
+                <div className="flex items-center gap-1.5 px-2.5 py-1 border-2 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] font-mono text-[11px] font-bold text-[var(--text-muted)] sm:ms-auto">
+                  <span>{t('sceneExpectedWordsLabel')}: {selectedOutlineScene.expected_word_count}</span>
+                  <span>•</span>
+                  <span>{t('sceneActualWordsLabel')}: {selectedOutlineScene.actual_word_count}</span>
+                </div>
+              </div>
+
+              {/* Scene Summary (Step 8) */}
+              {selectedOutlineScene.what_happens && (
+                <div className="p-3 border-2 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] space-y-1">
+                  <span className="text-[11px] font-heading font-black uppercase text-[var(--text-secondary)] block">
+                    {t('sceneSummaryLabel')}
+                  </span>
+                  <p className="text-xs font-sans text-[var(--text-primary)] leading-relaxed whitespace-pre-wrap">
+                    {selectedOutlineScene.what_happens}
+                  </p>
+                </div>
+              )}
+
+              {/* Narrative Outline (Step 9) */}
+              <div className="space-y-1.5">
+                <span className="text-xs font-heading font-black uppercase text-[var(--text-primary)] block">
+                  {t('sceneOutlineLabel')}
+                </span>
+                {selectedOutlineScene.narrative_outline ? (
+                  <div className="p-4 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] shadow-[3px_3px_0px_var(--shadow-ink)] text-sm font-serif text-[var(--text-primary)] leading-relaxed whitespace-pre-wrap max-h-[340px] overflow-y-auto">
+                    {selectedOutlineScene.narrative_outline}
+                  </div>
+                ) : (
+                  <div className="p-6 border-2 border-dashed border-[var(--border-subtle)] text-center text-[var(--text-muted)] text-xs">
+                    {t('noOutlineYet')}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Modal Footer Actions */}
+            <div className="p-3 sm:px-6 border-t-3 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] flex items-center justify-between gap-2 shrink-0">
+              <span className="text-[11px] font-mono font-bold text-[var(--text-secondary)]">
+                {selectedOutlineScene.narrative_outline 
+                  ? `${selectedOutlineScene.narrative_outline.trim().split(/\s+/).filter(Boolean).length} ${t('words')}` 
+                  : `0 ${t('words')}`}
+              </span>
+
+              <div className="flex items-center gap-2">
+                {/* Copy Outline Button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (selectedOutlineScene.narrative_outline) {
+                      navigator.clipboard.writeText(selectedOutlineScene.narrative_outline);
+                      setCopiedOutline(true);
+                      setTimeout(() => setCopiedOutline(false), 2000);
+                    }
+                  }}
+                  disabled={!selectedOutlineScene.narrative_outline}
+                  className={`px-3 py-1.5 text-xs font-heading font-black border-2 border-[var(--border-ink)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed ${
+                    copiedOutline
+                      ? 'bg-[var(--pastel-mint)] text-black'
+                      : 'bg-[var(--pastel-yellow)] text-black'
+                  }`}
+                >
+                  {copiedOutline ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 stroke-[3]" />
+                      <span>{t('outlineCopied')}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5" />
+                      <span>{t('copyOutline')}</span>
+                    </>
+                  )}
+                </button>
+
+                {/* Insert into Manuscript Button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (selectedOutlineScene.narrative_outline) {
+                      handleInsert(selectedOutlineScene.narrative_outline);
+                    }
+                  }}
+                  disabled={!selectedOutlineScene.narrative_outline}
+                  className={`px-3 py-1.5 text-xs font-heading font-black border-2 border-[var(--border-ink)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed ${
+                    insertedOutline
+                      ? 'bg-[var(--pastel-mint)] text-black'
+                      : 'bg-[var(--pastel-sky)] text-black'
+                  }`}
+                >
+                  {insertedOutline ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 stroke-[3]" />
+                      <span>{t('inserted')}</span>
+                    </>
+                  ) : (
+                    <>
+                      <CornerDownLeft className="w-3.5 h-3.5 stroke-[2.5]" />
+                      <span>{t('insertOutline')}</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 };

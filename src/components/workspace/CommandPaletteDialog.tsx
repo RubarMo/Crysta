@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useLanguage } from '../../LanguageContext';
 import { 
+  X,
   Search, 
   LayoutDashboard, 
   FileText, 
@@ -67,6 +69,18 @@ export const CommandPaletteDialog: React.FC<CommandPaletteDialogProps> = ({
     }
   }, [isOpen]);
 
+  // Global escape key handler when dialog is open
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, [isOpen, onClose]);
+
   // Keyboard navigation within list
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'ArrowDown') {
@@ -78,8 +92,6 @@ export const CommandPaletteDialog: React.FC<CommandPaletteDialogProps> = ({
     } else if (e.key === 'Enter' && filtered[selectedIndex]) {
       e.preventDefault();
       executeCommand(filtered[selectedIndex]);
-    } else if (e.key === 'Escape') {
-      onClose();
     }
   };
 
@@ -94,9 +106,15 @@ export const CommandPaletteDialog: React.FC<CommandPaletteDialogProps> = ({
 
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-start justify-center pt-20 p-4">
-      <div className="bg-[var(--bg-surface)] border-3 border-[var(--border-ink)] shadow-[6px_6px_0px_var(--shadow-ink)] w-full max-w-xl overflow-hidden flex flex-col">
+  const content = (
+    <div 
+      className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-xs flex items-start justify-center pt-16 sm:pt-20 p-4"
+      onClick={onClose}
+    >
+      <div 
+        className="bg-[var(--bg-surface)] border-3 border-[var(--border-ink)] shadow-[6px_6px_0px_var(--shadow-ink)] w-full max-w-xl overflow-hidden flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Search Input Box */}
         <div className="p-3 border-b-3 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] flex items-center gap-2.5">
           <Search className="w-4 h-4 text-[var(--text-muted)] shrink-0" />
@@ -112,9 +130,18 @@ export const CommandPaletteDialog: React.FC<CommandPaletteDialogProps> = ({
             placeholder={t('commandPaletteSearchPlaceholder')}
             className="w-full text-xs font-heading font-black bg-transparent text-[var(--text-primary)] focus:outline-none placeholder:font-sans placeholder:font-normal"
           />
-          <kbd className="px-1.5 py-0.5 text-[9px] font-mono font-bold bg-[var(--bg-surface)] border border-[var(--border-ink)] shadow-[1px_1px_0px_var(--shadow-ink)]">
+          <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-mono font-bold bg-[var(--bg-surface)] border border-[var(--border-ink)] shadow-[1px_1px_0px_var(--shadow-ink)]">
             ESC
           </kbd>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--pastel-coral)] hover:text-black shadow-[1.5px_1.5px_0px_var(--shadow-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer shrink-0"
+            title={t('close')}
+            aria-label="Close dialog"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
         </div>
 
         {/* Commands List */}
@@ -132,10 +159,10 @@ export const CommandPaletteDialog: React.FC<CommandPaletteDialogProps> = ({
                 <div
                   key={cmd.id}
                   onClick={() => executeCommand(cmd)}
-                  className={`flex items-center justify-between p-2.5 border-2 border-[var(--border-ink)] transition-all cursor-pointer ${
+                  className={`flex items-center justify-between p-2.5 border-2 border-[var(--border-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer ${
                     isSelected
                       ? 'bg-[var(--pastel-yellow)] text-black font-black shadow-[2px_2px_0px_var(--shadow-ink)] translate-x-0.5'
-                      : 'bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)]'
+                      : 'bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)] shadow-[1px_1px_0px_var(--shadow-ink)]'
                   }`}
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
@@ -154,4 +181,6 @@ export const CommandPaletteDialog: React.FC<CommandPaletteDialogProps> = ({
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(content, document.body) : content;
 };

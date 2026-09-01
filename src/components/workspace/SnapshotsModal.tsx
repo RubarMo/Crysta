@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { SnapshotInfo, listSnapshots, takeSnapshot, restoreSnapshot, deleteSnapshot, openBackupsDirectory } from '../../lib';
 import { useLanguage } from '../../LanguageContext';
 import { 
@@ -39,6 +40,17 @@ export const SnapshotsModal: React.FC<SnapshotsModalProps> = ({
   useEffect(() => {
     loadList();
   }, []);
+
+  // Global escape key listener
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, [onClose]);
 
   const handleTakeSnapshot = async () => {
     setIsLoading(true);
@@ -105,9 +117,15 @@ export const SnapshotsModal: React.FC<SnapshotsModalProps> = ({
     return date.toLocaleString();
   };
 
-  return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-[var(--bg-surface)] border-3 border-[var(--border-ink)] shadow-[6px_6px_0px_var(--shadow-ink)] w-full max-w-2xl p-5 space-y-4 max-h-[85vh] flex flex-col">
+  const content = (
+    <div 
+      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <div 
+        className="bg-[var(--bg-surface)] border-3 border-[var(--border-ink)] shadow-[6px_6px_0px_var(--shadow-ink)] w-full max-w-2xl p-5 space-y-4 max-h-[85vh] flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="flex items-center justify-between border-b-2 border-[var(--border-ink)] pb-3 shrink-0">
           <div className="flex items-center gap-2">
@@ -120,7 +138,7 @@ export const SnapshotsModal: React.FC<SnapshotsModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-1 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--pastel-coral)] hover:text-black shadow-[2px_2px_0px_var(--shadow-ink)] transition-all cursor-pointer"
+            className="p-1 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--pastel-coral)] hover:text-black shadow-[2px_2px_0px_var(--shadow-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
           >
             <X className="w-3.5 h-3.5" />
           </button>
@@ -206,7 +224,7 @@ export const SnapshotsModal: React.FC<SnapshotsModalProps> = ({
                   <button
                     type="button"
                     onClick={() => handleDelete(snap)}
-                    className="p-1 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--pastel-coral)] hover:text-black shadow-[1px_1px_0px_var(--shadow-ink)] transition-all cursor-pointer"
+                    className="p-1 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--pastel-coral)] hover:text-black shadow-[1px_1px_0px_var(--shadow-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
                     title={t('delete')}
                   >
                     <Trash2 className="w-3 h-3" />
@@ -222,7 +240,7 @@ export const SnapshotsModal: React.FC<SnapshotsModalProps> = ({
           <button
             type="button"
             onClick={handleOpenFolder}
-            className="px-3 py-1.5 text-xs font-heading font-bold border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-sky)] hover:text-black transition-all cursor-pointer flex items-center gap-1.5"
+            className="px-3 py-1.5 text-xs font-heading font-bold border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-sky)] hover:text-black hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center gap-1.5"
           >
             <FolderOpen className="w-3.5 h-3.5" />
             <span>{t('openBackupsFolder')}</span>
@@ -238,4 +256,6 @@ export const SnapshotsModal: React.FC<SnapshotsModalProps> = ({
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(content, document.body) : content;
 };

@@ -7,6 +7,7 @@ import { SceneMatrixView } from './workspace/SceneMatrixView';
 import { WriteNovelTab } from './workspace/WriteNovelTab';
 import { BookStudioTab } from './workspace/BookStudioTab';
 import { 
+  X,
   Plus, 
   Save, 
   Check, 
@@ -269,7 +270,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
           ) : null}
 
           {activeStep >= 1 && activeStep <= 10 && (
-            <label className="flex items-center gap-2 px-3 py-1.5 border-2 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] shadow-[2px_2px_0px_var(--shadow-ink)] cursor-pointer select-none">
+            <label className="flex items-center gap-2 px-3 py-1.5 border-2 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer select-none">
               <input
                 type="checkbox"
                 checked={stepCompleted}
@@ -573,14 +574,14 @@ export const Workspace: React.FC<WorkspaceProps> = ({
                   <button
                     type="button"
                     onClick={() => setEditingCharacter(char)}
-                    className="p-1.5 border border-[var(--border-ink)] bg-[var(--bg-surface)] hover:bg-[var(--pastel-yellow)] hover:text-black shadow-[1px_1px_0px_var(--shadow-ink)] transition-all cursor-pointer"
+                    className="p-1.5 border border-[var(--border-ink)] bg-[var(--bg-surface)] hover:bg-[var(--pastel-yellow)] hover:text-black shadow-[1px_1px_0px_var(--shadow-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
                   >
                     <Edit3 className="w-3.5 h-3.5" />
                   </button>
                   <button
                     type="button"
                     onClick={() => char.id && handleDeleteCharacter(char.id)}
-                    className="p-1.5 border border-[var(--border-ink)] bg-[var(--bg-surface)] hover:bg-[var(--pastel-coral)] hover:text-black shadow-[1px_1px_0px_var(--shadow-ink)] transition-all cursor-pointer"
+                    className="p-1.5 border border-[var(--border-ink)] bg-[var(--bg-surface)] hover:bg-[var(--pastel-coral)] hover:text-black shadow-[1px_1px_0px_var(--shadow-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
@@ -592,11 +593,27 @@ export const Workspace: React.FC<WorkspaceProps> = ({
 
         {/* Character Edit Modal */}
         {editingCharacter && (
-          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-            <div className="bg-[var(--bg-surface)] border-3 border-[var(--border-ink)] shadow-[6px_6px_0px_var(--shadow-ink)] w-full max-w-lg p-5 space-y-4 max-h-[90vh] overflow-y-auto">
-              <h3 className="text-sm font-heading font-black text-[var(--text-primary)] border-b-2 border-[var(--border-ink)] pb-2">
-                {editingCharacter.id ? t('edit') : t('addCharacterBtn')}
-              </h3>
+          <div 
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4"
+            onClick={() => setEditingCharacter(null)}
+          >
+            <div 
+              className="bg-[var(--bg-surface)] border-3 border-[var(--border-ink)] shadow-[6px_6px_0px_var(--shadow-ink)] w-full max-w-lg p-5 space-y-4 max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between border-b-2 border-[var(--border-ink)] pb-2">
+                <h3 className="text-sm font-heading font-black text-[var(--text-primary)]">
+                  {editingCharacter.id ? t('edit') : t('addCharacterBtn')}
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setEditingCharacter(null)}
+                  className="p-1 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--pastel-coral)] hover:text-black shadow-[1.5px_1.5px_0px_var(--shadow-ink)] transition-all cursor-pointer"
+                  title={t('close')}
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
 
               <div className="space-y-3">
                 <div>
@@ -682,14 +699,14 @@ export const Workspace: React.FC<WorkspaceProps> = ({
                 <button
                   type="button"
                   onClick={() => setEditingCharacter(null)}
-                  className="px-3 py-1.5 text-xs font-heading font-bold border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--bg-surface-hover)] cursor-pointer"
+                  className="px-3 py-1.5 text-xs font-heading font-bold border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--bg-surface-hover)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
                 >
                   {t('cancel')}
                 </button>
                 <button
                   type="button"
                   onClick={() => handleSaveCharacter(editingCharacter)}
-                  className="px-4 py-1.5 text-xs font-heading font-black border-2 border-[var(--border-ink)] bg-[var(--pastel-yellow)] text-black shadow-[2px_2px_0px_var(--shadow-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none cursor-pointer"
+                  className="px-4 py-1.5 text-xs font-heading font-black border-2 border-[var(--border-ink)] bg-[var(--pastel-yellow)] text-black shadow-[2px_2px_0px_var(--shadow-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
                 >
                   {t('save')}
                 </button>

@@ -378,7 +378,7 @@ export const BookStudioTab: React.FC<BookStudioTabProps> = ({
             key={key}
             type="button"
             onClick={() => setActiveSubTab(key)}
-            className={`flex items-center gap-2 px-3.5 py-2 text-xs font-heading font-black border-2 border-[var(--border-ink)] transition-all cursor-pointer whitespace-nowrap ${
+            className={`flex items-center gap-2 px-3.5 py-2 text-xs font-heading font-black border-2 border-[var(--border-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer whitespace-nowrap ${
               activeSubTab === key
                 ? `bg-[${color}] text-black shadow-[3px_3px_0px_var(--shadow-ink)] -translate-y-0.5`
                 : 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[1px_1px_0px_var(--shadow-ink)] hover:bg-[var(--bg-surface-hover)]'
@@ -739,7 +739,7 @@ export const BookStudioTab: React.FC<BookStudioTabProps> = ({
                   type="button"
                   onClick={() => setPreviewPageIndex((prev) => Math.max(0, prev - (isSpreadView ? 2 : 1)))}
                   disabled={previewPageIndex === 0}
-                  className="p-1.5 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-yellow)] hover:text-black disabled:opacity-30 cursor-pointer"
+                  className="p-1.5 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-yellow)] hover:text-black hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
                   title={t('prevPage')}
                 >
                   <ChevronRight className="w-4 h-4 rtl:rotate-0 ltr:rotate-180" />
@@ -753,7 +753,7 @@ export const BookStudioTab: React.FC<BookStudioTabProps> = ({
                   type="button"
                   onClick={() => setPreviewPageIndex((prev) => Math.min(previewPages.length - 1, prev + (isSpreadView ? 2 : 1)))}
                   disabled={isSpreadView ? previewPageIndex >= previewPages.length - 2 : previewPageIndex >= previewPages.length - 1}
-                  className="p-1.5 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-yellow)] hover:text-black disabled:opacity-30 cursor-pointer"
+                  className="p-1.5 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-yellow)] hover:text-black hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
                   title={t('nextPage')}
                 >
                   <ChevronLeft className="w-4 h-4 rtl:rotate-0 ltr:rotate-180" />
@@ -764,8 +764,8 @@ export const BookStudioTab: React.FC<BookStudioTabProps> = ({
                 <button
                   type="button"
                   onClick={() => setIsSpreadView(!isSpreadView)}
-                  className={`px-2.5 py-1.5 text-xs font-heading font-black border-2 border-[var(--border-ink)] shadow-[2px_2px_0px_var(--shadow-ink)] transition-all cursor-pointer flex items-center gap-1.5 ${
-                    isSpreadView ? 'bg-[var(--pastel-yellow)] text-black' : 'bg-[var(--bg-surface)] text-[var(--text-primary)]'
+                  className={`px-2.5 py-1.5 text-xs font-heading font-black border-2 border-[var(--border-ink)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center gap-1.5 ${
+                    isSpreadView ? 'bg-[var(--pastel-yellow)] text-black' : 'bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)]'
                   }`}
                 >
                   <BookCopy className="w-3.5 h-3.5" />
@@ -812,7 +812,7 @@ export const BookStudioTab: React.FC<BookStudioTabProps> = ({
                   type="button"
                   onClick={() => handleExport('epub')}
                   disabled={isExporting !== null}
-                  className="w-full py-2 px-3 text-xs font-heading font-black border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-yellow)] hover:text-black transition-all cursor-pointer disabled:opacity-50"
+                  className="w-full py-2 px-3 text-xs font-heading font-black border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-yellow)] hover:text-black hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer disabled:opacity-50"
                 >
                   {isExporting === 'epub' ? t('exporting') : t('exportEpubBtn')}
                 </button>
@@ -829,7 +829,7 @@ export const BookStudioTab: React.FC<BookStudioTabProps> = ({
                   type="button"
                   onClick={() => handleExport('docx')}
                   disabled={isExporting !== null}
-                  className="w-full py-2 px-3 text-xs font-heading font-black border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-yellow)] hover:text-black transition-all cursor-pointer disabled:opacity-50"
+                  className="w-full py-2 px-3 text-xs font-heading font-black border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-yellow)] hover:text-black hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer disabled:opacity-50"
                 >
                   {isExporting === 'docx' ? t('exporting') : t('exportDocxBtn')}
                 </button>
@@ -847,7 +847,7 @@ export const BookStudioTab: React.FC<BookStudioTabProps> = ({
                     type="button"
                     onClick={() => handleExport('pdf')}
                     disabled={isExporting !== null}
-                    className="w-full py-2 px-3 text-xs font-heading font-black border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-yellow)] hover:text-black transition-all cursor-pointer disabled:opacity-50"
+                    className="w-full py-2 px-3 text-xs font-heading font-black border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-yellow)] hover:text-black hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer disabled:opacity-50"
                   >
                     {isExporting === 'pdf' ? t('exporting') : t('exportPdfBtn')}
                   </button>
@@ -855,7 +855,7 @@ export const BookStudioTab: React.FC<BookStudioTabProps> = ({
                     type="button"
                     onClick={() => handleExport('html')}
                     disabled={isExporting !== null}
-                    className="w-full py-1.5 px-3 text-[11px] font-heading font-bold border-2 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] text-[var(--text-secondary)] hover:bg-black hover:text-white transition-all cursor-pointer disabled:opacity-50"
+                    className="w-full py-1.5 px-3 text-[11px] font-heading font-bold border-2 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] text-[var(--text-secondary)] hover:bg-black hover:text-white hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer disabled:opacity-50"
                     title={t('downloadHtmlBtn')}
                   >
                     {t('downloadHtmlBtn')}

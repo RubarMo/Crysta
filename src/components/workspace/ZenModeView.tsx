@@ -92,6 +92,46 @@ export const ZenModeView: React.FC<ZenModeViewProps> = ({
     full: 'max-w-full px-8',
   };
 
+  // Render visual line graphic for each width setting
+  const renderWidthLines = (w: ZenWidth) => {
+    switch (w) {
+      case 'narrow':
+        return (
+          <svg width="20" height="14" viewBox="0 0 20 14" fill="none" className="stroke-current pointer-events-none">
+            <line x1="6" y1="3" x2="14" y2="3" strokeWidth="2" strokeLinecap="round" />
+            <line x1="6" y1="7" x2="14" y2="7" strokeWidth="2" strokeLinecap="round" />
+            <line x1="6" y1="11" x2="14" y2="11" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        );
+      case 'medium':
+        return (
+          <svg width="20" height="14" viewBox="0 0 20 14" fill="none" className="stroke-current pointer-events-none">
+            <line x1="4" y1="3" x2="16" y2="3" strokeWidth="2" strokeLinecap="round" />
+            <line x1="4" y1="7" x2="16" y2="7" strokeWidth="2" strokeLinecap="round" />
+            <line x1="4" y1="11" x2="16" y2="11" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        );
+      case 'wide':
+        return (
+          <svg width="20" height="14" viewBox="0 0 20 14" fill="none" className="stroke-current pointer-events-none">
+            <line x1="2" y1="3" x2="18" y2="3" strokeWidth="2" strokeLinecap="round" />
+            <line x1="2" y1="7" x2="18" y2="7" strokeWidth="2" strokeLinecap="round" />
+            <line x1="2" y1="11" x2="18" y2="11" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        );
+      case 'full':
+        return (
+          <svg width="20" height="14" viewBox="0 0 20 14" fill="none" className="stroke-current pointer-events-none">
+            <line x1="1" y1="2" x2="1" y2="12" strokeWidth="1.5" strokeLinecap="round" opacity="0.6" />
+            <line x1="19" y1="2" x2="19" y2="12" strokeWidth="1.5" strokeLinecap="round" opacity="0.6" />
+            <line x1="3" y1="3" x2="17" y2="3" strokeWidth="2" strokeLinecap="round" />
+            <line x1="3" y1="7" x2="17" y2="7" strokeWidth="2" strokeLinecap="round" />
+            <line x1="3" y1="11" x2="17" y2="11" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        );
+    }
+  };
+
   const currentStyle = themeStyles[theme];
 
   return (
@@ -105,20 +145,15 @@ export const ZenModeView: React.FC<ZenModeViewProps> = ({
         className="h-14 border-b flex items-center justify-between px-6 shrink-0 transition-opacity duration-200"
         style={{ 
           backgroundColor: currentStyle.toolbarBg, 
-          borderColor: currentStyle.border,
-          color: currentStyle.text
+          borderColor: currentStyle.border, 
+          color: currentStyle.text 
         }}
       >
         <div className="flex items-center gap-3 min-w-0">
           <h2 className="text-xs font-heading font-black truncate max-w-xs sm:max-w-md">
             {title}
           </h2>
-          <span 
-            className="text-[10px] font-mono font-bold px-2 py-0.5 border"
-            style={{ borderColor: currentStyle.border, color: currentStyle.subtext }}
-          >
-            <WordCounter text={content} />
-          </span>
+          <WordCounter text={content} />
         </div>
 
         {/* Controls Toolbar */}
@@ -145,19 +180,34 @@ export const ZenModeView: React.FC<ZenModeViewProps> = ({
 
           {/* Width Selector */}
           <div className="hidden sm:flex items-center border p-0.5 gap-0.5" style={{ borderColor: currentStyle.border }}>
-            {(['narrow', 'medium', 'wide', 'full'] as ZenWidth[]).map((wName) => (
-              <button
-                key={wName}
-                type="button"
-                onClick={() => setWidth(wName)}
-                className={`px-1.5 py-1 text-[10px] font-mono font-bold transition-all cursor-pointer ${
-                  width === wName ? 'font-black underline' : 'opacity-70 hover:opacity-100'
-                }`}
-                title={wName}
-              >
-                {wName[0].toUpperCase()}
-              </button>
-            ))}
+            {(['narrow', 'medium', 'wide', 'full'] as ZenWidth[]).map((wName) => {
+              const isSelected = width === wName;
+              const titleMap: Record<ZenWidth, string> = {
+                narrow: t('zenWidthNarrow') || 'Narrow',
+                medium: t('zenWidthMedium') || 'Medium',
+                wide: t('zenWidthWide') || 'Wide',
+                full: t('zenWidthFull') || 'Full Width',
+              };
+
+              return (
+                <button
+                  key={wName}
+                  type="button"
+                  onClick={() => setWidth(wName)}
+                  className={`px-1.5 py-1 flex items-center justify-center transition-all cursor-pointer ${
+                    isSelected ? 'opacity-100' : 'opacity-40 hover:opacity-90'
+                  }`}
+                  style={{
+                    backgroundColor: isSelected ? `${currentStyle.text}20` : 'transparent',
+                    border: isSelected ? `1px solid ${currentStyle.border}` : '1px solid transparent',
+                  }}
+                  title={titleMap[wName]}
+                  aria-label={titleMap[wName]}
+                >
+                  {renderWidthLines(wName)}
+                </button>
+              );
+            })}
           </div>
 
           {/* Font Size Adjusters */}

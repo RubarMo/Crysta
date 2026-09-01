@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Scene, Character, reorderScenes } from '../../lib';
 import { useLanguage } from '../../LanguageContext';
 import { 
+  X,
   Columns3, 
   List, 
   Plus, 
@@ -101,10 +102,10 @@ export const SceneMatrixView: React.FC<SceneMatrixViewProps> = ({
           <button
             type="button"
             onClick={() => setViewMode('list')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-heading font-black border-2 border-[var(--border-ink)] transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-heading font-black border-2 border-[var(--border-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer ${
               viewMode === 'list'
                 ? 'bg-[var(--pastel-yellow)] text-black shadow-[2px_2px_0px_var(--shadow-ink)] -translate-y-0.5'
-                : 'bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)]'
+                : 'bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)] shadow-[1px_1px_0px_var(--shadow-ink)]'
             }`}
           >
             <List className="w-3.5 h-3.5" />
@@ -114,10 +115,10 @@ export const SceneMatrixView: React.FC<SceneMatrixViewProps> = ({
           <button
             type="button"
             onClick={() => setViewMode('kanban')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-heading font-black border-2 border-[var(--border-ink)] transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-heading font-black border-2 border-[var(--border-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer ${
               viewMode === 'kanban'
                 ? 'bg-[var(--pastel-sky)] text-black shadow-[2px_2px_0px_var(--shadow-ink)] -translate-y-0.5'
-                : 'bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)]'
+                : 'bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)] shadow-[1px_1px_0px_var(--shadow-ink)]'
             }`}
           >
             <Columns3 className="w-3.5 h-3.5" />
@@ -232,7 +233,7 @@ export const SceneMatrixView: React.FC<SceneMatrixViewProps> = ({
                   <button
                     type="button"
                     onClick={() => setEditingScene(scene)}
-                    className="p-1.5 text-[10px] font-heading font-black border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] hover:bg-[var(--pastel-sky)] hover:text-black shadow-[1px_1px_0px_var(--shadow-ink)] transition-all cursor-pointer flex items-center gap-1"
+                    className="p-1.5 text-[10px] font-heading font-black border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] hover:bg-[var(--pastel-sky)] hover:text-black shadow-[1px_1px_0px_var(--shadow-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center gap-1"
                     title={t('edit')}
                   >
                     <Edit3 className="w-3.5 h-3.5" />
@@ -241,7 +242,7 @@ export const SceneMatrixView: React.FC<SceneMatrixViewProps> = ({
                   <button
                     type="button"
                     onClick={() => scene.id && onDeleteScene(scene.id)}
-                    className="p-1.5 text-[10px] font-heading font-black border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] hover:bg-[var(--pastel-coral)] hover:text-black shadow-[1px_1px_0px_var(--shadow-ink)] transition-all cursor-pointer flex items-center gap-1"
+                    className="p-1.5 text-[10px] font-heading font-black border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] hover:bg-[var(--pastel-coral)] hover:text-black shadow-[1px_1px_0px_var(--shadow-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center gap-1"
                     title={t('delete')}
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -342,11 +343,27 @@ export const SceneMatrixView: React.FC<SceneMatrixViewProps> = ({
 
       {/* EDIT SCENE MODAL */}
       {editingScene && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-[var(--bg-surface)] border-3 border-[var(--border-ink)] shadow-[6px_6px_0px_var(--shadow-ink)] w-full max-w-lg p-5 space-y-4 max-h-[90vh] overflow-y-auto">
-            <h3 className="text-sm font-heading font-black text-[var(--text-primary)] border-b-2 border-[var(--border-ink)] pb-2">
-              {editingScene.id ? t('edit') : t('addSceneBtn')}
-            </h3>
+        <div 
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4"
+          onClick={() => setEditingScene(null)}
+        >
+          <div 
+            className="bg-[var(--bg-surface)] border-3 border-[var(--border-ink)] shadow-[6px_6px_0px_var(--shadow-ink)] w-full max-w-lg p-5 space-y-4 max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b-2 border-[var(--border-ink)] pb-2">
+              <h3 className="text-sm font-heading font-black text-[var(--text-primary)]">
+                {editingScene.id ? t('edit') : t('addSceneBtn')}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setEditingScene(null)}
+                className="p-1 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--pastel-coral)] hover:text-black shadow-[1.5px_1.5px_0px_var(--shadow-ink)] transition-all cursor-pointer"
+                title={t('close')}
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
 
             <div className="space-y-3">
               <div>
@@ -425,7 +442,7 @@ export const SceneMatrixView: React.FC<SceneMatrixViewProps> = ({
               <button
                 type="button"
                 onClick={() => setEditingScene(null)}
-                className="px-3 py-1.5 text-xs font-heading font-bold border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--bg-surface-hover)] cursor-pointer"
+                className="px-3 py-1.5 text-xs font-heading font-bold border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--bg-surface-hover)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
               >
                 {t('cancel')}
               </button>
@@ -436,7 +453,7 @@ export const SceneMatrixView: React.FC<SceneMatrixViewProps> = ({
                   setEditingScene(null);
                   onReload();
                 }}
-                className="px-4 py-1.5 text-xs font-heading font-black border-2 border-[var(--border-ink)] bg-[var(--pastel-yellow)] text-black shadow-[2px_2px_0px_var(--shadow-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none cursor-pointer"
+                className="px-4 py-1.5 text-xs font-heading font-black border-2 border-[var(--border-ink)] bg-[var(--pastel-yellow)] text-black shadow-[2px_2px_0px_var(--shadow-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
               >
                 {t('save')}
               </button>

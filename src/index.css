@@ -215,10 +215,15 @@ html[dir="ltr"] body {
   padding-right: env(safe-area-inset-right, 0px);
 }
 
-/* Focus Visible WCAG Indicator */
-:focus-visible {
-  outline: 3px solid var(--pastel-sky) !important;
-  outline-offset: 2px !important;
+/* Focus Visible for interactive buttons, links, etc. (excludes inputs & textareas) */
+:focus-visible:not(input):not(textarea):not([contenteditable="true"]) {
+  outline: 2px solid var(--border-ink) !important;
+  outline-offset: 1px !important;
+}
+
+input:focus, textarea:focus, input:focus-visible, textarea:focus-visible {
+  outline: none !important;
+  box-shadow: none;
 }
 
 /* Disable textarea resize globally */

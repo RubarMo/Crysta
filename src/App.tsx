@@ -393,7 +393,7 @@ function App() {
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <button
               onClick={() => setIsSidebarOpen(true)}
-              className="md:hidden p-1.5 text-[var(--text-primary)] border-2 border-[var(--border-ink)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-yellow)] hover:text-black active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center justify-center shrink-0"
+              className="md:hidden h-8 w-8 text-[var(--text-primary)] border-2 border-[var(--border-ink)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-yellow)] hover:text-black active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center justify-center shrink-0 box-border"
               title={t("openSidebar")}
               aria-label="Open sidebar"
             >
@@ -402,7 +402,7 @@ function App() {
 
             {/* Brand Title */}
             <div className="flex items-center gap-2 select-none shrink-0">
-              <span className="p-1 bg-[var(--pastel-yellow)] text-black border-2 border-[var(--border-ink)] shadow-[2px_2px_0px_var(--shadow-ink)] flex items-center justify-center">
+              <span className="h-8 w-8 bg-[var(--pastel-yellow)] text-black border-2 border-[var(--border-ink)] shadow-[2px_2px_0px_var(--shadow-ink)] flex items-center justify-center shrink-0 box-border">
                 <Sparkles className="w-4 h-4" />
               </span>
               <span className="font-display font-extrabold text-base sm:text-lg tracking-tight text-[var(--text-primary)]">
@@ -415,7 +415,7 @@ function App() {
             {/* Quick Command Palette Button */}
             <button
               onClick={() => setIsCommandPaletteOpen(true)}
-              className="inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1.5 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-yellow)] hover:text-black transition-all font-heading font-black cursor-pointer shrink-0"
+              className="h-8 inline-flex items-center gap-1.5 text-xs px-2.5 sm:px-3 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-yellow)] hover:text-black hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all font-heading font-black cursor-pointer shrink-0 box-border"
               title="Command Palette (Ctrl+K)"
             >
               <SlidersHorizontal className="w-3.5 h-3.5" />
@@ -423,13 +423,13 @@ function App() {
             </button>
 
             {errorMessage && (
-              <span className="text-[11px] font-bold text-black bg-[var(--pastel-coral)] border-2 border-[var(--border-ink)] px-2.5 py-1 shadow-[2px_2px_0px_var(--shadow-ink)] truncate max-w-[160px] shrink-0">
+              <span className="h-8 inline-flex items-center text-[11px] font-bold text-black bg-[var(--pastel-coral)] border-2 border-[var(--border-ink)] px-2.5 shadow-[2px_2px_0px_var(--shadow-ink)] truncate max-w-[160px] shrink-0 box-border">
                 {errorMessage}
               </span>
             )}
             <button
               onClick={() => setShowHelpModal(true)}
-              className="inline-flex items-center gap-1 text-xs px-2.5 sm:px-3 py-1.5 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-yellow)] hover:text-black hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all font-heading font-black cursor-pointer whitespace-nowrap shrink-0"
+              className="h-8 inline-flex items-center gap-1.5 text-xs px-2.5 sm:px-3 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-yellow)] hover:text-black hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all font-heading font-black cursor-pointer whitespace-nowrap shrink-0 box-border"
             >
               <HelpCircle className="w-3.5 h-3.5" />
               <span className="hidden md:inline">{t("helpGuideBtn")}</span>
@@ -542,7 +542,7 @@ function App() {
                               e.stopPropagation();
                               removeRecentProject(project.path);
                             }}
-                            className="p-1.5 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--pastel-coral)] hover:text-black shadow-[2px_2px_0px_var(--shadow-ink)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center justify-center"
+                            className="p-1.5 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--pastel-coral)] hover:text-black shadow-[2px_2px_0px_var(--shadow-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center justify-center"
                             title={t("removeFromList")}
                             aria-label="Remove recent project"
                           >
@@ -604,7 +604,7 @@ function App() {
               </div>
               <button 
                 onClick={() => setShowHelpModal(false)}
-                className="p-1.5 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--pastel-coral)] hover:text-black shadow-[2px_2px_0px_var(--shadow-ink)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center justify-center"
+                className="p-1.5 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--pastel-coral)] hover:text-black shadow-[2px_2px_0px_var(--shadow-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center justify-center"
                 title={t("close")}
                 aria-label="Close dialog"
               >
@@ -655,8 +655,14 @@ function App() {
 
       {/* Project Picker Modal for Mobile */}
       {showPickerModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="bg-[var(--bg-surface)] border-4 border-[var(--border-ink)] shadow-[12px_12px_0px_var(--shadow-ink)] w-full max-w-sm p-6 space-y-4 text-start">
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+          onClick={() => setShowPickerModal(false)}
+        >
+          <div 
+            className="bg-[var(--bg-surface)] border-4 border-[var(--border-ink)] shadow-[12px_12px_0px_var(--shadow-ink)] w-full max-w-sm p-6 space-y-4 text-start"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="border-b-2 border-[var(--border-subtle)] pb-2">
               <h3 className="text-sm font-heading font-black text-[var(--text-primary)]">
                 {language === 'ar' ? 'اختر ملف المشروع' : 'Select Project File'}
@@ -684,7 +690,7 @@ function App() {
             <div className="flex justify-end pt-2">
               <button
                 onClick={() => setShowPickerModal(false)}
-                className="px-5 py-2 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] text-xs font-heading font-bold shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--bg-surface-hover)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
+                className="px-5 py-2 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] text-xs font-heading font-bold shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--bg-surface-hover)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
               >
                 {t("cancel")}
               </button>
@@ -737,7 +743,7 @@ function App() {
               <div className="flex gap-2.5 justify-end mt-2 select-none items-center">
                 <button
                   onClick={() => setUpdateInfo(null)}
-                  className="px-3.5 py-1.5 text-xs font-heading font-bold border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:bg-[var(--bg-surface-hover)] shadow-[2px_2px_0px_var(--shadow-ink)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
+                  className="px-3.5 py-1.5 text-xs font-heading font-bold border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:bg-[var(--bg-surface-hover)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
                 >
                   {language === 'ar' ? 'تخطي' : 'Remind Me Later'}
                 </button>

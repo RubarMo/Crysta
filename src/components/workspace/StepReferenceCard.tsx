@@ -28,7 +28,7 @@ export const StepReferenceCard: React.FC<StepReferenceCardProps> = ({
       <button
         type="button"
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center justify-between p-3 bg-[var(--bg-surface-raised)] hover:bg-[var(--pastel-yellow)] hover:text-black transition-colors cursor-pointer text-start select-none border-b-2 border-[var(--border-ink)]"
+        className="w-full flex items-center justify-between p-3 bg-[var(--bg-surface-raised)] hover:bg-[var(--pastel-yellow)] hover:text-black active:translate-x-[1px] active:translate-y-[1px] transition-all cursor-pointer text-start select-none border-b-2 border-[var(--border-ink)]"
       >
         <div className="flex items-center gap-2.5 min-w-0">
           <span className="p-1 bg-[var(--pastel-lavender)] text-black border border-[var(--border-ink)] shrink-0 flex items-center justify-center shadow-[1px_1px_0px_var(--shadow-ink)]">
