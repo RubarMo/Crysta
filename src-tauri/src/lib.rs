@@ -107,6 +107,7 @@ pub struct BookFormatConfig {
     pub header_verso: String,
     pub header_recto: String,
     pub include_page_numbers: bool,
+    pub cover_image: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -231,6 +232,8 @@ fn get_db_conn(state: &tauri::State<'_, DbState>) -> Result<Connection, String> 
     let _ = conn.execute("ALTER TABLE scenes ADD COLUMN narrative_outline TEXT DEFAULT '';", []);
     // Migration for characters table if one_sentence_summary column does not exist
     let _ = conn.execute("ALTER TABLE characters ADD COLUMN one_sentence_summary TEXT DEFAULT '';", []);
+    // Migration for book_formatting table if cover_image column does not exist
+    let _ = conn.execute("ALTER TABLE book_formatting ADD COLUMN cover_image TEXT DEFAULT '';", []);
     
     Ok(conn)
 }
@@ -798,7 +801,7 @@ fn reorder_chapters(state: tauri::State<'_, DbState>, novel_id: i64, chapter_ids
 fn get_book_formatting(state: tauri::State<'_, DbState>, novel_id: i64) -> Result<BookFormatConfig, String> {
     let conn = get_db_conn(&state)?;
     let mut stmt = conn
-        .prepare("SELECT id, novel_id, has_title_page, subtitle, author_name, publisher_name, has_copyright_page, copyright_year, isbn, edition_notice, has_dedication, dedication_text, has_epigraph, epigraph_quote, epigraph_author, has_table_of_contents, has_foreword, foreword_title, foreword_content, has_epilogue, epilogue_title, epilogue_content, has_acknowledgments, acknowledgments_content, has_about_author, about_author_bio, preset_theme, trim_size, font_family, font_size, line_spacing, first_line_indent, first_paragraph_drop_cap, chapter_numbering_style, scene_break_ornament, header_verso, header_recto, include_page_numbers FROM book_formatting WHERE novel_id = ? LIMIT 1")
+        .prepare("SELECT id, novel_id, has_title_page, subtitle, author_name, publisher_name, has_copyright_page, copyright_year, isbn, edition_notice, has_dedication, dedication_text, has_epigraph, epigraph_quote, epigraph_author, has_table_of_contents, has_foreword, foreword_title, foreword_content, has_epilogue, epilogue_title, epilogue_content, has_acknowledgments, acknowledgments_content, has_about_author, about_author_bio, preset_theme, trim_size, font_family, font_size, line_spacing, first_line_indent, first_paragraph_drop_cap, chapter_numbering_style, scene_break_ornament, header_verso, header_recto, include_page_numbers, cover_image FROM book_formatting WHERE novel_id = ? LIMIT 1")
         .map_err(|e| e.to_string())?;
 
     let res = stmt.query_row(params![novel_id], |row| {
@@ -841,6 +844,7 @@ fn get_book_formatting(state: tauri::State<'_, DbState>, novel_id: i64) -> Resul
             header_verso: row.get(35)?,
             header_recto: row.get(36)?,
             include_page_numbers: row.get::<_, i64>(37)? != 0,
+            cover_image: row.get(38).unwrap_or_default(),
         })
     });
 
@@ -886,6 +890,7 @@ fn get_book_formatting(state: tauri::State<'_, DbState>, novel_id: i64) -> Resul
                 header_verso: "title".into(),
                 header_recto: "chapter".into(),
                 include_page_numbers: true,
+                cover_image: "".into(),
             })
         }
     }
@@ -903,7 +908,7 @@ fn save_book_formatting(state: tauri::State<'_, DbState>, config: BookFormatConf
 
     if let Some(id) = existing_id {
         conn.execute(
-            "UPDATE book_formatting SET has_title_page = ?, subtitle = ?, author_name = ?, publisher_name = ?, has_copyright_page = ?, copyright_year = ?, isbn = ?, edition_notice = ?, has_dedication = ?, dedication_text = ?, has_epigraph = ?, epigraph_quote = ?, epigraph_author = ?, has_table_of_contents = ?, has_foreword = ?, foreword_title = ?, foreword_content = ?, has_epilogue = ?, epilogue_title = ?, epilogue_content = ?, has_acknowledgments = ?, acknowledgments_content = ?, has_about_author = ?, about_author_bio = ?, preset_theme = ?, trim_size = ?, font_family = ?, font_size = ?, line_spacing = ?, first_line_indent = ?, first_paragraph_drop_cap = ?, chapter_numbering_style = ?, scene_break_ornament = ?, header_verso = ?, header_recto = ?, include_page_numbers = ? WHERE id = ?",
+            "UPDATE book_formatting SET has_title_page = ?, subtitle = ?, author_name = ?, publisher_name = ?, has_copyright_page = ?, copyright_year = ?, isbn = ?, edition_notice = ?, has_dedication = ?, dedication_text = ?, has_epigraph = ?, epigraph_quote = ?, epigraph_author = ?, has_table_of_contents = ?, has_foreword = ?, foreword_title = ?, foreword_content = ?, has_epilogue = ?, epilogue_title = ?, epilogue_content = ?, has_acknowledgments = ?, acknowledgments_content = ?, has_about_author = ?, about_author_bio = ?, preset_theme = ?, trim_size = ?, font_family = ?, font_size = ?, line_spacing = ?, first_line_indent = ?, first_paragraph_drop_cap = ?, chapter_numbering_style = ?, scene_break_ornament = ?, header_verso = ?, header_recto = ?, include_page_numbers = ?, cover_image = ? WHERE id = ?",
             params![
                 if config.has_title_page { 1 } else { 0 },
                 config.subtitle,
@@ -941,13 +946,14 @@ fn save_book_formatting(state: tauri::State<'_, DbState>, config: BookFormatConf
                 config.header_verso,
                 config.header_recto,
                 if config.include_page_numbers { 1 } else { 0 },
+                config.cover_image,
                 id
             ],
         ).map_err(|e| e.to_string())?;
         Ok(id)
     } else {
         conn.execute(
-            "INSERT INTO book_formatting (novel_id, has_title_page, subtitle, author_name, publisher_name, has_copyright_page, copyright_year, isbn, edition_notice, has_dedication, dedication_text, has_epigraph, epigraph_quote, epigraph_author, has_table_of_contents, has_foreword, foreword_title, foreword_content, has_epilogue, epilogue_title, epilogue_content, has_acknowledgments, acknowledgments_content, has_about_author, about_author_bio, preset_theme, trim_size, font_family, font_size, line_spacing, first_line_indent, first_paragraph_drop_cap, chapter_numbering_style, scene_break_ornament, header_verso, header_recto, include_page_numbers) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO book_formatting (novel_id, has_title_page, subtitle, author_name, publisher_name, has_copyright_page, copyright_year, isbn, edition_notice, has_dedication, dedication_text, has_epigraph, epigraph_quote, epigraph_author, has_table_of_contents, has_foreword, foreword_title, foreword_content, has_epilogue, epilogue_title, epilogue_content, has_acknowledgments, acknowledgments_content, has_about_author, about_author_bio, preset_theme, trim_size, font_family, font_size, line_spacing, first_line_indent, first_paragraph_drop_cap, chapter_numbering_style, scene_break_ornament, header_verso, header_recto, include_page_numbers, cover_image) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             params![
                 config.novel_id,
                 if config.has_title_page { 1 } else { 0 },
@@ -985,7 +991,8 @@ fn save_book_formatting(state: tauri::State<'_, DbState>, config: BookFormatConf
                 config.scene_break_ornament,
                 config.header_verso,
                 config.header_recto,
-                if config.include_page_numbers { 1 } else { 0 }
+                if config.include_page_numbers { 1 } else { 0 },
+                config.cover_image
             ],
         ).map_err(|e| e.to_string())?;
         Ok(conn.last_insert_rowid())
@@ -1137,6 +1144,125 @@ fn open_backups_directory(state: tauri::State<'_, DbState>) -> Result<(), String
     Ok(())
 }
 
+fn decode_base64(input: &str) -> Result<Vec<u8>, String> {
+    const TABLE: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    let mut lookup = [255u8; 256];
+    for (i, &b) in TABLE.iter().enumerate() {
+        lookup[b as usize] = i as u8;
+    }
+    let raw = if let Some(idx) = input.find(',') {
+        &input[idx + 1..]
+    } else {
+        input
+    };
+    let bytes = raw.trim().as_bytes();
+    let mut out = Vec::with_capacity((bytes.len() * 3) / 4);
+    let mut buf = 0u32;
+    let mut bits = 0;
+    for &b in bytes {
+        if b == b'=' {
+            break;
+        }
+        let val = lookup[b as usize];
+        if val == 255 {
+            continue;
+        }
+        buf = (buf << 6) | (val as u32);
+        bits += 6;
+        if bits >= 8 {
+            bits -= 8;
+            out.push((buf >> bits) as u8);
+        }
+    }
+    Ok(out)
+}
+
+#[tauri::command]
+fn save_export_file(
+    default_name: String,
+    filter_name: String,
+    filter_ext: String,
+    base64_data: String,
+) -> Result<Option<String>, String> {
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    {
+        let file = rfd::FileDialog::new()
+            .add_filter(&filter_name, &[filter_ext.as_str()])
+            .set_file_name(&default_name)
+            .save_file();
+
+        if let Some(mut path) = file {
+            if path.extension().is_none() {
+                path.set_extension(&filter_ext);
+            }
+            let bytes = decode_base64(&base64_data)?;
+            std::fs::write(&path, bytes).map_err(|e| e.to_string())?;
+            Ok(Some(path.to_string_lossy().to_string()))
+        } else {
+            Ok(None)
+        }
+    }
+    #[cfg(any(target_os = "android", target_os = "ios"))]
+    {
+        let _ = (default_name, filter_name, filter_ext, base64_data);
+        Ok(None)
+    }
+}
+
+#[tauri::command]
+fn show_in_folder(path: String) -> Result<(), String> {
+    let p = std::path::Path::new(&path);
+    #[cfg(target_os = "windows")]
+    {
+        use std::os::windows::process::CommandExt;
+        let clean_path = path.replace('/', "\\");
+        let mut cmd = std::process::Command::new("explorer.exe");
+        if p.is_file() {
+            cmd.raw_arg(format!("/select,\"{}\"", clean_path));
+        } else if p.is_dir() {
+            cmd.raw_arg(format!("\"{}\"", clean_path));
+        } else if let Some(parent) = p.parent() {
+            let clean_parent = parent.to_string_lossy().replace('/', "\\");
+            cmd.raw_arg(format!("\"{}\"", clean_parent));
+        } else {
+            cmd.raw_arg(format!("\"{}\"", clean_path));
+        }
+        cmd.spawn().map_err(|e| e.to_string())?;
+    }
+    #[cfg(target_os = "macos")]
+    {
+        if p.is_file() {
+            std::process::Command::new("open")
+                .arg("-R")
+                .arg(&path)
+                .spawn()
+                .map_err(|e| e.to_string())?;
+        } else {
+            std::process::Command::new("open")
+                .arg(&path)
+                .spawn()
+                .map_err(|e| e.to_string())?;
+        }
+    }
+    #[cfg(target_os = "linux")]
+    {
+        let target = if p.is_dir() {
+            p
+        } else {
+            p.parent().unwrap_or(p)
+        };
+        std::process::Command::new("xdg-open")
+            .arg(target)
+            .spawn()
+            .map_err(|e| e.to_string())?;
+    }
+    #[cfg(any(target_os = "android", target_os = "ios"))]
+    {
+        let _ = path;
+    }
+    Ok(())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let _ = rustls::crypto::ring::default_provider().install_default();
@@ -1183,7 +1309,9 @@ pub fn run() {
             list_snapshots,
             restore_snapshot,
             delete_snapshot,
-            open_backups_directory
+            open_backups_directory,
+            save_export_file,
+            show_in_folder
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

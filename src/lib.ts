@@ -91,6 +91,7 @@ export interface BookFormatConfig {
   header_verso: string;
   header_recto: string;
   include_page_numbers: boolean;
+  cover_image?: string;
 }
 
 export interface SnapshotInfo {
@@ -255,4 +256,22 @@ export async function openProject(path: string): Promise<Novel> {
 
 export async function closeProject(): Promise<void> {
   return invoke<void>("close_project");
+}
+
+export async function saveExportFile(
+  defaultName: string,
+  filterName: string,
+  filterExt: string,
+  base64Data: string
+): Promise<string | null> {
+  return invoke<string | null>("save_export_file", {
+    defaultName,
+    filterName,
+    filterExt,
+    base64Data,
+  });
+}
+
+export async function showInFolder(path: string): Promise<void> {
+  return invoke<void>("show_in_folder", { path });
 }

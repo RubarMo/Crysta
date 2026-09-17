@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Novel, Chapter, BookFormatConfig, getBookFormatting, saveBookFormatting } from '../../lib';
+import React, { useState, useEffect, useRef } from 'react';
+import { Novel, Chapter, BookFormatConfig, getBookFormatting, saveBookFormatting, showInFolder } from '../../lib';
 import { useLanguage } from '../../LanguageContext';
 import { BookExportService } from '../../services/bookExportService';
 import { 
@@ -10,7 +10,13 @@ import {
   Type, 
   Check, 
   FileCode, 
-  Printer 
+  Printer,
+  Image as ImageIcon,
+  Upload,
+  Trash2,
+  RefreshCw,
+  FolderOpen,
+  X
 } from 'lucide-react';
 
 interface BookStudioTabProps {
@@ -30,7 +36,28 @@ export const BookStudioTab: React.FC<BookStudioTabProps> = ({
   const [activeSubTab, setActiveSubTab] = useState<'metadata' | 'backmatter' | 'typography' | 'export'>('metadata');
   const [config, setConfig] = useState<BookFormatConfig | null>(null);
   const [isExporting, setIsExporting] = useState<string | null>(null);
+  const [exportedResult, setExportedResult] = useState<{ format: string; path: string } | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const coverInputRef = useRef<HTMLInputElement>(null);
+
+  const handleCoverUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert(language === 'ar' ? 'حجم الصورة كبير جداً، يرجى اختيار صورة أقل من 5 ميجابايت' : 'Image is too large. Please select an image smaller than 5MB.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        updateConfig({ cover_image: reader.result });
+      }
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
 
   // Load config on mount
   useEffect(() => {
@@ -73,13 +100,21 @@ export const BookStudioTab: React.FC<BookStudioTabProps> = ({
   const handleExport = async (format: 'pdf' | 'epub' | 'docx') => {
     if (!config) return;
     setIsExporting(format);
+    setExportedResult(null);
     try {
       if (format === 'epub') {
-        await BookExportService.exportEpub(activeNovel, chapters, config, isRtl);
+        const path = await BookExportService.exportEpub(activeNovel, chapters, config, isRtl);
+        if (path) {
+          setExportedResult({ format: 'EPUB 3', path });
+        }
       } else if (format === 'docx') {
-        await BookExportService.exportDocx(activeNovel, chapters, config, isRtl);
+        const path = await BookExportService.exportDocx(activeNovel, chapters, config, isRtl);
+        if (path) {
+          setExportedResult({ format: 'Word (DOCX)', path });
+        }
       } else if (format === 'pdf') {
         BookExportService.exportPrintPdf(activeNovel, chapters, config, isRtl);
+        setExportedResult({ format: 'PDF', path: '' });
       }
     } catch (err) {
       console.error('Export error:', err);
@@ -153,6 +188,96 @@ export const BookStudioTab: React.FC<BookStudioTabProps> = ({
         {/* TAB 1: METADATA & FRONT MATTER */}
         {activeSubTab === 'metadata' && (
           <div className="space-y-4">
+            {/* Book Cover Card */}
+            <div className="p-4 md:p-5 border-2 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] shadow-[3px_3px_0px_var(--shadow-ink)] space-y-4">
+              <div className="flex items-center justify-between gap-3 border-b-2 border-[var(--border-ink)] pb-3">
+                <div className="flex items-center gap-2">
+                  <span className="p-1.5 bg-[var(--pastel-sky)] text-black border-2 border-[var(--border-ink)] shadow-[1px_1px_0px_var(--shadow-ink)]">
+                    <ImageIcon className="w-4 h-4" />
+                  </span>
+                  <div>
+                    <h2 className="text-xs font-heading font-black text-[var(--text-primary)]">
+                      {t('coverSectionTitle')}
+                    </h2>
+                    <p className="text-[11px] text-[var(--text-secondary)] font-mono mt-0.5">
+                      {t('coverDimensionsHint')}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Hidden file input */}
+              <input
+                ref={coverInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={handleCoverUpload}
+                className="hidden"
+              />
+
+              {config.cover_image ? (
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 p-3 bg-[var(--bg-surface)] border-2 border-[var(--border-ink)]">
+                  {/* Cover Preview */}
+                  <div className="relative shrink-0 w-32 sm:w-36 aspect-[2/3] bg-black/5 border-2 border-[var(--border-ink)] shadow-[2px_2px_0px_var(--shadow-ink)] overflow-hidden flex items-center justify-center">
+                    <img
+                      src={config.cover_image}
+                      alt="Cover Preview"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+
+                  {/* Actions & details */}
+                  <div className="flex-1 space-y-3">
+                    <div>
+                      <span className="inline-block px-2 py-0.5 text-[10px] font-mono font-bold bg-[var(--pastel-mint)] text-black border border-[var(--border-ink)] shadow-[1px_1px_0px_var(--shadow-ink)] mb-1">
+                        {language === 'ar' ? 'تم تعيين الغلاف' : 'Cover Set'}
+                      </span>
+                      <p className="text-xs text-[var(--text-secondary)]">
+                        {language === 'ar' 
+                          ? 'سيتم تضمين هذا الغلاف في مقدمة الكتاب وتصدير ملفات EPUB و PDF.' 
+                          : 'This cover will be included at the front of the book and embedded in EPUB and PDF exports.'}
+                      </p>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2 pt-1">
+                      <button
+                        type="button"
+                        onClick={() => coverInputRef.current?.click()}
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-heading font-black bg-[var(--pastel-sky)] text-black border-2 border-[var(--border-ink)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
+                      >
+                        <RefreshCw className="w-3.5 h-3.5" />
+                        <span>{t('coverReplaceBtn')}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => updateConfig({ cover_image: '' })}
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-heading font-black bg-[var(--pastel-coral)] text-black border-2 border-[var(--border-ink)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>{t('coverRemoveBtn')}</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                /* Empty Upload Dropzone */
+                <div
+                  onClick={() => coverInputRef.current?.click()}
+                  className="border-2 border-dashed border-[var(--border-ink)] bg-[var(--bg-surface)] hover:bg-[var(--bg-surface-hover)] p-6 sm:p-8 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all hover:shadow-[2px_2px_0px_var(--shadow-ink)] group"
+                >
+                  <div className="p-3 bg-[var(--pastel-sky)] text-black border-2 border-[var(--border-ink)] shadow-[2px_2px_0px_var(--shadow-ink)] group-hover:-translate-y-0.5 transition-transform">
+                    <Upload className="w-6 h-6" />
+                  </div>
+                  <span className="text-xs font-heading font-black text-[var(--text-primary)] mt-1">
+                    {t('coverUploadBtn')}
+                  </span>
+                  <span className="text-[11px] font-mono text-[var(--text-muted)] text-center">
+                    {t('noCoverPlaceholder')}
+                  </span>
+                </div>
+              )}
+            </div>
             <div className="p-4 border-2 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] shadow-[3px_3px_0px_var(--shadow-ink)] space-y-3">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -572,6 +697,52 @@ export const BookStudioTab: React.FC<BookStudioTabProps> = ({
                 </button>
               </div>
             </div>
+
+            {exportedResult && (
+              <div className="p-4 border-3 border-[var(--border-ink)] bg-[var(--pastel-mint)] text-black shadow-[4px_4px_0px_var(--shadow-ink)] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div className="flex items-start gap-2.5 min-w-0">
+                  <span className="p-1.5 bg-black text-white border-2 border-[var(--border-ink)] shadow-[1px_1px_0px_var(--shadow-ink)] shrink-0 mt-0.5">
+                    <Check className="w-4 h-4 stroke-[3]" />
+                  </span>
+                  <div className="min-w-0">
+                    <h4 className="text-xs font-heading font-black">
+                      {t('exportSuccess')} ({exportedResult.format})
+                    </h4>
+                    {exportedResult.path ? (
+                      <p className="text-[11px] font-mono text-neutral-800 break-all mt-0.5 select-text">
+                        {t('exportSavedTo')}{' '}
+                        <span className="font-bold underline">{exportedResult.path}</span>
+                      </p>
+                    ) : (
+                      <p className="text-[11px] text-neutral-800 mt-0.5">
+                        {language === 'ar' ? 'تم فتح نافذة الطباعة لاختيار الحفظ كـ PDF أو الطابعة.' : 'Print dialog opened to save as PDF or print.'}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                  {exportedResult.path && (
+                    <button
+                      type="button"
+                      onClick={() => showInFolder(exportedResult.path)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-heading font-black bg-[var(--bg-surface)] text-[var(--text-primary)] border-2 border-[var(--border-ink)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
+                    >
+                      <FolderOpen className="w-3.5 h-3.5" />
+                      <span>{t('openFolderBtn')}</span>
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setExportedResult(null)}
+                    aria-label="Close"
+                    className="p-1 text-black hover:bg-black/10 border-2 border-transparent hover:border-[var(--border-ink)] transition-colors cursor-pointer"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
 
             <div className="p-4 border-2 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] shadow-[2px_2px_0px_var(--shadow-ink)] text-xs text-[var(--text-secondary)]">
               <span className="font-heading font-black text-[var(--text-primary)] block mb-1">

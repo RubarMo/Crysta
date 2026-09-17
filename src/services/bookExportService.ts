@@ -1,5 +1,5 @@
 import JSZip from 'jszip';
-import { Novel, Chapter, BookFormatConfig } from '../lib';
+import { Novel, Chapter, BookFormatConfig, saveExportFile } from '../lib';
 
 export class BookExportService {
   /**
@@ -10,7 +10,7 @@ export class BookExportService {
     chapters: Chapter[],
     config: BookFormatConfig,
     isRtl = true
-  ): Promise<void> {
+  ): Promise<string | null> {
     const zip = new JSZip();
 
     // 1. mimetype (Must be first, uncompressed)
@@ -110,6 +110,43 @@ p {
       spineItems.push(`<itemref idref="${id}"/>`);
       tocItems.push({ title, href: filename });
     };
+
+    // Front Matter: Cover Image
+    if (config.cover_image) {
+      const coverMatch = config.cover_image.match(/^data:image\/([a-zA-Z0-9+]+);base64,(.+)$/);
+      if (coverMatch) {
+        let subType = coverMatch[1].toLowerCase();
+        if (subType === 'jpg') subType = 'jpeg';
+        const mimeType = `image/${subType}`;
+        const ext = subType === 'jpeg' ? 'jpg' : subType;
+        const base64Data = coverMatch[2];
+
+        zip.file(`OEBPS/images/cover.${ext}`, base64Data, { base64: true });
+        manifestItems.push(`<item id="cover-image" href="images/cover.${ext}" media-type="${mimeType}" properties="cover-image"/>`);
+
+        const coverXhtml = `<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="${isRtl ? 'ar' : 'en'}" dir="${isRtl ? 'rtl' : 'ltr'}">
+<head>
+  <title>${isRtl ? 'غلاف الكتاب' : 'Cover'}</title>
+  <style>
+    @page { margin: 0; padding: 0; }
+    body { margin: 0; padding: 0; text-align: center; background-color: #000000; }
+    .cover-wrap { height: 100vh; display: flex; align-items: center; justify-content: center; }
+    img { max-width: 100%; max-height: 100vh; height: auto; object-fit: contain; }
+  </style>
+</head>
+<body>
+  <div class="cover-wrap">
+    <img src="images/cover.${ext}" alt="Cover"/>
+  </div>
+</body>
+</html>`;
+        zip.file('OEBPS/cover.xhtml', coverXhtml);
+        manifestItems.push('<item id="cover" href="cover.xhtml" media-type="application/xhtml+xml"/>');
+        spineItems.push('<itemref idref="cover"/>');
+      }
+    }
 
     // Front Matter: Title Page
     if (config.has_title_page) {
@@ -247,7 +284,8 @@ ${navList}
     <dc:creator>${escapeXml(config.author_name || 'Author')}</dc:creator>
     <dc:language>${isRtl ? 'ar' : 'en'}</dc:language>
     <dc:date>${new Date().toISOString()}</dc:date>
-    <meta property="dcterms:modified">${new Date().toISOString().replace(/\\.[0-9]{3}/, '')}</meta>
+    <meta property="dcterms:modified">${new Date().toISOString().replace(/\.[0-9]{3}/, '')}</meta>
+    ${config.cover_image ? '<meta name="cover" content="cover-image"/>' : ''}
     ${isRtl ? '<meta property="page-progression-direction">rtl</meta>' : ''}
   </metadata>
   <manifest>
@@ -259,9 +297,10 @@ ${navList}
 </package>`;
     zip.file('OEBPS/content.opf', contentOpf);
 
-    // Generate Blob & Trigger Download
-    const blob = await zip.generateAsync({ type: 'blob', mimeType: 'application/epub+zip' });
-    downloadBlob(blob, `${sanitizeFilename(novel.title)}.epub`);
+    // Generate Base64 & Save File via Native Dialog
+    const base64Data = await zip.generateAsync({ type: 'base64' });
+    const defaultFilename = `${sanitizeFilename(novel.title)}.epub`;
+    return await saveOrDownload(base64Data, defaultFilename, 'EPUB 3 eBook (*.epub)', 'epub', 'application/epub+zip');
   }
 
   /**
@@ -272,7 +311,7 @@ ${navList}
     chapters: Chapter[],
     config: BookFormatConfig,
     isRtl = true
-  ): Promise<void> {
+  ): Promise<string | null> {
     const zip = new JSZip();
 
     zip.file('[Content_Types].xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -381,11 +420,15 @@ ${navList}
 
     zip.file('word/document.xml', documentXml);
 
-    const blob = await zip.generateAsync({
-      type: 'blob',
-      mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    });
-    downloadBlob(blob, `${sanitizeFilename(novel.title)}.docx`);
+    const base64Data = await zip.generateAsync({ type: 'base64' });
+    const defaultFilename = `${sanitizeFilename(novel.title)}.docx`;
+    return await saveOrDownload(
+      base64Data,
+      defaultFilename,
+      'Word Document (*.docx)',
+      'docx',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    );
   }
 
   /**
@@ -433,6 +476,17 @@ ${navList}
     @page :right {
       margin-left: ${isRtl ? '0.65in' : '0.85in'};
       margin-right: ${isRtl ? '0.85in' : '0.65in'};
+    }
+
+    /* Cover page - full bleed, zero margins, no page numbers */
+    @page cover-page {
+      size: auto;
+      margin: 0;
+      @bottom-center { content: none !important; }
+      @bottom-left { content: none !important; }
+      @bottom-right { content: none !important; }
+      @top-left { content: none !important; }
+      @top-right { content: none !important; }
     }
 
     /* All front-matter pages (Title, Copyright, Dedication, Epigraph, Foreword) omit page numbers */
@@ -575,6 +629,33 @@ ${navList}
       font-size: 1.1em;
     }
 
+    .cover-page {
+      page: cover-page;
+      page-break-before: auto;
+      page-break-after: always;
+      break-after: page;
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #000000;
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+
+    .cover-page img {
+      max-width: 100%;
+      max-height: 100%;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      display: block;
+      margin: auto;
+    }
+
     @media print {
       body {
         padding: 0;
@@ -586,6 +667,10 @@ ${navList}
   </style>
 </head>
 <body>
+  ${config.cover_image ? `
+  <div class="cover-page">
+    <img src="${config.cover_image}" alt="Book Cover"/>
+  </div>` : ''}
   ${config.has_title_page ? `
   <div class="front-matter title-page">
     <div>
@@ -774,3 +859,28 @@ function downloadBlob(blob: Blob, filename: string) {
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 }
+
+async function saveOrDownload(
+  base64Data: string,
+  defaultFilename: string,
+  filterName: string,
+  filterExt: string,
+  mimeType: string
+): Promise<string | null> {
+  try {
+    const savedPath = await saveExportFile(defaultFilename, filterName, filterExt, base64Data);
+    return savedPath;
+  } catch (err) {
+    console.warn('Native save dialog not available, falling back to browser download:', err);
+    const byteChars = atob(base64Data);
+    const byteNumbers = new Array(byteChars.length);
+    for (let i = 0; i < byteChars.length; i++) {
+      byteNumbers[i] = byteChars.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], { type: mimeType });
+    downloadBlob(blob, defaultFilename);
+    return defaultFilename;
+  }
+}
+

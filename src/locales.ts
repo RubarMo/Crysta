@@ -301,6 +301,12 @@ export const translations = {
     tabBackMatter: "الملاحق والخواتيم",
     tabFormatting: "إعدادات الطباعة والخطوط",
     tabExport: "التصدير والتحميل",
+    coverSectionTitle: "غلاف الكتاب",
+    coverUploadBtn: "رفع صورة الغلاف",
+    coverReplaceBtn: "تغيير صورة الغلاف",
+    coverRemoveBtn: "إزالة الغلاف",
+    coverDimensionsHint: "الأبعاد الموصى بها: نسبة 2:3 (مثال: 1600 × 2400 بكسل). يدعم JPG و PNG و WebP.",
+    noCoverPlaceholder: "لم يتم تعيين غلاف للكتاب بعد",
     hasTitlePage: "تضمين صفحة العنوان",
     subtitleLabel: "العنوان الفرعي (Subtitle)",
     authorNameLabel: "اسم المؤلف / الكاتب",
@@ -338,6 +344,8 @@ export const translations = {
     exportDocxBtn: "تصدير مخطوطة Word (DOCX)",
     exporting: "جاري المعالجة والتصدير...",
     exportSuccess: "تم تصدير الكتاب بنجاح!",
+    openFolderBtn: "عرض في المجلد",
+    exportSavedTo: "تم حفظ الملف في:",
 
     // Zen Mode
     zenModeBtn: "وضع التركيز (Zen Mode)",
@@ -692,6 +700,12 @@ export const translations = {
     tabBackMatter: "Back Matter & Bios",
     tabFormatting: "Typography & Layout",
     tabExport: "Export & Download",
+    coverSectionTitle: "Book Cover",
+    coverUploadBtn: "Upload Cover Image",
+    coverReplaceBtn: "Replace Cover Image",
+    coverRemoveBtn: "Remove Cover",
+    coverDimensionsHint: "Recommended ratio: 2:3 (e.g. 1600 × 2400 px). Supports JPG, PNG, WebP.",
+    noCoverPlaceholder: "No book cover set yet",
     hasTitlePage: "Include Title Page",
     subtitleLabel: "Subtitle",
     authorNameLabel: "Author Name",
@@ -729,6 +743,8 @@ export const translations = {
     exportDocxBtn: "Export Word Manuscript (DOCX)",
     exporting: "Generating export...",
     exportSuccess: "Book exported successfully!",
+    openFolderBtn: "Show in Folder",
+    exportSavedTo: "File saved to:",
 
     // Zen Mode
     zenModeBtn: "Zen Mode",
