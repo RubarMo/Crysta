@@ -230,3 +230,120 @@ input:focus, textarea:focus, input:focus-visible, textarea:focus-visible {
 textarea {
   resize: none;
 }
+
+/* Neubrutalist Custom Range Slider */
+.nb-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 24px;
+  background: transparent;
+  cursor: pointer;
+  vertical-align: middle;
+}
+
+.nb-range:focus {
+  outline: none;
+}
+
+.nb-range::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 12px;
+  box-sizing: border-box;
+  cursor: pointer;
+  background: linear-gradient(
+    to right,
+    var(--pastel-mint) 0%,
+    var(--pastel-mint) var(--slider-fill, 0%),
+    var(--bg-surface) var(--slider-fill, 0%),
+    var(--bg-surface) 100%
+  );
+  border: 2px solid var(--border-ink);
+  border-radius: 0px;
+  box-shadow: none;
+}
+
+html[dir="rtl"] .nb-range::-webkit-slider-runnable-track {
+  background: linear-gradient(
+    to left,
+    var(--pastel-mint) 0%,
+    var(--pastel-mint) var(--slider-fill, 0%),
+    var(--bg-surface) var(--slider-fill, 0%),
+    var(--bg-surface) 100%
+  );
+}
+
+.nb-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  box-sizing: border-box;
+  border-radius: 0px;
+  background-color: #FFFFFF;
+  border: 2px solid #000000;
+  box-shadow: none;
+  cursor: pointer;
+  margin-top: -5px;
+  transition: background-color 0.1s ease;
+}
+
+.dark .nb-range::-webkit-slider-thumb {
+  background-color: #FFFFFF;
+  border: 2px solid #000000;
+  box-shadow: none;
+}
+
+.nb-range::-webkit-slider-thumb:hover {
+  background-color: var(--pastel-yellow);
+}
+
+.nb-range::-webkit-slider-thumb:active {
+  background-color: var(--pastel-yellow);
+}
+
+/* Firefox Support */
+.nb-range::-moz-range-track {
+  width: 100%;
+  height: 12px;
+  box-sizing: border-box;
+  cursor: pointer;
+  background: var(--bg-surface);
+  border: 2px solid var(--border-ink);
+  border-radius: 0px;
+  box-shadow: none;
+}
+
+.nb-range::-moz-range-progress {
+  height: 12px;
+  box-sizing: border-box;
+  background-color: var(--pastel-mint);
+  border: 2px solid var(--border-ink);
+  border-radius: 0px;
+}
+
+.nb-range::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  box-sizing: border-box;
+  border-radius: 0px;
+  background-color: #FFFFFF;
+  border: 2px solid #000000;
+  box-shadow: none;
+  cursor: pointer;
+  transition: background-color 0.1s ease;
+}
+
+.dark .nb-range::-moz-range-thumb {
+  background-color: #FFFFFF;
+  border: 2px solid #000000;
+  box-shadow: none;
+}
+
+.nb-range::-moz-range-thumb:hover {
+  background-color: var(--pastel-yellow);
+}
+
+.nb-range::-moz-range-thumb:active {
+  background-color: var(--pastel-yellow);
+}

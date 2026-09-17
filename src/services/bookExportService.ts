@@ -397,16 +397,6 @@ ${navList}
     config: BookFormatConfig,
     isRtl = true
   ): string {
-    const trimSizes: Record<string, { width: string; height: string; name: string }> = {
-      us_trade_6x9: { width: '6in', height: '9in', name: 'US Trade 6"x9"' },
-      digest_5_5x8_5: { width: '5.5in', height: '8.5in', name: 'Digest 5.5"x8.5"' },
-      pocket_5x8: { width: '5in', height: '8in', name: 'Pocket 5"x8"' },
-      mass_market: { width: '4.25in', height: '6.87in', name: 'Mass Market' },
-      a5: { width: '5.83in', height: '8.27in', name: 'A5 Standard' },
-      letter: { width: '8.5in', height: '11in', name: 'Standard Letter' },
-    };
-
-    const trim = trimSizes[config.trim_size || 'us_trade_6x9'] || trimSizes.us_trade_6x9;
     const fontCss = getFontFamilyCss(config.font_family || 'Amiri');
 
     const dedicationLines = config.has_dedication && config.dedication_text
@@ -427,7 +417,7 @@ ${navList}
     @import url('https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Cairo:wght@400;600;700;800;900&family=Cinzel:wght@400;700&family=EB+Garamond:ital,wght@0,400;0,700;1,400;1,700&family=IBM+Plex+Sans+Arabic:wght@400;600;700&family=Inter:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,700;1,400;1,700&family=Merriweather:ital,wght@0,400;0,700;1,400;1,700&family=Noto+Naskh+Arabic:wght@400;700&family=Readex+Pro:wght@400;600;700&family=Scheherazade+New:wght@400;700&display=swap');
     
     @page {
-      size: ${trim.width} ${trim.height};
+      size: auto;
       margin-top: 0.8in;
       margin-bottom: 0.8in;
       margin-left: ${isRtl ? '0.85in' : '0.65in'};
@@ -717,20 +707,6 @@ ${navList}
         }, 3000);
       }
     }, 400);
-  }
-
-  /**
-   * Downloads the standalone print-ready HTML document.
-   */
-  static downloadPrintHtml(
-    novel: Novel,
-    chapters: Chapter[],
-    config: BookFormatConfig,
-    isRtl = true
-  ): void {
-    const html = BookExportService.generatePrintHtml(novel, chapters, config, isRtl);
-    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-    downloadBlob(blob, `${sanitizeFilename(novel.title)}_PrintEdition.html`);
   }
 }
 
