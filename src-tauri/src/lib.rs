@@ -67,6 +67,10 @@ pub struct Chapter {
     pub sort_order: i64,
 }
 
+fn default_reading_direction() -> String {
+    "auto".into()
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct BookFormatConfig {
     pub id: Option<i64>,
@@ -107,6 +111,8 @@ pub struct BookFormatConfig {
     pub header_verso: String,
     pub header_recto: String,
     pub include_page_numbers: bool,
+    #[serde(default = "default_reading_direction")]
+    pub reading_direction: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -221,9 +227,13 @@ fn get_db_conn(state: &tauri::State<'_, DbState>) -> Result<Connection, String> 
             header_verso TEXT NOT NULL DEFAULT 'title',
             header_recto TEXT NOT NULL DEFAULT 'chapter',
             include_page_numbers INTEGER NOT NULL DEFAULT 1,
+            reading_direction TEXT NOT NULL DEFAULT 'auto',
             FOREIGN KEY (novel_id) REFERENCES novels (id) ON DELETE CASCADE
         );
     ").map_err(|e| e.to_string())?;
+
+    // Migration for existing projects: book reading direction (auto/rtl/ltr)
+    let _ = conn.execute("ALTER TABLE book_formatting ADD COLUMN reading_direction TEXT NOT NULL DEFAULT 'auto';", []);
 
     // Migration for scenes table if sort_order column does not exist
     let _ = conn.execute("ALTER TABLE scenes ADD COLUMN sort_order INTEGER DEFAULT 0;", []);
@@ -798,7 +808,7 @@ fn reorder_chapters(state: tauri::State<'_, DbState>, novel_id: i64, chapter_ids
 fn get_book_formatting(state: tauri::State<'_, DbState>, novel_id: i64) -> Result<BookFormatConfig, String> {
     let conn = get_db_conn(&state)?;
     let mut stmt = conn
-        .prepare("SELECT id, novel_id, has_title_page, subtitle, author_name, publisher_name, has_copyright_page, copyright_year, isbn, edition_notice, has_dedication, dedication_text, has_epigraph, epigraph_quote, epigraph_author, has_table_of_contents, has_foreword, foreword_title, foreword_content, has_epilogue, epilogue_title, epilogue_content, has_acknowledgments, acknowledgments_content, has_about_author, about_author_bio, preset_theme, trim_size, font_family, font_size, line_spacing, first_line_indent, first_paragraph_drop_cap, chapter_numbering_style, scene_break_ornament, header_verso, header_recto, include_page_numbers FROM book_formatting WHERE novel_id = ? LIMIT 1")
+        .prepare("SELECT id, novel_id, has_title_page, subtitle, author_name, publisher_name, has_copyright_page, copyright_year, isbn, edition_notice, has_dedication, dedication_text, has_epigraph, epigraph_quote, epigraph_author, has_table_of_contents, has_foreword, foreword_title, foreword_content, has_epilogue, epilogue_title, epilogue_content, has_acknowledgments, acknowledgments_content, has_about_author, about_author_bio, preset_theme, trim_size, font_family, font_size, line_spacing, first_line_indent, first_paragraph_drop_cap, chapter_numbering_style, scene_break_ornament, header_verso, header_recto, include_page_numbers, reading_direction FROM book_formatting WHERE novel_id = ? LIMIT 1")
         .map_err(|e| e.to_string())?;
 
     let res = stmt.query_row(params![novel_id], |row| {
@@ -841,6 +851,7 @@ fn get_book_formatting(state: tauri::State<'_, DbState>, novel_id: i64) -> Resul
             header_verso: row.get(35)?,
             header_recto: row.get(36)?,
             include_page_numbers: row.get::<_, i64>(37)? != 0,
+            reading_direction: row.get::<_, String>(38).unwrap_or_else(|_| "auto".into()),
         })
     });
 
@@ -886,6 +897,7 @@ fn get_book_formatting(state: tauri::State<'_, DbState>, novel_id: i64) -> Resul
                 header_verso: "title".into(),
                 header_recto: "chapter".into(),
                 include_page_numbers: true,
+                reading_direction: "auto".into(),
             })
         }
     }
@@ -903,7 +915,7 @@ fn save_book_formatting(state: tauri::State<'_, DbState>, config: BookFormatConf
 
     if let Some(id) = existing_id {
         conn.execute(
-            "UPDATE book_formatting SET has_title_page = ?, subtitle = ?, author_name = ?, publisher_name = ?, has_copyright_page = ?, copyright_year = ?, isbn = ?, edition_notice = ?, has_dedication = ?, dedication_text = ?, has_epigraph = ?, epigraph_quote = ?, epigraph_author = ?, has_table_of_contents = ?, has_foreword = ?, foreword_title = ?, foreword_content = ?, has_epilogue = ?, epilogue_title = ?, epilogue_content = ?, has_acknowledgments = ?, acknowledgments_content = ?, has_about_author = ?, about_author_bio = ?, preset_theme = ?, trim_size = ?, font_family = ?, font_size = ?, line_spacing = ?, first_line_indent = ?, first_paragraph_drop_cap = ?, chapter_numbering_style = ?, scene_break_ornament = ?, header_verso = ?, header_recto = ?, include_page_numbers = ? WHERE id = ?",
+            "UPDATE book_formatting SET has_title_page = ?, subtitle = ?, author_name = ?, publisher_name = ?, has_copyright_page = ?, copyright_year = ?, isbn = ?, edition_notice = ?, has_dedication = ?, dedication_text = ?, has_epigraph = ?, epigraph_quote = ?, epigraph_author = ?, has_table_of_contents = ?, has_foreword = ?, foreword_title = ?, foreword_content = ?, has_epilogue = ?, epilogue_title = ?, epilogue_content = ?, has_acknowledgments = ?, acknowledgments_content = ?, has_about_author = ?, about_author_bio = ?, preset_theme = ?, trim_size = ?, font_family = ?, font_size = ?, line_spacing = ?, first_line_indent = ?, first_paragraph_drop_cap = ?, chapter_numbering_style = ?, scene_break_ornament = ?, header_verso = ?, header_recto = ?, include_page_numbers = ?, reading_direction = ? WHERE id = ?",
             params![
                 if config.has_title_page { 1 } else { 0 },
                 config.subtitle,
@@ -941,13 +953,14 @@ fn save_book_formatting(state: tauri::State<'_, DbState>, config: BookFormatConf
                 config.header_verso,
                 config.header_recto,
                 if config.include_page_numbers { 1 } else { 0 },
+                config.reading_direction,
                 id
             ],
         ).map_err(|e| e.to_string())?;
         Ok(id)
     } else {
         conn.execute(
-            "INSERT INTO book_formatting (novel_id, has_title_page, subtitle, author_name, publisher_name, has_copyright_page, copyright_year, isbn, edition_notice, has_dedication, dedication_text, has_epigraph, epigraph_quote, epigraph_author, has_table_of_contents, has_foreword, foreword_title, foreword_content, has_epilogue, epilogue_title, epilogue_content, has_acknowledgments, acknowledgments_content, has_about_author, about_author_bio, preset_theme, trim_size, font_family, font_size, line_spacing, first_line_indent, first_paragraph_drop_cap, chapter_numbering_style, scene_break_ornament, header_verso, header_recto, include_page_numbers) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO book_formatting (novel_id, has_title_page, subtitle, author_name, publisher_name, has_copyright_page, copyright_year, isbn, edition_notice, has_dedication, dedication_text, has_epigraph, epigraph_quote, epigraph_author, has_table_of_contents, has_foreword, foreword_title, foreword_content, has_epilogue, epilogue_title, epilogue_content, has_acknowledgments, acknowledgments_content, has_about_author, about_author_bio, preset_theme, trim_size, font_family, font_size, line_spacing, first_line_indent, first_paragraph_drop_cap, chapter_numbering_style, scene_break_ornament, header_verso, header_recto, include_page_numbers, reading_direction) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             params![
                 config.novel_id,
                 if config.has_title_page { 1 } else { 0 },
@@ -985,7 +998,8 @@ fn save_book_formatting(state: tauri::State<'_, DbState>, config: BookFormatConf
                 config.scene_break_ornament,
                 config.header_verso,
                 config.header_recto,
-                if config.include_page_numbers { 1 } else { 0 }
+                if config.include_page_numbers { 1 } else { 0 },
+                config.reading_direction
             ],
         ).map_err(|e| e.to_string())?;
         Ok(conn.last_insert_rowid())

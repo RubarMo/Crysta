@@ -1,0 +1,61 @@
+/* Bundled offline book fonts (SIL OFL). Same family names as the Google Fonts
+ * fallback, so the browser picks these local files first — preview, print,
+ * and measurement all work fully offline. EPUB/PDF export embeds these files
+ * directly (see bookExportService font embedding). */
+
+@font-face {
+  font-family: 'Amiri';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/amiri-regular.woff') format('woff');
+}
+@font-face {
+  font-family: 'Amiri';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/amiri-italic.woff') format('woff');
+}
+@font-face {
+  font-family: 'Amiri';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/amiri-bold.woff') format('woff');
+}
+@font-face {
+  font-family: 'Amiri';
+  font-style: italic;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/amiri-bolditalic.woff') format('woff');
+}
+@font-face {
+  font-family: 'Noto Naskh Arabic';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/noto-naskh-arabic-regular.woff') format('woff');
+}
+@font-face {
+  font-family: 'Noto Naskh Arabic';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/noto-naskh-arabic-bold.woff') format('woff');
+}
+@font-face {
+  font-family: 'Cairo';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/cairo-regular.woff') format('woff');
+}
+@font-face {
+  font-family: 'Cairo';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/cairo-bold.woff') format('woff');
+}

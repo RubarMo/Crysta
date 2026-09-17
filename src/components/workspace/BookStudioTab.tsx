@@ -1,7 +1,23 @@
-import React, { useState, useEffect, useMemo, useRef, useLayoutEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Novel, Chapter, BookFormatConfig, getBookFormatting, saveBookFormatting } from '../../lib';
 import { useLanguage } from '../../LanguageContext';
-import { BookExportService } from '../../services/bookExportService';
+import type { LocaleKeys } from '../../locales';
+import {
+  BookExportService,
+  paginateBook,
+  paginateBookAsync,
+  BookPage,
+  TRIM_SIZES,
+  BOOK_THEMES,
+  applyBookTheme,
+  detectBookTheme,
+  buildBookPrintCss,
+  renderBookPageContent,
+  getBookPageHeaderText,
+  getPagePaddings,
+  detectBookRtl,
+  resolveBookRtl,
+} from '../../services/bookExportService';
 import { 
   BookOpen, 
   FileText, 
@@ -14,35 +30,16 @@ import {
   Eye,
   ChevronLeft,
   ChevronRight,
-  BookCopy
+  BookCopy,
+  ZoomIn,
+  ZoomOut,
+  Maximize
 } from 'lucide-react';
 
 interface BookStudioTabProps {
   activeNovel: Novel;
   chapters: Chapter[];
   onAutoSaveStatus?: (isSaving: boolean) => void;
-}
-
-const PREVIEW_PAGE_WIDTH = 380;
-const PREVIEW_PAGE_HEIGHT = 580;
-const PREVIEW_CONTENT_WIDTH = 324;
-const PREVIEW_CONTENT_HEIGHT = 480;
-const PREVIEW_COLUMN_GAP = 40;
-
-interface BookPreviewPage {
-  id: string;
-  type: 'title' | 'copyright' | 'dedication' | 'epigraph' | 'foreword' | 'chapter' | 'epilogue' | 'about_author';
-  title?: string;
-  subtitle?: string;
-  author?: string;
-  publisher?: string;
-  paragraphs?: string[];
-  pageNumber: number | null;
-  side: 'recto' | 'verso';
-  pageInChapter: number;
-  totalChapterPages?: number;
-  chapterIndex?: number;
-  isChapterStart?: boolean;
 }
 
 export const BookStudioTab: React.FC<BookStudioTabProps> = ({
@@ -58,11 +55,24 @@ export const BookStudioTab: React.FC<BookStudioTabProps> = ({
   const [isExporting, setIsExporting] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
+  // BOOK direction follows the book's own language — never the app UI language.
+  // An Arabic novel edited with an English UI must still bind/print as RTL.
+  const detectedBookRtl = useMemo(() => {
+    if (!config) return isRtl;
+    return detectBookRtl(activeNovel, chapters, config);
+  }, [config, activeNovel, chapters, isRtl]);
+  const bookRtl = useMemo(() => {
+    if (!config) return isRtl;
+    return resolveBookRtl(activeNovel, chapters, config);
+  }, [config, activeNovel, chapters, isRtl]);
+
   // Preview State
   const [previewPageIndex, setPreviewPageIndex] = useState(0);
   const [isSpreadView, setIsSpreadView] = useState(false);
-  const [chapterPageCounts, setChapterPageCounts] = useState<Record<string, number>>({});
-  const measureRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const [previewZoom, setPreviewZoom] = useState(1);
+
+  // Export wizard state (Reedsy-style: format → size → style → export)
+  const [exportFormat, setExportFormat] = useState<'epub' | 'pdf' | 'docx'>('pdf');
 
   // Load config on mount
   useEffect(() => {
@@ -107,13 +117,13 @@ export const BookStudioTab: React.FC<BookStudioTabProps> = ({
     setIsExporting(format);
     try {
       if (format === 'epub') {
-        await BookExportService.exportEpub(activeNovel, chapters, config, isRtl);
+        await BookExportService.exportEpub(activeNovel, chapters, config, bookRtl);
       } else if (format === 'docx') {
-        await BookExportService.exportDocx(activeNovel, chapters, config, isRtl);
+        await BookExportService.exportDocx(activeNovel, chapters, config, bookRtl);
       } else if (format === 'pdf') {
-        BookExportService.exportPrintPdf(activeNovel, chapters, config, isRtl);
+        await BookExportService.exportPrintPdf(activeNovel, chapters, config, bookRtl);
       } else if (format === 'html') {
-        BookExportService.downloadPrintHtml(activeNovel, chapters, config, isRtl);
+        await BookExportService.downloadPrintHtml(activeNovel, chapters, config, bookRtl);
       }
     } catch (err) {
       console.error('Export error:', err);
@@ -123,213 +133,101 @@ export const BookStudioTab: React.FC<BookStudioTabProps> = ({
     }
   };
 
-  // Measure exact column pages using native CSS multi-column engine
-  const updateMeasurements = () => {
-    const newCounts: Record<string, number> = {};
-    let changed = false;
+  // Instant estimate for first paint; replaced by measured pages below.
+  const previewPages: BookPage[] = useMemo(() => {
+    if (!config) return [];
+    return paginateBook(activeNovel, chapters, config, bookRtl);
+  }, [config, activeNovel, chapters, bookRtl]);
 
-    Object.entries(measureRefs.current).forEach(([key, el]) => {
-      if (el) {
-        const scrollW = el.scrollWidth;
-        const count = Math.max(1, Math.round((scrollW + PREVIEW_COLUMN_GAP) / (PREVIEW_CONTENT_WIDTH + PREVIEW_COLUMN_GAP)));
-        newCounts[key] = count;
-        if (chapterPageCounts[key] !== count) {
-          changed = true;
-        }
-      }
+  // Measured pages: real browser line boxes (fonts, shaping, headings).
+  // This is the same pagination the PDF export prints — preview === PDF.
+  const [measuredPages, setMeasuredPages] = useState<BookPage[] | null>(null);
+  useEffect(() => {
+    if (!config) {
+      setMeasuredPages(null);
+      return;
+    }
+    setMeasuredPages(null);
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      paginateBookAsync(activeNovel, chapters, config, bookRtl)
+        .then((pages) => {
+          if (!cancelled) setMeasuredPages(pages);
+        })
+        .catch((err) => {
+          console.warn('Preview measurement failed:', err);
+          if (!cancelled) setMeasuredPages(null);
+        });
+    }, 350);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [config, activeNovel, chapters, bookRtl]);
+
+  const displayPages: BookPage[] = measuredPages ?? previewPages;
+
+  // Single shared print stylesheet — the preview injects the exact CSS the PDF uses.
+  const printCss = useMemo(() => {
+    if (!config) return '';
+    return buildBookPrintCss(config, bookRtl);
+  }, [config, bookRtl]);
+
+  const trimInfo = useMemo(() => {
+    if (!config) return TRIM_SIZES.us_trade_6x9;
+    return TRIM_SIZES[config.trim_size || 'us_trade_6x9'] || TRIM_SIZES.us_trade_6x9;
+  }, [config]);
+
+  // Chapter-start index for quick navigation.
+  const chapterStartPages = useMemo(() => {
+    return displayPages
+      .map((p, idx) => ({ p, idx }))
+      .filter(({ p }) => p.isChapterStart && (p.type === 'chapter' || p.type === 'foreword' || p.type === 'epilogue'));
+  }, [displayPages]);
+
+  // Proper book spreads: page 1 stands alone (front cover side), then verso+recto pairs.
+  // [0] , [1,2] , [3,4] , ... (0-based indices). RTL mirrors the visual order.
+  const spreadStartIndex = useMemo(() => {
+    if (!isSpreadView) return previewPageIndex;
+    if (previewPageIndex === 0) return 0;
+    return previewPageIndex % 2 === 1 ? previewPageIndex : previewPageIndex - 1;
+  }, [previewPageIndex, isSpreadView]);
+
+  const visiblePages: BookPage[] = useMemo(() => {
+    if (displayPages.length === 0) return [];
+    if (!isSpreadView) return displayPages[previewPageIndex] ? [displayPages[previewPageIndex]] : [];
+    if (spreadStartIndex === 0) return [displayPages[0]];
+    const pair = [displayPages[spreadStartIndex], displayPages[spreadStartIndex + 1]].filter(Boolean) as BookPage[];
+    return bookRtl ? [...pair].reverse() : pair;
+  }, [displayPages, previewPageIndex, isSpreadView, spreadStartIndex, bookRtl]);
+
+  const goPrevPage = () => {
+    setPreviewPageIndex((prev) => Math.max(0, prev - (isSpreadView ? (prev <= 1 ? 1 : 2) : 1)));
+  };
+  const goNextPage = () => {
+    setPreviewPageIndex((prev) => {
+      const step = isSpreadView ? 2 : 1;
+      // From the lone opening page, a spread step lands on the first full spread.
+      if (isSpreadView && prev === 0) return Math.min(displayPages.length - 1, 1);
+      return Math.min(displayPages.length - 1, prev + step);
     });
-
-    if (changed || Object.keys(newCounts).length !== Object.keys(chapterPageCounts).length) {
-      setChapterPageCounts(newCounts);
+  };
+  const toggleSpreadView = () => {
+    if (!isSpreadView) {
+      // Snap to the start of the current spread when entering spread mode.
+      setPreviewPageIndex((prev) => (prev === 0 ? 0 : prev % 2 === 1 ? prev : Math.max(1, prev - 1)));
+      setIsSpreadView(true);
+    } else {
+      setIsSpreadView(false);
     }
   };
-
-  useLayoutEffect(() => {
-    updateMeasurements();
-  });
-
-  useEffect(() => {
-    // Re-measure when web fonts finish downloading
-    if (document.fonts) {
-      document.fonts.ready.then(() => {
-        updateMeasurements();
-      });
-    }
-  }, [config?.font_family]);
-
-  // Compile full paginated list of pages for live preview
-  const previewPages: BookPreviewPage[] = useMemo(() => {
-    if (!config) return [];
-    const pages: BookPreviewPage[] = [];
-    let pageCount = 0;
-
-    // 1. Title Page (Front matter: page 1, hidden number)
-    if (config.has_title_page) {
-      pageCount++;
-      pages.push({
-        id: 'title_page',
-        type: 'title',
-        title: activeNovel.title,
-        subtitle: config.subtitle,
-        author: config.author_name || (isRtl ? 'المؤلف' : 'Author'),
-        publisher: config.publisher_name,
-        pageNumber: null,
-        side: pageCount % 2 === 1 ? 'recto' : 'verso',
-        pageInChapter: 0,
-      });
-    }
-
-    // 2. Copyright Page (Front matter: page 2, hidden number)
-    if (config.has_copyright_page) {
-      pageCount++;
-      pages.push({
-        id: 'copyright_page',
-        type: 'copyright',
-        title: activeNovel.title,
-        author: config.author_name || '',
-        pageNumber: null,
-        side: pageCount % 2 === 1 ? 'recto' : 'verso',
-        pageInChapter: 0,
-      });
-    }
-
-    // 3. Dedication Page (Front matter: hidden number)
-    if (config.has_dedication && config.dedication_text) {
-      pageCount++;
-      pages.push({
-        id: 'dedication_page',
-        type: 'dedication',
-        paragraphs: config.dedication_text.split('\n').filter(Boolean),
-        pageNumber: null,
-        side: pageCount % 2 === 1 ? 'recto' : 'verso',
-        pageInChapter: 0,
-      });
-    }
-
-    // 4. Epigraph Page (Front matter: hidden number)
-    if (config.has_epigraph && config.epigraph_quote) {
-      pageCount++;
-      pages.push({
-        id: 'epigraph_page',
-        type: 'epigraph',
-        title: config.epigraph_quote,
-        author: config.epigraph_author,
-        pageNumber: null,
-        side: pageCount % 2 === 1 ? 'recto' : 'verso',
-        pageInChapter: 0,
-      });
-    }
-
-    // 5. Foreword Page (Front matter: hidden number)
-    if (config.has_foreword && config.foreword_content) {
-      const fCount = chapterPageCounts['foreword'] || 1;
-      const paras = config.foreword_content.split('\n\n').filter(Boolean);
-      for (let pIdx = 0; pIdx < fCount; pIdx++) {
-        pageCount++;
-        pages.push({
-          id: `foreword_page_${pIdx + 1}`,
-          type: 'foreword',
-          title: config.foreword_title || (isRtl ? 'مقدمة' : 'Foreword'),
-          paragraphs: paras,
-          pageNumber: null,
-          side: pageCount % 2 === 1 ? 'recto' : 'verso',
-          pageInChapter: pIdx,
-          totalChapterPages: fCount,
-          isChapterStart: pIdx === 0,
-        });
-      }
-    }
-
-    // 6. Chapters (Continues sequential physical page numbering starting where front matter ended)
-    chapters.forEach((ch, chIdx) => {
-      const chTitle = ch.title || `${isRtl ? 'الفصل' : 'Chapter'} ${chIdx + 1}`;
-      const rawContent = ch.content.trim();
-      const paras = rawContent ? rawContent.split('\n\n').filter(Boolean) : [isRtl ? '(محتوى الفصل فارغ حالياً...)' : '(Chapter content is currently empty...)'];
-      const chCount = chapterPageCounts[`ch_${chIdx}`] || 1;
-
-      for (let pIdx = 0; pIdx < chCount; pIdx++) {
-        pageCount++;
-        pages.push({
-          id: `ch_${ch.id || chIdx}_page_${pIdx + 1}`,
-          type: 'chapter',
-          title: chTitle,
-          paragraphs: paras,
-          pageNumber: config.include_page_numbers ? pageCount : null,
-          side: pageCount % 2 === 1 ? 'recto' : 'verso',
-          pageInChapter: pIdx,
-          totalChapterPages: chCount,
-          chapterIndex: chIdx,
-          isChapterStart: pIdx === 0,
-        });
-      }
-    });
-
-    // 7. Epilogue
-    if (config.has_epilogue && config.epilogue_content) {
-      const epiCount = chapterPageCounts['epilogue'] || 1;
-      const paras = config.epilogue_content.split('\n\n').filter(Boolean);
-      for (let pIdx = 0; pIdx < epiCount; pIdx++) {
-        pageCount++;
-        pages.push({
-          id: `epilogue_page_${pIdx + 1}`,
-          type: 'epilogue',
-          title: config.epilogue_title || (isRtl ? 'خاتمة' : 'Epilogue'),
-          paragraphs: paras,
-          pageNumber: config.include_page_numbers ? pageCount : null,
-          side: pageCount % 2 === 1 ? 'recto' : 'verso',
-          pageInChapter: pIdx,
-          totalChapterPages: epiCount,
-          isChapterStart: pIdx === 0,
-        });
-      }
-    }
-
-    // 8. About the Author
-    if (config.has_about_author && config.about_author_bio) {
-      pageCount++;
-      pages.push({
-        id: 'about_author_page',
-        type: 'about_author',
-        title: isRtl ? 'عن المؤلف' : 'About the Author',
-        paragraphs: config.about_author_bio.split('\n\n').filter(Boolean),
-        pageNumber: config.include_page_numbers ? pageCount : null,
-        side: pageCount % 2 === 1 ? 'recto' : 'verso',
-        pageInChapter: 0,
-        isChapterStart: true,
-      });
-    }
-
-    return pages;
-  }, [config, activeNovel, chapters, isRtl, chapterPageCounts]);
 
   // Keep preview page index within valid bounds
   useEffect(() => {
-    if (previewPageIndex >= previewPages.length && previewPages.length > 0) {
-      setPreviewPageIndex(previewPages.length - 1);
+    if (previewPageIndex >= displayPages.length && displayPages.length > 0) {
+      setPreviewPageIndex(displayPages.length - 1);
     }
-  }, [previewPages.length, previewPageIndex]);
-
-  // Get active font family style
-  const getFontFamilyStyle = (font: string) => {
-    switch (font) {
-      case 'Dubai': return "'Dubai', 'Segoe UI', 'Amiri', sans-serif";
-      case 'Amiri': return "'Amiri', 'Traditional Arabic', serif";
-      case 'Cairo': return "'Cairo', sans-serif";
-      case 'Scheherazade New': return "'Scheherazade New', 'Amiri', serif";
-      case 'Noto Naskh Arabic': return "'Noto Naskh Arabic', 'Amiri', serif";
-      case 'Almarai': return "'Almarai', sans-serif";
-      case 'Readex Pro': return "'Readex Pro', sans-serif";
-      case 'EB Garamond': return "'EB Garamond', Garamond, Georgia, serif";
-      case 'Lora': return "'Lora', Georgia, serif";
-      case 'Cinzel': return "'Cinzel', Georgia, serif";
-      case 'Merriweather': return "'Merriweather', Georgia, serif";
-      case 'Times New Roman': return "'Times New Roman', Times, serif";
-      case 'Georgia': return "Georgia, serif";
-      default: return "'Amiri', 'EB Garamond', serif";
-    }
-  };
-
-  const currentFontFamily = getFontFamilyStyle(config?.font_family || 'Amiri');
+  }, [displayPages.length, previewPageIndex]);
 
   if (!config) {
     return (
@@ -611,6 +509,24 @@ export const BookStudioTab: React.FC<BookStudioTabProps> = ({
             <div className="p-4 border-2 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] shadow-[3px_3px_0px_var(--shadow-ink)] grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="text-xs font-heading font-black text-[var(--text-primary)] block mb-1">
+                  {t('readingDirectionLabel')}
+                </label>
+                <select
+                  value={config.reading_direction || 'auto'}
+                  onChange={(e) => updateConfig({ reading_direction: e.target.value })}
+                  className="w-full text-xs p-2 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] cursor-pointer"
+                >
+                  <option value="auto">{t('readingDirectionAuto')} ({detectedBookRtl ? (isRtl ? 'يمين ← يسار' : 'RTL') : (isRtl ? 'يسار ← يمين' : 'LTR')})</option>
+                  <option value="rtl">{t('readingDirectionRtl')}</option>
+                  <option value="ltr">{t('readingDirectionLtr')}</option>
+                </select>
+                <p className="text-[10px] text-[var(--text-secondary)] mt-1">
+                  {t('readingDirectionHint')}
+                </p>
+              </div>
+
+              <div>
+                <label className="text-xs font-heading font-black text-[var(--text-primary)] block mb-1">
                   {t('trimSizeLabel')}
                 </label>
                 <select
@@ -730,40 +646,76 @@ export const BookStudioTab: React.FC<BookStudioTabProps> = ({
           </div>
         )}
 
-        {/* TAB 4: LIVE BOOK PREVIEW */}
+        {/* TAB 4: LIVE BOOK PREVIEW — renders the exact print HTML/CSS the PDF exports */}
         {activeSubTab === 'preview' && (
           <div className="space-y-4">
+            <style>{printCss}</style>
             <div className="p-3 border-3 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] shadow-[3px_3px_0px_var(--shadow-ink)] flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => setPreviewPageIndex((prev) => Math.max(0, prev - (isSpreadView ? 2 : 1)))}
+                  onClick={goPrevPage}
                   disabled={previewPageIndex === 0}
                   className="p-1.5 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-yellow)] hover:text-black hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
                   title={t('prevPage')}
                 >
                   <ChevronRight className="w-4 h-4 rtl:rotate-0 ltr:rotate-180" />
                 </button>
-                <span className="text-xs font-heading font-black px-2 py-1 bg-[var(--bg-surface)] border-2 border-[var(--border-ink)] shadow-[1px_1px_0px_var(--shadow-ink)]">
-                  {isSpreadView
-                    ? `${previewPageIndex + 1} - ${Math.min(previewPages.length, previewPageIndex + 2)} / ${previewPages.length}`
-                    : `${previewPageIndex + 1} / ${previewPages.length}`}
+                <span className="text-xs font-heading font-black px-2 py-1 bg-[var(--bg-surface)] border-2 border-[var(--border-ink)] shadow-[1px_1px_0px_var(--shadow-ink)] whitespace-nowrap">
+                  {isSpreadView && spreadStartIndex > 0
+                    ? `${spreadStartIndex + 1}–${Math.min(displayPages.length, spreadStartIndex + 2)} / ${displayPages.length}`
+                    : `${previewPageIndex + 1} / ${displayPages.length}`}
                 </span>
                 <button
                   type="button"
-                  onClick={() => setPreviewPageIndex((prev) => Math.min(previewPages.length - 1, prev + (isSpreadView ? 2 : 1)))}
-                  disabled={isSpreadView ? previewPageIndex >= previewPages.length - 2 : previewPageIndex >= previewPages.length - 1}
+                  onClick={goNextPage}
+                  disabled={previewPageIndex >= displayPages.length - 1}
                   className="p-1.5 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-yellow)] hover:text-black hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
                   title={t('nextPage')}
                 >
                   <ChevronLeft className="w-4 h-4 rtl:rotate-0 ltr:rotate-180" />
                 </button>
+                <input
+                  type="range"
+                  min={0}
+                  max={Math.max(0, displayPages.length - 1)}
+                  value={previewPageIndex}
+                  onChange={(e) => setPreviewPageIndex(Number(e.target.value))}
+                  className="w-24 md:w-36 accent-black cursor-pointer"
+                  title={`${previewPageIndex + 1} / ${displayPages.length}`}
+                />
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                {chapterStartPages.length > 0 && (
+                  <select
+                    value={previewPageIndex}
+                    onChange={(e) => setPreviewPageIndex(Number(e.target.value))}
+                    className="text-xs px-2 py-1.5 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] cursor-pointer max-w-[180px]"
+                    title={isRtl ? 'انتقال إلى فصل' : 'Jump to section'}
+                  >
+                    {chapterStartPages.map(({ p, idx }) => (
+                      <option key={p.id} value={idx}>
+                        {(p.chapterTitle || p.type).slice(0, 32)} — {idx + 1}
+                      </option>
+                    ))}
+                  </select>
+                )}
+                <div className="flex items-center gap-1 px-1.5 py-1 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] shadow-[2px_2px_0px_var(--shadow-ink)]">
+                  <button type="button" onClick={() => setPreviewZoom((z) => Math.max(0.5, +(z - 0.15).toFixed(2)))} className="p-1 hover:bg-[var(--pastel-yellow)] cursor-pointer" title="Zoom out">
+                    <ZoomOut className="w-3.5 h-3.5" />
+                  </button>
+                  <span className="text-[11px] font-mono font-bold min-w-[44px] text-center">{Math.round(previewZoom * 100)}%</span>
+                  <button type="button" onClick={() => setPreviewZoom((z) => Math.min(2, +(z + 0.15).toFixed(2)))} className="p-1 hover:bg-[var(--pastel-yellow)] cursor-pointer" title="Zoom in">
+                    <ZoomIn className="w-3.5 h-3.5" />
+                  </button>
+                  <button type="button" onClick={() => setPreviewZoom(1)} className="p-1 hover:bg-[var(--pastel-yellow)] cursor-pointer" title="Reset zoom">
+                    <Maximize className="w-3.5 h-3.5" />
+                  </button>
+                </div>
                 <button
                   type="button"
-                  onClick={() => setIsSpreadView(!isSpreadView)}
+                  onClick={toggleSpreadView}
                   className={`px-2.5 py-1.5 text-xs font-heading font-black border-2 border-[var(--border-ink)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center gap-1.5 ${
                     isSpreadView ? 'bg-[var(--pastel-yellow)] text-black' : 'bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)]'
                   }`}
@@ -774,221 +726,61 @@ export const BookStudioTab: React.FC<BookStudioTabProps> = ({
               </div>
             </div>
 
-            <div className="flex justify-center items-center p-4 md:p-8 bg-[#2A2B2E] border-3 border-[var(--border-ink)] shadow-[5px_5px_0px_var(--shadow-ink)] overflow-x-auto min-h-[600px]">
-              <div className="flex gap-4 md:gap-8 justify-center items-stretch max-w-full">
-                {previewPages[previewPageIndex] && (
-                  <RenderPreviewPaperPage
-                    page={previewPages[previewPageIndex]}
-                    config={config}
-                    fontFamily={currentFontFamily}
-                    isRtl={isRtl}
-                  />
-                )}
-                {isSpreadView && previewPages[previewPageIndex + 1] && (
-                  <RenderPreviewPaperPage
-                    page={previewPages[previewPageIndex + 1]}
-                    config={config}
-                    fontFamily={currentFontFamily}
-                    isRtl={isRtl}
-                  />
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* TAB 5: EXPORT & DOWNLOAD */}
-        {activeSubTab === 'export' && (
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="p-4 border-3 border-[var(--border-ink)] bg-[var(--pastel-sky)] text-black shadow-[4px_4px_0px_var(--shadow-ink)] flex flex-col justify-between space-y-4">
-                <div>
-                  <div className="p-2 bg-[var(--bg-surface)] border-2 border-[var(--border-ink)] inline-block shadow-[2px_2px_0px_var(--shadow-ink)] mb-2">
-                    <FileCode className="w-6 h-6 text-black" />
-                  </div>
-                  <h3 className="text-sm font-heading font-black">EPUB 3 eBook</h3>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => handleExport('epub')}
-                  disabled={isExporting !== null}
-                  className="w-full py-2 px-3 text-xs font-heading font-black border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-yellow)] hover:text-black hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer disabled:opacity-50"
-                >
-                  {isExporting === 'epub' ? t('exporting') : t('exportEpubBtn')}
-                </button>
-              </div>
-
-              <div className="p-4 border-3 border-[var(--border-ink)] bg-[var(--pastel-lavender)] text-black shadow-[4px_4px_0px_var(--shadow-ink)] flex flex-col justify-between space-y-4">
-                <div>
-                  <div className="p-2 bg-[var(--bg-surface)] border-2 border-[var(--border-ink)] inline-block shadow-[2px_2px_0px_var(--shadow-ink)] mb-2">
-                    <FileText className="w-6 h-6 text-black" />
-                  </div>
-                  <h3 className="text-sm font-heading font-black">Word Manuscript (DOCX)</h3>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => handleExport('docx')}
-                  disabled={isExporting !== null}
-                  className="w-full py-2 px-3 text-xs font-heading font-black border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-yellow)] hover:text-black hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer disabled:opacity-50"
-                >
-                  {isExporting === 'docx' ? t('exporting') : t('exportDocxBtn')}
-                </button>
-              </div>
-
-              <div className="p-4 border-3 border-[var(--border-ink)] bg-[var(--pastel-mint)] text-black shadow-[4px_4px_0px_var(--shadow-ink)] flex flex-col justify-between space-y-4">
-                <div>
-                  <div className="p-2 bg-[var(--bg-surface)] border-2 border-[var(--border-ink)] inline-block shadow-[2px_2px_0px_var(--shadow-ink)] mb-2">
-                    <Printer className="w-6 h-6 text-black" />
-                  </div>
-                  <h3 className="text-sm font-heading font-black">Print-Ready PDF</h3>
-                </div>
-                <div className="space-y-2">
-                  <button
-                    type="button"
-                    onClick={() => handleExport('pdf')}
-                    disabled={isExporting !== null}
-                    className="w-full py-2 px-3 text-xs font-heading font-black border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-yellow)] hover:text-black hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer disabled:opacity-50"
-                  >
-                    {isExporting === 'pdf' ? t('exporting') : t('exportPdfBtn')}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleExport('html')}
-                    disabled={isExporting !== null}
-                    className="w-full py-1.5 px-3 text-[11px] font-heading font-bold border-2 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] text-[var(--text-secondary)] hover:bg-black hover:text-white hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer disabled:opacity-50"
-                    title={t('downloadHtmlBtn')}
-                  >
-                    {t('downloadHtmlBtn')}
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div className="p-4 border-2 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] shadow-[2px_2px_0px_var(--shadow-ink)] text-xs text-[var(--text-secondary)]">
-              <span className="font-heading font-black text-[var(--text-primary)] block mb-1">
-                {t('statsChaptersCount')}: {chapters.length} {t('chapters')}
+            <div className="px-3 py-1 text-[11px] font-mono text-[var(--text-secondary)] flex flex-wrap gap-x-4 gap-y-1">
+              <span>{trimInfo.name} — {trimInfo.width} × {trimInfo.height}</span>
+              <span>{displayPages.length} {isRtl ? 'صفحة' : 'pages'}</span>
+              <span>
+                {measuredPages
+                  ? (isRtl ? 'قياس دقيق للصفحات ✓' : 'precise layout ✓')
+                  : (isRtl ? 'جارٍ قياس الصفحات…' : 'measuring layout…')}
               </span>
+              <span>
+                {bookRtl
+                  ? (isRtl ? 'اتجاه الكتاب: يمين ← يسار (تجليد يمين)' : 'Book: RTL (binds right)')
+                  : (isRtl ? 'اتجاه الكتاب: يسار ← يمين (تجليد يسار)' : 'Book: LTR (binds left)')}
+              </span>
+              <span>{isRtl ? 'الهامش الداخلي 0.85in / الخارجي 0.65in' : 'Inside 0.85in / Outside 0.65in'}</span>
+              <span className="opacity-80">{isRtl ? 'المعاينة مطابقة لملف PDF' : 'Preview = PDF output'}</span>
             </div>
-          </div>
-        )}
-      </div>
 
-      {/* Hidden Offscreen Measurement DOM: Used by CSS multi-column engine to measure exact page counts */}
-      <div
-        aria-hidden="true"
-        style={{
-          position: 'fixed',
-          top: '-99999px',
-          left: '-99999px',
-          visibility: 'hidden',
-          pointerEvents: 'none',
-          zIndex: -9999,
-        }}
-      >
-        {/* Measure Foreword */}
-        {config.has_foreword && config.foreword_content && (
-          <div
-            ref={(el) => { measureRefs.current['foreword'] = el; }}
-            style={{
-              width: `${PREVIEW_CONTENT_WIDTH}px`,
-              height: `${PREVIEW_CONTENT_HEIGHT}px`,
-              columnWidth: `${PREVIEW_CONTENT_WIDTH}px`,
-              columnGap: `${PREVIEW_COLUMN_GAP}px`,
-              columnFill: 'auto',
-              direction: isRtl ? 'rtl' : 'ltr',
-              fontFamily: currentFontFamily,
-              fontSize: `${config.font_size || 11}pt`,
-              lineHeight: config.line_spacing || 1.45,
-              textAlign: 'justify',
-            }}
-          >
-            <h2 className="font-black text-center mb-6 mt-1 leading-snug" style={{ fontSize: `${(config.font_size || 11) * 1.5}pt` }}>
-              {config.foreword_title || (isRtl ? 'مقدمة' : 'Foreword')}
-            </h2>
-            <div>
-              {config.foreword_content.split('\n\n').filter(Boolean).map((p, i) => (
-                <p key={i} className="leading-relaxed" style={{ margin: 0, textIndent: i === 0 ? '0' : config.first_line_indent ? '1.5em' : '0' }}>
-                  {p}
-                </p>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Measure Chapters */}
-        {chapters.map((ch, idx) => {
-          const chTitle = ch.title || `${isRtl ? 'الفصل' : 'Chapter'} ${idx + 1}`;
-          const rawContent = ch.content.trim();
-          const paras = rawContent ? rawContent.split('\n\n').filter(Boolean) : [isRtl ? '(محتوى الفصل فارغ حالياً...)' : '(Chapter content is currently empty...)'];
-
-          return (
-            <div
-              key={`measure_ch_${ch.id || idx}`}
-              ref={(el) => { measureRefs.current[`ch_${idx}`] = el; }}
-              style={{
-                width: `${PREVIEW_CONTENT_WIDTH}px`,
-                height: `${PREVIEW_CONTENT_HEIGHT}px`,
-                columnWidth: `${PREVIEW_CONTENT_WIDTH}px`,
-                columnGap: `${PREVIEW_COLUMN_GAP}px`,
-                columnFill: 'auto',
-                direction: isRtl ? 'rtl' : 'ltr',
-                fontFamily: currentFontFamily,
-                fontSize: `${config.font_size || 11}pt`,
-                lineHeight: config.line_spacing || 1.45,
-                textAlign: 'justify',
-              }}
-            >
-              <h2 className="font-black text-center mb-6 mt-1 leading-snug" style={{ fontSize: `${(config.font_size || 11) * 1.5}pt` }}>
-                {chTitle}
-              </h2>
-              <div>
-                {paras.map((p, pIdx) => {
-                  if (p.trim() === '* * *' || p.trim() === config.scene_break_ornament) {
-                    return (
-                      <div key={pIdx} className="text-center font-mono font-bold my-4 text-xs tracking-widest" style={{ breakInside: 'avoid' }}>
-                        {config.scene_break_ornament || '* * *'}
-                      </div>
-                    );
-                  }
-                  return (
-                    <p key={pIdx} className="leading-relaxed" style={{ margin: 0, textIndent: pIdx === 0 ? '0' : config.first_line_indent ? '1.5em' : '0' }}>
-                      {p}
-                    </p>
-                  );
-                })}
+            <div className="flex justify-center items-start p-4 md:p-8 bg-[#2A2B2E] border-3 border-[var(--border-ink)] shadow-[5px_5px_0px_var(--shadow-ink)] overflow-auto min-h-[600px]">
+              <div className="flex gap-4 md:gap-8 justify-center items-start max-w-full">
+                {visiblePages.map((page) => (
+                  <RenderPreviewPaperPage
+                    key={page.id}
+                    page={page}
+                    config={config}
+                    novel={activeNovel}
+                    isRtl={bookRtl}
+                    zoom={previewZoom}
+                  />
+                ))}
+                {visiblePages.length === 0 && (
+                  <div className="text-gray-300 text-xs font-mono p-8">
+                    {isRtl ? 'لا توجد صفحات للمعاينة بعد.' : 'No pages to preview yet.'}
+                  </div>
+                )}
               </div>
             </div>
-          );
-        })}
-
-        {/* Measure Epilogue */}
-        {config.has_epilogue && config.epilogue_content && (
-          <div
-            ref={(el) => { measureRefs.current['epilogue'] = el; }}
-            style={{
-              width: `${PREVIEW_CONTENT_WIDTH}px`,
-              height: `${PREVIEW_CONTENT_HEIGHT}px`,
-              columnWidth: `${PREVIEW_CONTENT_WIDTH}px`,
-              columnGap: `${PREVIEW_COLUMN_GAP}px`,
-              columnFill: 'auto',
-              direction: isRtl ? 'rtl' : 'ltr',
-              fontFamily: currentFontFamily,
-              fontSize: `${config.font_size || 11}pt`,
-              lineHeight: config.line_spacing || 1.45,
-              textAlign: 'justify',
-            }}
-          >
-            <h2 className="font-black text-center mb-6 mt-1 leading-snug" style={{ fontSize: `${(config.font_size || 11) * 1.5}pt` }}>
-              {config.epilogue_title || (isRtl ? 'خاتمة' : 'Epilogue')}
-            </h2>
-            <div>
-              {config.epilogue_content.split('\n\n').filter(Boolean).map((p, i) => (
-                <p key={i} className="leading-relaxed" style={{ margin: 0, textIndent: i === 0 ? '0' : config.first_line_indent ? '1.5em' : '0' }}>
-                  {p}
-                </p>
-              ))}
-            </div>
           </div>
+        )}
+
+        {/* TAB 5: EXPORT WIZARD (format → size → style → export) */}
+        {activeSubTab === 'export' && (
+          <ExportWizard
+            t={t}
+            isRtl={isRtl}
+            bookRtl={bookRtl}
+            config={config}
+            chapters={chapters}
+            displayPages={displayPages}
+            measured={measuredPages !== null}
+            isExporting={isExporting}
+            exportFormat={exportFormat}
+            setExportFormat={setExportFormat}
+            updateConfig={updateConfig}
+            handleExport={handleExport}
+          />
         )}
       </div>
     </div>
@@ -996,147 +788,300 @@ export const BookStudioTab: React.FC<BookStudioTabProps> = ({
 };
 
 /**
- * Individual Page Paper Component for Live WYSIWYG Book Preview
+ * Reedsy-style export wizard: 1 format → 2 size → 3 style → 4 export.
+ * Neubrutalist cards, same design language as the rest of the app.
  */
-const RenderPreviewPaperPage: React.FC<{
-  page: BookPreviewPage;
-  config: BookFormatConfig;
-  fontFamily: string;
+const ExportWizard: React.FC<{
+  t: (key: LocaleKeys) => string;
   isRtl: boolean;
-}> = ({ page, config, fontFamily, isRtl }) => {
+  bookRtl: boolean;
+  config: BookFormatConfig;
+  chapters: Chapter[];
+  displayPages: BookPage[];
+  measured: boolean;
+  isExporting: string | null;
+  exportFormat: 'epub' | 'pdf' | 'docx';
+  setExportFormat: (f: 'epub' | 'pdf' | 'docx') => void;
+  updateConfig: (updates: Partial<BookFormatConfig>) => void;
+  handleExport: (format: 'pdf' | 'epub' | 'docx' | 'html') => void;
+}> = ({
+  t, isRtl, bookRtl, config, chapters, displayPages, measured,
+  isExporting, exportFormat, setExportFormat, updateConfig, handleExport,
+}) => {
+  const activeThemeId = detectBookTheme(config);
+  const totalWords = chapters.reduce(
+    (n, ch) => n + (ch.content ? ch.content.split(/\s+/).filter(Boolean).length : 0),
+    0
+  );
+  const trim = TRIM_SIZES[config.trim_size || 'us_trade_6x9'] || TRIM_SIZES.us_trade_6x9;
+
+  const stepBadge = (n: number) => (
+    <span className="inline-flex items-center justify-center w-6 h-6 text-xs font-heading font-black bg-black text-white border-2 border-[var(--border-ink)] shadow-[2px_2px_0px_var(--shadow-ink)] shrink-0">
+      {n}
+    </span>
+  );
+  const stepTitle = (n: number, label: string) => (
+    <div className="flex items-center gap-2 mb-3">
+      {stepBadge(n)}
+      <h3 className="text-sm font-heading font-black text-[var(--text-primary)]">{label}</h3>
+    </div>
+  );
+
+  const formats = [
+    { id: 'epub' as const, icon: FileCode, color: 'var(--pastel-sky)', title: t('wizardFormatEpubTitle'), desc: t('wizardFormatEpubDesc') },
+    { id: 'pdf' as const, icon: Printer, color: 'var(--pastel-mint)', title: t('wizardFormatPdfTitle'), desc: t('wizardFormatPdfDesc') },
+    { id: 'docx' as const, icon: FileText, color: 'var(--pastel-lavender)', title: t('wizardFormatDocxTitle'), desc: t('wizardFormatDocxDesc') },
+  ];
+
   return (
-    <div
-      className="bg-[#FFFFFC] text-[#111111] border-2 border-black shadow-[6px_6px_0px_rgba(0,0,0,0.6)] flex flex-col justify-between shrink-0 select-text transition-all relative overflow-hidden"
-      style={{
-        width: `${PREVIEW_PAGE_WIDTH}px`,
-        height: `${PREVIEW_PAGE_HEIGHT}px`,
-        padding: '24px 28px 16px 28px',
-      }}
-    >
-      {/* 1. Title Page */}
-      {page.type === 'title' && (
-        <div className="flex-1 flex flex-col justify-between text-center py-8">
-          <div className="space-y-3 mt-8">
-            <h1 className="text-2xl sm:text-3xl font-black leading-tight">{page.title}</h1>
-            {page.subtitle && <p className="text-sm text-gray-600 font-serif">{page.subtitle}</p>}
-          </div>
-          <div className="space-y-3 mb-4">
-            <p className="text-base font-bold">{page.author}</p>
-            {page.publisher && <p className="text-xs text-gray-500">{page.publisher}</p>}
-          </div>
-        </div>
-      )}
-
-      {/* 2. Copyright Page */}
-      {page.type === 'copyright' && (
-        <div className="flex-1 flex flex-col justify-end text-center text-[11px] space-y-2 pb-6 leading-relaxed text-gray-700">
-          <p className="font-bold text-xs text-black">{page.title}</p>
-          <p>© {config.copyright_year || '2026'} {page.author}</p>
-          {config.edition_notice && <p>{config.edition_notice}</p>}
-          {config.isbn && <p>ISBN: {config.isbn}</p>}
-          <p className="text-[10px] text-gray-500 pt-3">
-            {isRtl
-              ? 'جميع الحقوق محفوظة. لا يجوز نسخ أو إعادة إنتاج أي جزء من هذا الكتاب دون إذن مسبق.'
-              : 'All rights reserved. No part of this publication may be reproduced without prior permission.'}
-          </p>
-        </div>
-      )}
-
-      {/* 3. Dedication Page */}
-      {page.type === 'dedication' && (
-        <div className="flex-1 flex flex-col justify-center text-center italic space-y-3 px-6">
-          {page.paragraphs?.map((line, i) => (
-            <p key={i} className="font-serif text-[12pt] leading-relaxed m-0">{line}</p>
-          ))}
-        </div>
-      )}
-
-      {/* 4. Epigraph Page */}
-      {page.type === 'epigraph' && (
-        <div className="flex-1 flex flex-col justify-center text-center italic space-y-4 px-6">
-          <p className="text-sm font-serif leading-relaxed">«{page.title}»</p>
-          {page.author && <p className="text-xs font-bold not-italic text-gray-700">— {page.author}</p>}
-        </div>
-      )}
-
-      {/* 5. Chapters, Foreword, Epilogue, About Author (CSS Multi-column flow) */}
-      {(page.type === 'chapter' || page.type === 'foreword' || page.type === 'epilogue' || page.type === 'about_author') && (
-        <div
-          className="w-full flex-1 overflow-hidden relative"
-          style={{
-            height: `${PREVIEW_CONTENT_HEIGHT}px`,
-            width: `${PREVIEW_CONTENT_WIDTH}px`,
-          }}
-        >
-          <div
-            style={{
-              width: `${PREVIEW_CONTENT_WIDTH}px`,
-              height: `${PREVIEW_CONTENT_HEIGHT}px`,
-              columnWidth: `${PREVIEW_CONTENT_WIDTH}px`,
-              columnGap: `${PREVIEW_COLUMN_GAP}px`,
-              columnFill: 'auto',
-              direction: isRtl ? 'rtl' : 'ltr',
-              fontFamily,
-              fontSize: `${config.font_size || 11}pt`,
-              lineHeight: config.line_spacing || 1.45,
-              textAlign: 'justify',
-              transform: isRtl
-                ? `translateX(${page.pageInChapter * (PREVIEW_CONTENT_WIDTH + PREVIEW_COLUMN_GAP)}px)`
-                : `translateX(-${page.pageInChapter * (PREVIEW_CONTENT_WIDTH + PREVIEW_COLUMN_GAP)}px)`,
-            }}
-          >
-            {page.title && (
-              <h2
-                className="font-black text-center mb-6 mt-1 leading-snug"
-                style={{ fontSize: `${(config.font_size || 11) * 1.5}pt` }}
+    <div className="space-y-4">
+      {/* STEP 1 — format */}
+      <div className="p-4 border-2 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] shadow-[3px_3px_0px_var(--shadow-ink)]">
+        {stepTitle(1, t('wizardStepFormat'))}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {formats.map(({ id, icon: Icon, color, title, desc }) => {
+            const active = exportFormat === id;
+            return (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setExportFormat(id)}
+                className="p-3 border-3 border-[var(--border-ink)] text-black text-start cursor-pointer transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
+                style={{ backgroundColor: color, boxShadow: active ? '5px 5px 0px var(--shadow-ink)' : '2px 2px 0px var(--shadow-ink)', transform: active ? 'translate(-1px, -1px)' : undefined, outline: active ? '3px solid black' : undefined, outlineOffset: active ? '2px' : undefined }}
               >
-                {page.title}
-              </h2>
-            )}
-            <div>
-              {page.paragraphs?.map((p, idx) => {
-                if (p.trim() === '* * *' || p.trim() === config.scene_break_ornament) {
-                  return (
-                    <div
-                      key={idx}
-                      className="text-center font-mono font-bold my-4 text-xs tracking-widest"
-                      style={{ breakInside: 'avoid' }}
-                    >
-                      {config.scene_break_ornament || '* * *'}
-                    </div>
-                  );
-                }
-                return (
-                  <p
-                    key={idx}
-                    className="leading-relaxed"
-                    style={{
-                      margin: 0,
-                      textIndent:
-                        idx === 0
-                          ? '0'
-                          : config.first_line_indent
-                          ? '1.5em'
-                          : '0',
-                    }}
-                  >
-                    {p}
-                  </p>
-                );
-              })}
-            </div>
-          </div>
+                <span className="p-1.5 bg-[var(--bg-surface)] border-2 border-[var(--border-ink)] inline-block shadow-[2px_2px_0px_var(--shadow-ink)] mb-2">
+                  <Icon className="w-5 h-5 text-black" />
+                </span>
+                <span className="text-sm font-heading font-black block">{title}</span>
+                <span className="text-[11px] font-sans block mt-1 leading-snug">{desc}</span>
+              </button>
+            );
+          })}
         </div>
-      )}
+      </div>
 
-      {/* Running Footer with Page Number */}
-      <div className="h-7 flex items-center justify-center font-serif font-bold text-gray-800 shrink-0 select-none text-[10.5pt]">
-        {page.pageNumber !== null ? (
-          <span>{page.pageNumber}</span>
+      {/* STEP 2 — size (print only; ebooks reflow) */}
+      <div className="p-4 border-2 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] shadow-[3px_3px_0px_var(--shadow-ink)]">
+        {stepTitle(2, t('wizardStepSize'))}
+        {exportFormat === 'pdf' ? (
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+            {Object.entries(TRIM_SIZES).map(([id, info]) => {
+              const active = (config.trim_size || 'us_trade_6x9') === id;
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => updateConfig({ trim_size: id })}
+                  className={`p-2.5 border-2 border-[var(--border-ink)] text-start cursor-pointer transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none ${
+                    active ? 'bg-[var(--pastel-yellow)] text-black shadow-[3px_3px_0px_var(--shadow-ink)]' : 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[1px_1px_0px_var(--shadow-ink)]'
+                  }`}
+                >
+                  <span className="text-xs font-heading font-black block">{info.name}</span>
+                  <span className="text-[10px] font-mono opacity-70 block">{info.width} × {info.height}</span>
+                </button>
+              );
+            })}
+          </div>
         ) : (
-          <span className="opacity-0">-</span>
+          <p className="text-xs text-[var(--text-secondary)] font-sans">
+            {exportFormat === 'epub' ? t('wizardSizeEpubNote') : t('wizardSizeDocxNote')}
+          </p>
         )}
       </div>
+
+      {/* STEP 3 — theme + options */}
+      <div className="p-4 border-2 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] shadow-[3px_3px_0px_var(--shadow-ink)]">
+        {stepTitle(3, t('wizardStepStyle'))}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {BOOK_THEMES.map((theme) => {
+            const active = activeThemeId === theme.id;
+            return (
+              <button
+                key={theme.id}
+                type="button"
+                onClick={() => updateConfig(applyBookTheme(config, theme.id))}
+                className={`p-3 border-3 border-[var(--border-ink)] bg-[#FFFFFC] text-[#111] text-start cursor-pointer transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none ${
+                  active ? 'shadow-[5px_5px_0px_var(--shadow-ink)]' : 'shadow-[2px_2px_0px_var(--shadow-ink)]'
+                }`}
+                style={{ outline: active ? '3px solid black' : undefined, outlineOffset: active ? '2px' : undefined, transform: active ? 'translate(-1px, -1px)' : undefined }}
+              >
+                <span className="text-sm font-black block" style={{ fontFamily: `'${theme.font_family}', serif` }}>
+                  {(t as (k: string) => string)(`wizardTheme_${theme.id}_name`)}
+                </span>
+                <span className="text-[11px] block mt-0.5 opacity-70" style={{ fontFamily: `'${theme.font_family}', serif` }}>
+                  {(t as (k: string) => string)(`wizardTheme_${theme.id}_desc`)}
+                </span>
+                <span className="text-base block mt-2 leading-relaxed" style={{ fontFamily: `'${theme.font_family}', serif` }} dir={bookRtl ? 'rtl' : 'ltr'}>
+                  {bookRtl ? 'كان يا ما كان في قديم الزمان' : 'It was a bright cold day in April'}
+                </span>
+                <span className="text-[10px] font-mono block mt-1 opacity-60" dir="ltr">
+                  {theme.font_family} · {theme.font_size}pt · {theme.line_spacing}x
+                </span>
+              </button>
+            );
+          })}
+        </div>
+        {!activeThemeId && (
+          <p className="text-[11px] font-mono text-[var(--text-secondary)] mt-2">
+            {t('wizardThemeCustom')}
+          </p>
+        )}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
+          <label className="flex items-center gap-2 cursor-pointer text-xs font-heading font-bold text-[var(--text-primary)]">
+            <input
+              type="checkbox"
+              checked={config.include_page_numbers}
+              onChange={(e) => updateConfig({ include_page_numbers: e.target.checked })}
+              className="w-4 h-4 accent-black cursor-pointer"
+            />
+            {t('includePageNumbersLabel')}
+          </label>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-heading font-bold text-[var(--text-primary)]">{t('sceneBreakLabel')}</span>
+            <input
+              type="text"
+              value={config.scene_break_ornament}
+              onChange={(e) => updateConfig({ scene_break_ornament: e.target.value })}
+              className="w-28 text-xs p-1.5 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] text-center font-mono focus:outline-none"
+            />
+          </div>
+          <div className="text-xs font-mono text-[var(--text-secondary)] flex items-center">
+            {bookRtl ? t('wizardBookRtl') : t('wizardBookLtr')}
+          </div>
+        </div>
+      </div>
+
+      {/* STEP 4 — review + export */}
+      <div className="p-4 border-3 border-[var(--border-ink)] bg-[var(--pastel-yellow)] text-black shadow-[4px_4px_0px_var(--shadow-ink)]">
+        {stepTitle(4, t('wizardStepExport'))}
+        <div className="text-xs font-sans leading-relaxed mb-3" dir={isRtl ? 'rtl' : 'ltr'}>
+          <span className="font-bold">{t('wizardSummaryFormat')}: </span>
+          {exportFormat === 'pdf' ? t('wizardFormatPdfTitle') : exportFormat === 'epub' ? t('wizardFormatEpubTitle') : t('wizardFormatDocxTitle')}
+          {exportFormat === 'pdf' && (<><span className="font-bold"> · {t('wizardSummarySize')}: </span>{trim.name}</>)}
+          <span className="font-bold"> · {t('wizardSummaryStyle')}: </span>
+          {activeThemeId ? (t as (k: string) => string)(`wizardTheme_${activeThemeId}_name`) : t('wizardThemeCustomShort')}
+          <span className="font-bold"> · {t('wizardSummaryContent')}: </span>
+          {chapters.length} {t('chapters')} · {totalWords.toLocaleString()} {t('zenWords')} · {displayPages.length} {t('wizardSummaryPages')}
+          {!measured && exportFormat === 'pdf' && <span className="opacity-70"> ({t('wizardMeasuring')})</span>}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => handleExport(exportFormat)}
+            disabled={isExporting !== null}
+            className="px-5 py-2.5 text-sm font-heading font-black border-2 border-[var(--border-ink)] bg-black text-white shadow-[3px_3px_0px_rgba(0,0,0,0.4)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer disabled:opacity-50 flex items-center gap-2"
+          >
+            <Download className="w-4 h-4" />
+            {isExporting ? t('exporting') : t('wizardExportBtn')}
+          </button>
+          {exportFormat === 'pdf' && (
+            <button
+              type="button"
+              onClick={() => handleExport('html')}
+              disabled={isExporting !== null}
+              className="px-4 py-2.5 text-xs font-heading font-bold border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-black hover:text-white transition-all cursor-pointer disabled:opacity-50"
+              title={t('downloadHtmlBtn')}
+            >
+              {t('downloadHtmlBtn')}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/**
+ * Single paper page for the live preview. Uses the EXACT same HTML builders as
+ * the PDF export (renderBookPageContent + header helpers) and the shared print
+ * CSS injected by the parent, so preview === PDF by construction.
+ */
+const RenderPreviewPaperPage: React.FC<{
+  page: BookPage;
+  config: BookFormatConfig;
+  novel: Novel;
+  isRtl: boolean;
+  zoom?: number;
+}> = ({ page, config, novel, isRtl, zoom = 1 }) => {
+  const trim = TRIM_SIZES[config.trim_size || 'us_trade_6x9'] || TRIM_SIZES.us_trade_6x9;
+  const pageHeightPx = Math.round(trim.heightIn * 96);
+  const pageWidthPx = Math.round(trim.widthIn * 96);
+  const baseHeight = 580;
+  const scale = (baseHeight / pageHeightPx) * zoom;
+  const scaledWidth = Math.round(pageWidthPx * scale);
+  const scaledHeight = Math.round(pageHeightPx * scale);
+  const paddings = getPagePaddings(page.side, isRtl);
+  const headerText = getBookPageHeaderText(page, novel.title);
+  const bodyHtml = React.useMemo(
+    () => renderBookPageContent(page, novel, config, isRtl),
+    [page, novel, config, isRtl]
+  );
+
+  const pageLabel = page.isChapterStart && page.chapterTitle
+    ? page.chapterTitle
+    : `${page.type} · ${page.side}${page.pageNumber !== null ? ` · ${page.pageNumber}` : ''}`;
+
+  // Overflow guard: if the browser lays this page out taller than the fixed
+  // trim box (fractional line rounding, tall Arabic diacritics), flag it instead
+  // of silently clipping the last line like before.
+  const bodyRef = React.useRef<HTMLDivElement>(null);
+  const [hasOverflow, setHasOverflow] = React.useState(false);
+  React.useLayoutEffect(() => {
+    const el = bodyRef.current;
+    if (!el) return;
+    const check = () => {
+      try {
+        setHasOverflow(el.scrollHeight > el.clientHeight + 2);
+      } catch {
+        /* ignore */
+      }
+    };
+    check();
+    const raf = requestAnimationFrame(check);
+    return () => cancelAnimationFrame(raf);
+  }, [bodyHtml, pageWidthPx, pageHeightPx, scale]);
+
+  return (
+    <div className="shrink-0 flex flex-col items-center gap-2 select-text">
+      <div
+        className="relative"
+        style={{ width: `${scaledWidth}px`, height: `${scaledHeight}px` }}
+      >
+        <div
+          className="book-page absolute top-0 left-0 overflow-hidden"
+          dir={isRtl ? 'rtl' : 'ltr'}
+          style={{
+            width: `${pageWidthPx}px`,
+            height: `${pageHeightPx}px`,
+            transform: `scale(${scale})`,
+            transformOrigin: 'top left',
+            paddingTop: '0.75in',
+            paddingBottom: '0.75in',
+            paddingLeft: paddings.left,
+            paddingRight: paddings.right,
+            boxSizing: 'border-box',
+            background: '#FFFFFC',
+            color: '#111111',
+            boxShadow: '6px 6px 0px rgba(0,0,0,0.6)',
+            border: hasOverflow ? '2px solid #DC2626' : '2px solid #000',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+          }}
+        >
+          <div className="page-header" style={{ height: '24pt', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{headerText}</div>
+          <div ref={bodyRef} className="page-body" style={{ flex: '1 1 auto', minHeight: 0, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', overflow: 'hidden' }} dangerouslySetInnerHTML={{ __html: bodyHtml }} />
+          <div className="page-footer" style={{ height: '24pt', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{page.pageNumber !== null ? <span>{page.pageNumber}</span> : <span style={{ opacity: 0 }}>–</span>}</div>
+        </div>
+      </div>
+      <div className="text-[10px] font-mono text-gray-400 max-w-[220px] truncate" title={pageLabel}>
+        {pageLabel}
+      </div>
+      {hasOverflow && (
+        <div className="text-[10px] font-bold px-2 py-0.5 bg-red-600 text-white border border-black" title={isRtl ? 'النص أطول من الصفحة — قد يُقص السطر الأخير في PDF' : 'Text overflows this page — last line may clip in PDF'}>
+          {isRtl ? '⚠ تجاوز النص حد الصفحة' : '⚠ Text overflow'}
+        </div>
+      )}
     </div>
   );
 };

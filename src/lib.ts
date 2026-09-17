@@ -91,6 +91,8 @@ export interface BookFormatConfig {
   header_verso: string;
   header_recto: string;
   include_page_numbers: boolean;
+  /** Book reading direction: 'auto' (detect from content), 'rtl', or 'ltr'. */
+  reading_direction?: string;
 }
 
 export interface SnapshotInfo {
