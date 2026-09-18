@@ -1,0 +1,17 @@
+# Ignore Android generated build scripts and wrappers
+src-tauri/gen/
+
+# Ignore static assets and media files (icons, svgs)
+src-tauri/icons/
+public/
+
+# Ignore JSON configuration and editor files
+*.json
+.vscode/
+
+# Ignore build and packaging scripts
+scripts/
+
+# Ignore ambient TypeScript type declarations
+src/types/
+src/vite-env.d.ts
