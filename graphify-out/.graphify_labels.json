@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {
   "0": "lib.ts",
   "1": "lib.rs",
@@ -26,3 +27,6 @@
   "24": "material-web.d.ts",
   "25": "vite-env.d.ts"
 }
+=======
+{"0": "Snowflake Story Domain", "1": "Database & Connection Management", "2": "Snowflake Story Domain", "3": "Snowflake Story Domain", "4": "Snowflake Story Domain", "5": "Project File & Lifecycle", "6": "Database & Connection Management", "7": "Subsystem (ref_tailwindcss_vite)", "8": "Subsystem (build.rs)", "9": "Subsystem (main.rs)", "10": "Subsystem (Graphify Knowledge Rules)", "11": "Architecture & Design Guidelines"}
+>>>>>>> removing-the-book-preview-in-the-book-studio-tab

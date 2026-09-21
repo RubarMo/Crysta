@@ -1,4 +1,5 @@
 {
+<<<<<<< HEAD
   ".vscode/extensions.json": {
     "mtime": 1790002687.9012966,
     "seen": 1790002693.5565562,
@@ -682,5 +683,222 @@
     "seen": 1790002693.556775,
     "ast_hash": "f0402b67b6ce880f65666bb49e841696",
     "semantic_hash": ""
+=======
+  "src-tauri/Cargo.toml": {
+    "mtime": 1789466033.5806847,
+    "seen": 1789718709.6384275,
+    "ast_hash": "32c3f692a009e0255c19fb9ffebad5bd",
+    "semantic_hash": "32c3f692a009e0255c19fb9ffebad5bd"
+  },
+  "src-tauri/build.rs": {
+    "mtime": 1789466033.5806847,
+    "seen": 1789718709.6384308,
+    "ast_hash": "1be34a5c61c2c35365de3dab14298f0b",
+    "semantic_hash": "1be34a5c61c2c35365de3dab14298f0b"
+  },
+  "src-tauri/src/commands/export.rs": {
+    "mtime": 1789716290.8426569,
+    "seen": 1789718709.6384325,
+    "ast_hash": "108efcc1a31f7424b7ae2252a38c2cc4",
+    "semantic_hash": "108efcc1a31f7424b7ae2252a38c2cc4"
+  },
+  "src-tauri/src/commands/mod.rs": {
+    "mtime": 1789716303.7195866,
+    "seen": 1789718709.6384332,
+    "ast_hash": "d8bc26bb8290b27671781a93768ec043",
+    "semantic_hash": "d8bc26bb8290b27671781a93768ec043"
+  },
+  "src-tauri/src/commands/novel.rs": {
+    "mtime": 1789716223.7594254,
+    "seen": 1789718709.6384337,
+    "ast_hash": "df5e22dddf1c647c44d3f691139bd6b1",
+    "semantic_hash": "df5e22dddf1c647c44d3f691139bd6b1"
+  },
+  "src-tauri/src/commands/project.rs": {
+    "mtime": 1789716402.9991243,
+    "seen": 1789718709.6384346,
+    "ast_hash": "648a068be4eb725d51a50f1aa8ad38ca",
+    "semantic_hash": "648a068be4eb725d51a50f1aa8ad38ca"
+  },
+  "src-tauri/src/commands/snapshots.rs": {
+    "mtime": 1789716264.0416143,
+    "seen": 1789718709.6384356,
+    "ast_hash": "fef863b5e1bcd56296140a96962f8893",
+    "semantic_hash": "fef863b5e1bcd56296140a96962f8893"
+  },
+  "src-tauri/src/commands/story.rs": {
+    "mtime": 1789716241.8035798,
+    "seen": 1789718709.638436,
+    "ast_hash": "44e5cc077fafbd368470768509c2a321",
+    "semantic_hash": "44e5cc077fafbd368470768509c2a321"
+  },
+  "src-tauri/src/db.rs": {
+    "mtime": 1789716872.553215,
+    "seen": 1789718709.6384368,
+    "ast_hash": "9434c309d35a880e6070460cb1a88e41",
+    "semantic_hash": "9434c309d35a880e6070460cb1a88e41"
+  },
+  "src-tauri/src/lib.rs": {
+    "mtime": 1789716321.7640998,
+    "seen": 1789718709.6384373,
+    "ast_hash": "f2c10c7f17a766c73bc1c04cae1457f2",
+    "semantic_hash": "f2c10c7f17a766c73bc1c04cae1457f2"
+  },
+  "src-tauri/src/main.rs": {
+    "mtime": 1789466033.6374772,
+    "seen": 1789718709.6384382,
+    "ast_hash": "e62519ab35125067c0baaa456a606e82",
+    "semantic_hash": "e62519ab35125067c0baaa456a606e82"
+  },
+  "src-tauri/src/models.rs": {
+    "mtime": 1789716156.7149336,
+    "seen": 1789718709.638439,
+    "ast_hash": "7709b0e9212086d7ea920df581008e9f",
+    "semantic_hash": "7709b0e9212086d7ea920df581008e9f"
+  },
+  "src/App.tsx": {
+    "mtime": 1789466033.6394758,
+    "seen": 1789718709.6384397,
+    "ast_hash": "38705a35831b387aa388c1e232eae5bc",
+    "semantic_hash": "38705a35831b387aa388c1e232eae5bc"
+  },
+  "src/LanguageContext.tsx": {
+    "mtime": 1789466033.6404774,
+    "seen": 1789718709.6384404,
+    "ast_hash": "22845c75cb483e44456937d58760720e",
+    "semantic_hash": "22845c75cb483e44456937d58760720e"
+  },
+  "src/components/Sidebar.tsx": {
+    "mtime": 1789466033.642528,
+    "seen": 1789718709.6384413,
+    "ast_hash": "d62881785e14340e88555400392a9bc5",
+    "semantic_hash": "d62881785e14340e88555400392a9bc5"
+  },
+  "src/components/ThemeToggle.tsx": {
+    "mtime": 1789466033.642528,
+    "seen": 1789718709.6384418,
+    "ast_hash": "74541eaa4f552534d1c65091cd960808",
+    "semantic_hash": "74541eaa4f552534d1c65091cd960808"
+  },
+  "src/components/WordCounter.tsx": {
+    "mtime": 1789466033.643528,
+    "seen": 1789718709.6384423,
+    "ast_hash": "7228636286eee20369336bd56eb4728d",
+    "semantic_hash": "7228636286eee20369336bd56eb4728d"
+  },
+  "src/components/Workspace.tsx": {
+    "mtime": 1789716729.433066,
+    "seen": 1789718709.638443,
+    "ast_hash": "683e3391cbd2e98dbd44e22b39423f14",
+    "semantic_hash": "683e3391cbd2e98dbd44e22b39423f14"
+  },
+  "src/components/workspace/BookStudioTab.tsx": {
+    "mtime": 1789637533.0311365,
+    "seen": 1789718709.6384435,
+    "ast_hash": "53a436889a29fe2ae1079f84d56377bc",
+    "semantic_hash": "53a436889a29fe2ae1079f84d56377bc"
+  },
+  "src/components/workspace/CommandPaletteDialog.tsx": {
+    "mtime": 1789466033.6465347,
+    "seen": 1789718709.6384442,
+    "ast_hash": "9f4d68893a4e489836095c049b32d745",
+    "semantic_hash": "9f4d68893a4e489836095c049b32d745"
+  },
+  "src/components/workspace/ReferenceDrawerPanel.tsx": {
+    "mtime": 1789466033.6479106,
+    "seen": 1789718709.6384451,
+    "ast_hash": "92193a48304fb48603d3624316a53944",
+    "semantic_hash": "92193a48304fb48603d3624316a53944"
+  },
+  "src/components/workspace/SceneMatrixView.tsx": {
+    "mtime": 1789466033.6489677,
+    "seen": 1789718709.6384456,
+    "ast_hash": "f11ed76b6d59b8d7e4fb7984916792b8",
+    "semantic_hash": "f11ed76b6d59b8d7e4fb7984916792b8"
+  },
+  "src/components/workspace/SnapshotsModal.tsx": {
+    "mtime": 1789466033.6489677,
+    "seen": 1789718709.6384466,
+    "ast_hash": "a9d9a8d093757c303522db7b3f8c150d",
+    "semantic_hash": "a9d9a8d093757c303522db7b3f8c150d"
+  },
+  "src/components/workspace/StepReferenceCard.tsx": {
+    "mtime": 1789466033.6504724,
+    "seen": 1789718709.638447,
+    "ast_hash": "534ef13d4823313c7863c18ce6bb5348",
+    "semantic_hash": "534ef13d4823313c7863c18ce6bb5348"
+  },
+  "src/components/workspace/WriteNovelTab.tsx": {
+    "mtime": 1789466033.651477,
+    "seen": 1789718709.6384475,
+    "ast_hash": "0c1366aece61a58acc4546aa4c179e73",
+    "semantic_hash": "0c1366aece61a58acc4546aa4c179e73"
+  },
+  "src/components/workspace/ZenModeView.tsx": {
+    "mtime": 1789466033.65248,
+    "seen": 1789718709.6384485,
+    "ast_hash": "370b1b84e18968e4bd48191eb6103746",
+    "semantic_hash": "370b1b84e18968e4bd48191eb6103746"
+  },
+  "src/hooks/useWorkspaceData.ts": {
+    "mtime": 1789716693.6355796,
+    "seen": 1789718709.638449,
+    "ast_hash": "fbbfdb8f7c551abe5177391446bf4279",
+    "semantic_hash": "fbbfdb8f7c551abe5177391446bf4279"
+  },
+  "src/lib.ts": {
+    "mtime": 1789636673.0234835,
+    "seen": 1789718709.6384497,
+    "ast_hash": "e00c4f2b1de0d2dd9ce021ab4ad49b52",
+    "semantic_hash": "e00c4f2b1de0d2dd9ce021ab4ad49b52"
+  },
+  "src/locales.ts": {
+    "mtime": 1789636683.2568917,
+    "seen": 1789718709.6384504,
+    "ast_hash": "f0a834128259932ae60f9a1c5a3ede63",
+    "semantic_hash": "f0a834128259932ae60f9a1c5a3ede63"
+  },
+  "src/main.tsx": {
+    "mtime": 1789626814.5526588,
+    "seen": 1789718709.6384509,
+    "ast_hash": "8744422f0040d9d9738f1f38fa9bdc67",
+    "semantic_hash": "8744422f0040d9d9738f1f38fa9bdc67"
+  },
+  "src/services/bookExportService.ts": {
+    "mtime": 1789636700.6665263,
+    "seen": 1789718709.6384518,
+    "ast_hash": "108a7ffe8ad5d0e172f5f77b94943c93",
+    "semantic_hash": "108a7ffe8ad5d0e172f5f77b94943c93"
+  },
+  "vite.config.ts": {
+    "mtime": 1789466033.659994,
+    "seen": 1789718709.6384525,
+    "ast_hash": "29dc2630c859adfe101c8e65fce517cc",
+    "semantic_hash": "29dc2630c859adfe101c8e65fce517cc"
+  },
+  ".agents/rules/graphify.md": {
+    "mtime": 1789714178.8054948,
+    "seen": 1789718709.6384532,
+    "ast_hash": "a0e4d192b9e2e17256124dbfc8e24e6a",
+    "semantic_hash": "a0e4d192b9e2e17256124dbfc8e24e6a"
+  },
+  ".agents/rules/neubrutalism-ui.md": {
+    "mtime": 1789466033.5706706,
+    "seen": 1789718709.638454,
+    "ast_hash": "aef62e5df93275d0845efca441051f59",
+    "semantic_hash": "aef62e5df93275d0845efca441051f59"
+  },
+  ".github/workflows/release.yml": {
+    "mtime": 1789466033.5736756,
+    "seen": 1789718709.6384547,
+    "ast_hash": "3a40ffe8fa789fccd19dd3eeb4814347",
+    "semantic_hash": "3a40ffe8fa789fccd19dd3eeb4814347"
+  },
+  "README.md": {
+    "mtime": 1789466033.5746696,
+    "seen": 1789718709.6384559,
+    "ast_hash": "87aea5c70b7a60dba6dee691d32f0913",
+    "semantic_hash": "87aea5c70b7a60dba6dee691d32f0913"
+>>>>>>> removing-the-book-preview-in-the-book-studio-tab
   }
 }

@@ -10,3 +10,4 @@
 *.md text eol=lf
 *.cjs text eol=lf
 *.lock text eol=lf
+graphify-out/graph.json merge=graphify
