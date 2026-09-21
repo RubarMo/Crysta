@@ -26,6 +26,3 @@ dist-ssr
 
 # Local SQLite databases
 snowflake_data.db
-
-# Graphify transient cache
-graphify-out/cache/
