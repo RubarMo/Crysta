@@ -99,10 +99,17 @@ jobs:
           packages: 'platform-tools'
 
       - name: Setup Android NDK
+        id: setup-ndk
         uses: nttld/setup-ndk@v1
         with:
           ndk-version: r26d
           link-to-sdk: true
+
+      - name: Set NDK Environment Variables
+        run: |
+          echo "NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}" >> $GITHUB_ENV
+          echo "ANDROID_NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}" >> $GITHUB_ENV
+          echo "ANDROID_NDK_ROOT=${{ steps.setup-ndk.outputs.ndk-path }}" >> $GITHUB_ENV
 
       - name: Install Node.js
         uses: actions/setup-node@v4
@@ -130,7 +137,9 @@ jobs:
       - name: Build Android App (Release APK and AAB)
         run: npx tauri android build --apk --aab
         env:
-          NDK_HOME: ${{ env.ANDROID_NDK_HOME }}
+          NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+          ANDROID_NDK_ROOT: ${{ steps.setup-ndk.outputs.ndk-path }}
 
       - name: Upload Android Release Assets
         uses: softprops/action-gh-release@v2
