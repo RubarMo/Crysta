@@ -1,52 +1,52 @@
 {
-  "version": "2.8.0",
-  "notes": "Crysta 2.8.0 focuses on keeping your writing safe and making book exports complete.\r\n\r\nYOUR WRITING IS SAFER\r\n- Edits are no longer lost when you switch chapters, steps or tabs quickly, close the project, or close the window.\r\n- Text no longer jumps back while you are typing during a save.\r\n- Restoring a snapshot now shows the restored version right away. Crysta first saves your current state as a snapshot, so a restore can be undone.\r\n- Opening a project that was moved or deleted now says the file can't be found, instead of creating an empty project in its place. The project stays in your recent list.\r\n- Only the 10 most recent automatic snapshots are kept. Manual snapshots are never deleted.\r\n\r\nCOMPLETE BOOK EXPORTS\r\n- EPUB, Word and PDF exports now include every chapter, including ones written in the current session.\r\n- Every line you write is its own paragraph.\r\n- New formatting in the chapter editor: *italic*, **bold**, and *** on its own line for a scene break.\r\n- Word exports now include the title, copyright, dedication, epigraph, foreword, epilogue, acknowledgments and about-the-author pages, a table of contents, page numbers and real chapter headings.\r\n- New Book Studio options: book language (sets right-to-left or left-to-right), print page size, chapter numbering, scene break symbol, table of contents and acknowledgments.\r\n- Chapter headings now show the chapter number above the title. Choose \"Title only\" under Typography & Layout to keep the old look.\r\n- PDF exports use your chosen font even when you are offline.\r\n\r\nEASIER TO USE\r\n- Novel details on the dashboard save automatically.\r\n- Step 10 can save your whole outline as a Markdown file.\r\n- Zen mode remembers its theme, width and text size, and goes fullscreen.\r\n- The command palette (Ctrl+K) can toggle Zen mode and the reference panel, and take a snapshot.\r\n- Fonts are built into the app, so it looks the same offline, and dark mode no longer flashes white on startup.\r\n- Clearer error messages, better keyboard navigation in dialogs, and every label translated into Arabic and English.\r\n\r\nGOOD TO KNOW\r\n- Your projects are upgraded automatically the first time you open them in 2.8.0.\r\n- Exporting files on Android isn't supported yet; the app now tells you instead of doing nothing.",
-  "pub_date": "2026-10-01T11:18:10Z",
+  "version": "2.8.1",
+  "notes": "Crysta 2.8.1 makes the app calmer and easier to read.\r\n\r\n- A cleaner writing page: a book font at a larger size, with comfortable line length and no frame around the text.\r\n- English text now reads left-to-right even when the app is in Arabic.\r\n- Larger text across the app, especially in Arabic.\r\n- A quieter sidebar and lists: only the item you're on is highlighted.\r\n- Dark mode now shows clear edges around cards and panels.\r\n- The dashboard shows your next step and progress toward your word goal.\r\n- Step 1 now counts toward its 15-word limit.\r\n- The start screen shows each project's word count and progress.\r\n- Shorter, clearer titles throughout, in Arabic and English.",
+  "pub_date": "2026-10-01T12:10:25Z",
   "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEY1MzY3QkNEREREQzZBRUEKUldUcWF0emR6WHMyOWFqNUhMbzlvRHhGUTJQcTJrK2RUS2IrTDVkOEV1RFBUaXZXNzF0NnlEYmQK",
   "platforms": {
     "linux-x86_64-rpm": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUcWF0emR6WHMyOWU0QUVoTHdYNzArQ3BtM0tseDcweWRPMWFOWmFvS0NORnBjc0xFKzNCYm9Lbk4rV0pvOHRjYzFFazZOUm8rOHcxaWYwRGdDRS9GZThDcHF3SmNYbFEwPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkwODUzMjEwCWZpbGU6Q3J5c3RhLTIuOC4wLTEueDg2XzY0LnJwbQpzdDhxMlFRT0FTRmNpV2JnT3ZXUXlHQXVJUzBuZWtxajBGYzZyUDgrN2owMnhrdDFiT0pnR2lITFlTaTB5U2dDbVlQQ3dqaUZyTWN6QkZkZ1V6SjVDdz09Cg==",
-      "url": "https://github.com/RubarMo/Crysta/releases/download/v2.8.0/Crysta-2.8.0-1.x86_64.rpm"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUcWF0emR6WHMyOWE4SUVNY0xWbUFieHNyamNkMU14MVJ5R3hFb1lqTmtpN0V2TjhUd05RSVRweXk0cWFqN29tZUpvL0hnOU8rWVJNMEp0OWJSVFRIZU9DVXVmdU1uQ3c4PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkwODU2MDMxCWZpbGU6Q3J5c3RhLTIuOC4xLTEueDg2XzY0LnJwbQpFdHppQ1NFbDdqdkNKTEpqbVNNM09tdVB0ZHFGZ1Vab1phaUhwYkJJRzBxYTh2dTVvbVhRdGN0a1NWclJsd0IrV0paYitwZmFxSFF3a0o2c0YvRlZBUT09Cg==",
+      "url": "https://github.com/RubarMo/Crysta/releases/download/v2.8.1/Crysta-2.8.1-1.x86_64.rpm"
     },
     "linux-x86_64-appimage": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUcWF0emR6WHMyOWZsTVl6Smk2akVhRXNBbXdlODlkNjVscTFya0lBY3MydUhVTS9iTXAyM0tGbGRETXJNYTYxdzNwSUdJNkJ4U1F2anRwTHVidVRhNkJXQklMMk10Umd3PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkwODUzMjEwCWZpbGU6Q3J5c3RhXzIuOC4wX2FtZDY0LkFwcEltYWdlCmRMN0MxSE1ZUStER1dXeitIKzFySHZ1UlF3Q1ovZ0QyZ3NLRENZeUM2cXR2UkRjZmdlRlE2K1U5VkczQ2VxWklJUmpiN3k1U05vcFlEVWRYTHBSN0R3PT0K",
-      "url": "https://github.com/RubarMo/Crysta/releases/download/v2.8.0/Crysta_2.8.0_amd64.AppImage"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUcWF0emR6WHMyOWRDT1BLNnRKb2FKSVppMG15YkhBNzFEMndhZ0lWeGhqaHorSVRxUFd0dWpKeWphVXhHcUVZWGFDNitFVERZTU9hZVVhVWhqNitOQUtUWS83S2lEWkF3PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkwODU2MDMxCWZpbGU6Q3J5c3RhXzIuOC4xX2FtZDY0LkFwcEltYWdlCk9Nd1JiZUZZWkUwVEI2UVYwdlQ5RU9zQVowd2EwbjdyQmtGN2FTY2piMGZKaHlhU0VXV3FzWjRrZ1hHRkRoeFU0TXBjaTQ5Wng1V0dKTmw2cUU1NUJBPT0K",
+      "url": "https://github.com/RubarMo/Crysta/releases/download/v2.8.1/Crysta_2.8.1_amd64.AppImage"
     },
     "linux-x86_64-deb": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUcWF0emR6WHMyOWVwelJlNllxRkZWUU5KbUlaZWo5OWMzTTVYSlJQai9rM2JXa2d4TExNUlA0WUlib1lCY1hMTmlKZEhMbVkyOUtFK2tORHRKdTM0THhUU1VWcENMTFE0PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkwODUzMjEwCWZpbGU6Q3J5c3RhXzIuOC4wX2FtZDY0LmRlYgpvQlA2OHJHZFRqSzBVMEd3akJ6NWp2QkFIYm1hQzFYcTlhdXU4WTRMN0Q5clM2QTQ2TFI3M0ZhOVREVTdaZVJaMzV0SE14UDIyWk82RWx4b0JUT2RBUT09Cg==",
-      "url": "https://github.com/RubarMo/Crysta/releases/download/v2.8.0/Crysta_2.8.0_amd64.deb"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUcWF0emR6WHMyOVVaWDlWNUlaNkhmQWJlT1UvUkN2TFBSTEtXY1ExaTVGRnBvRmtBbG5SOWxtVzkwMTJDNnJYcXZ0bHF5Z0diUWh1ZW5ZZEc4amlRcUJxT0xPcG1hQWdBPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkwODU2MDMxCWZpbGU6Q3J5c3RhXzIuOC4xX2FtZDY0LmRlYgpFUzVIdDQ1TzYzM2dZbmxBaWdYZWxDUW9SODBtd2lBdnlsaUZBNEdobW1kQ2VrWmtxcldJYUVHTkx3Q1l6ZHJzZHVKSzhHUnMzaDNtY0I3STZCRTBEQT09Cg==",
+      "url": "https://github.com/RubarMo/Crysta/releases/download/v2.8.1/Crysta_2.8.1_amd64.deb"
     },
     "linux-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUcWF0emR6WHMyOWVwelJlNllxRkZWUU5KbUlaZWo5OWMzTTVYSlJQai9rM2JXa2d4TExNUlA0WUlib1lCY1hMTmlKZEhMbVkyOUtFK2tORHRKdTM0THhUU1VWcENMTFE0PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkwODUzMjEwCWZpbGU6Q3J5c3RhXzIuOC4wX2FtZDY0LmRlYgpvQlA2OHJHZFRqSzBVMEd3akJ6NWp2QkFIYm1hQzFYcTlhdXU4WTRMN0Q5clM2QTQ2TFI3M0ZhOVREVTdaZVJaMzV0SE14UDIyWk82RWx4b0JUT2RBUT09Cg==",
-      "url": "https://github.com/RubarMo/Crysta/releases/download/v2.8.0/Crysta_2.8.0_amd64.deb"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUcWF0emR6WHMyOVVaWDlWNUlaNkhmQWJlT1UvUkN2TFBSTEtXY1ExaTVGRnBvRmtBbG5SOWxtVzkwMTJDNnJYcXZ0bHF5Z0diUWh1ZW5ZZEc4amlRcUJxT0xPcG1hQWdBPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkwODU2MDMxCWZpbGU6Q3J5c3RhXzIuOC4xX2FtZDY0LmRlYgpFUzVIdDQ1TzYzM2dZbmxBaWdYZWxDUW9SODBtd2lBdnlsaUZBNEdobW1kQ2VrWmtxcldJYUVHTkx3Q1l6ZHJzZHVKSzhHUnMzaDNtY0I3STZCRTBEQT09Cg==",
+      "url": "https://github.com/RubarMo/Crysta/releases/download/v2.8.1/Crysta_2.8.1_amd64.deb"
     },
     "windows-x86_64-nsis": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUcWF0emR6WHMyOWFnd2xQWS96bGpRR3RITTE1NUJEcXRCaXIzejhCTXRjUW5ndDVObWxpWjhEeFdDSXF4OG1kd3FjU2EzQ1pZN3ovVlBMUnpqdnpJc2tPZDFCMUJLSndJPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkwODUzMDc0CWZpbGU6Q3J5c3RhXzIuOC4wX3g2NC1zZXR1cC5leGUKSnYwTS9PSGV3SHVYY0t1ZzJtWks0UlFZTlUwTkdpdCs2b0t1T3U2M3JZcUg2VlMrTENEVU5xN3pZV1FIQ0J0a1dHamtWVDdETGRlTjVMaHVZWWY5QWc9PQo=",
-      "url": "https://github.com/RubarMo/Crysta/releases/download/v2.8.0/Crysta_2.8.0_x64-setup.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUcWF0emR6WHMyOVgyaTB2VGErT0k4VUZBNlRCTnlCQW5KTnNCNERSWkorenZvQlh4dHJHanZxOFp4eUNJVkpYWGtySWRYQmtjTlhTRFlYa3FuN3hvazZpd1JiR1lHb1FJPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkwODU2MTQwCWZpbGU6Q3J5c3RhXzIuOC4xX3g2NC1zZXR1cC5leGUKcTlzWERmeTk0akdKeVd2NEhOdjJWeEpSZ3M4OTB1TjhPMWhsd3U2RGo0WVNVZjJmcHRrU3U1TTZUVU5pU2c5eW5pbDlDcUhSbytqNTZQSzc3S0VXQ1E9PQo=",
+      "url": "https://github.com/RubarMo/Crysta/releases/download/v2.8.1/Crysta_2.8.1_x64-setup.exe"
     },
     "windows-x86_64-msi": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUcWF0emR6WHMyOVlRYXhvRnlEV0xWNzZUcHVmb2haRWJxN3NvSDZ2b2dIaDhhY2FkOE9hSGNoYmtVSmQ2UlUreUs1K2VoN3l5UStCQ0JVd0p0eVhSNC9GdGJRKzVTR1FrPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkwODUzMDc0CWZpbGU6Q3J5c3RhXzIuOC4wX3g2NF9lbi1VUy5tc2kKampZKzBSY2VZUjNwMVJwQTkyb3dIWjRmK0MwK3QvVWEvSkRqNWRoZVpxM2dFREV2ZHhFeHV4SzRBWDZLT25jR1BCNjVza2U5d1dLdU1hbE1vV2NwQkE9PQo=",
-      "url": "https://github.com/RubarMo/Crysta/releases/download/v2.8.0/Crysta_2.8.0_x64_en-US.msi"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUcWF0emR6WHMyOVp3dUVSQmpaUGlwbnZYUzZFRWhnMGRlTHJ1SzhjYXNXRDBWWGNYWllCMDc2ekNjYUNGTVR2cnFkM3hVN2l1ckVCRm56OGxONGFTWmE3SEFKNzhsckE4PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkwODU2MTQwCWZpbGU6Q3J5c3RhXzIuOC4xX3g2NF9lbi1VUy5tc2kKTmN0TUYweEtmVVZaeU52cHdRSmR1ME9TY1Q5eHJzL3pGdTdiZkJXRGxPVTUvdHZnKzg4NGRnQUgrNk9lampXc2x3T0Y0Rm1OVzA4N1pybTAzcmplRFE9PQo=",
+      "url": "https://github.com/RubarMo/Crysta/releases/download/v2.8.1/Crysta_2.8.1_x64_en-US.msi"
     },
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUcWF0emR6WHMyOVlRYXhvRnlEV0xWNzZUcHVmb2haRWJxN3NvSDZ2b2dIaDhhY2FkOE9hSGNoYmtVSmQ2UlUreUs1K2VoN3l5UStCQ0JVd0p0eVhSNC9GdGJRKzVTR1FrPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkwODUzMDc0CWZpbGU6Q3J5c3RhXzIuOC4wX3g2NF9lbi1VUy5tc2kKampZKzBSY2VZUjNwMVJwQTkyb3dIWjRmK0MwK3QvVWEvSkRqNWRoZVpxM2dFREV2ZHhFeHV4SzRBWDZLT25jR1BCNjVza2U5d1dLdU1hbE1vV2NwQkE9PQo=",
-      "url": "https://github.com/RubarMo/Crysta/releases/download/v2.8.0/Crysta_2.8.0_x64_en-US.msi"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUcWF0emR6WHMyOVp3dUVSQmpaUGlwbnZYUzZFRWhnMGRlTHJ1SzhjYXNXRDBWWGNYWllCMDc2ekNjYUNGTVR2cnFkM3hVN2l1ckVCRm56OGxONGFTWmE3SEFKNzhsckE4PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkwODU2MTQwCWZpbGU6Q3J5c3RhXzIuOC4xX3g2NF9lbi1VUy5tc2kKTmN0TUYweEtmVVZaeU52cHdRSmR1ME9TY1Q5eHJzL3pGdTdiZkJXRGxPVTUvdHZnKzg4NGRnQUgrNk9lampXc2x3T0Y0Rm1OVzA4N1pybTAzcmplRFE9PQo=",
+      "url": "https://github.com/RubarMo/Crysta/releases/download/v2.8.1/Crysta_2.8.1_x64_en-US.msi"
     },
     "darwin-x86_64-app": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUcWF0emR6WHMyOVMvKzlXYkV0KzFqYVJ0N2dkSll5UHRuYkZiT0U5MEdMZXF3RzRwWnFBbWZEZldEOGJHMERTWFp5cHllSnNKbi9IYkNWMlNXV0dpQzd2YUN1OENMblFzPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkwODUyOTg0CWZpbGU6Q3J5c3RhLmFwcC50YXIuZ3oKdjdkUjVzZ05nUEU5YjZPOFc1QzR1VGl6TmU5YXh1Znh4TDhzZ3NEdWJCL1lmcjBrV0tDUkF0YzF2bTJYMkxXc2ZRajdKMjUrWkdqS0RVKzQxUDNiREE9PQo=",
-      "url": "https://github.com/RubarMo/Crysta/releases/download/v2.8.0/Crysta_universal.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUcWF0emR6WHMyOWUzaEZTMUlDMGtsTlc5L1pYQUkzRnZNeXAzL1JNNGh5YzNjaTZoMmp5V1B3bVg2VEhuQjUvOHRwb0k4MzRsUHFWRHcvSEdReit6MWpLZ2NNaFN2YkFBPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkwODU2MDE4CWZpbGU6Q3J5c3RhLmFwcC50YXIuZ3oKdmZiQjdYaFF5dFhLOCt4TVZBNGg4d2wvNzZCcm1LeC9VSGpNY2R1UHh0blh3SnRvVEdkaGxXYlRlQS8rM2haZWdVL0lQdGxSUlkvM2MrYm5zV0xIRFE9PQo=",
+      "url": "https://github.com/RubarMo/Crysta/releases/download/v2.8.1/Crysta_universal.app.tar.gz"
     },
     "darwin-aarch64-app": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUcWF0emR6WHMyOVMvKzlXYkV0KzFqYVJ0N2dkSll5UHRuYkZiT0U5MEdMZXF3RzRwWnFBbWZEZldEOGJHMERTWFp5cHllSnNKbi9IYkNWMlNXV0dpQzd2YUN1OENMblFzPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkwODUyOTg0CWZpbGU6Q3J5c3RhLmFwcC50YXIuZ3oKdjdkUjVzZ05nUEU5YjZPOFc1QzR1VGl6TmU5YXh1Znh4TDhzZ3NEdWJCL1lmcjBrV0tDUkF0YzF2bTJYMkxXc2ZRajdKMjUrWkdqS0RVKzQxUDNiREE9PQo=",
-      "url": "https://github.com/RubarMo/Crysta/releases/download/v2.8.0/Crysta_universal.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUcWF0emR6WHMyOWUzaEZTMUlDMGtsTlc5L1pYQUkzRnZNeXAzL1JNNGh5YzNjaTZoMmp5V1B3bVg2VEhuQjUvOHRwb0k4MzRsUHFWRHcvSEdReit6MWpLZ2NNaFN2YkFBPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkwODU2MDE4CWZpbGU6Q3J5c3RhLmFwcC50YXIuZ3oKdmZiQjdYaFF5dFhLOCt4TVZBNGg4d2wvNzZCcm1LeC9VSGpNY2R1UHh0blh3SnRvVEdkaGxXYlRlQS8rM2haZWdVL0lQdGxSUlkvM2MrYm5zV0xIRFE9PQo=",
+      "url": "https://github.com/RubarMo/Crysta/releases/download/v2.8.1/Crysta_universal.app.tar.gz"
     },
     "darwin-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUcWF0emR6WHMyOVMvKzlXYkV0KzFqYVJ0N2dkSll5UHRuYkZiT0U5MEdMZXF3RzRwWnFBbWZEZldEOGJHMERTWFp5cHllSnNKbi9IYkNWMlNXV0dpQzd2YUN1OENMblFzPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkwODUyOTg0CWZpbGU6Q3J5c3RhLmFwcC50YXIuZ3oKdjdkUjVzZ05nUEU5YjZPOFc1QzR1VGl6TmU5YXh1Znh4TDhzZ3NEdWJCL1lmcjBrV0tDUkF0YzF2bTJYMkxXc2ZRajdKMjUrWkdqS0RVKzQxUDNiREE9PQo=",
-      "url": "https://github.com/RubarMo/Crysta/releases/download/v2.8.0/Crysta_universal.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUcWF0emR6WHMyOWUzaEZTMUlDMGtsTlc5L1pYQUkzRnZNeXAzL1JNNGh5YzNjaTZoMmp5V1B3bVg2VEhuQjUvOHRwb0k4MzRsUHFWRHcvSEdReit6MWpLZ2NNaFN2YkFBPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkwODU2MDE4CWZpbGU6Q3J5c3RhLmFwcC50YXIuZ3oKdmZiQjdYaFF5dFhLOCt4TVZBNGg4d2wvNzZCcm1LeC9VSGpNY2R1UHh0blh3SnRvVEdkaGxXYlRlQS8rM2haZWdVL0lQdGxSUlkvM2MrYm5zV0xIRFE9PQo=",
+      "url": "https://github.com/RubarMo/Crysta/releases/download/v2.8.1/Crysta_universal.app.tar.gz"
     },
     "darwin-aarch64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUcWF0emR6WHMyOVMvKzlXYkV0KzFqYVJ0N2dkSll5UHRuYkZiT0U5MEdMZXF3RzRwWnFBbWZEZldEOGJHMERTWFp5cHllSnNKbi9IYkNWMlNXV0dpQzd2YUN1OENMblFzPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkwODUyOTg0CWZpbGU6Q3J5c3RhLmFwcC50YXIuZ3oKdjdkUjVzZ05nUEU5YjZPOFc1QzR1VGl6TmU5YXh1Znh4TDhzZ3NEdWJCL1lmcjBrV0tDUkF0YzF2bTJYMkxXc2ZRajdKMjUrWkdqS0RVKzQxUDNiREE9PQo=",
-      "url": "https://github.com/RubarMo/Crysta/releases/download/v2.8.0/Crysta_universal.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUcWF0emR6WHMyOWUzaEZTMUlDMGtsTlc5L1pYQUkzRnZNeXAzL1JNNGh5YzNjaTZoMmp5V1B3bVg2VEhuQjUvOHRwb0k4MzRsUHFWRHcvSEdReit6MWpLZ2NNaFN2YkFBPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkwODU2MDE4CWZpbGU6Q3J5c3RhLmFwcC50YXIuZ3oKdmZiQjdYaFF5dFhLOCt4TVZBNGg4d2wvNzZCcm1LeC9VSGpNY2R1UHh0blh3SnRvVEdkaGxXYlRlQS8rM2haZWdVL0lQdGxSUlkvM2MrYm5zV0xIRFE9PQo=",
+      "url": "https://github.com/RubarMo/Crysta/releases/download/v2.8.1/Crysta_universal.app.tar.gz"
     }
   }
 }
