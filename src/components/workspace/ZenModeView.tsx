@@ -215,7 +215,7 @@ export const ZenModeView: React.FC<ZenModeViewProps> = ({
                 type="button"
                 aria-pressed={theme === tName}
                 onClick={() => setTheme(tName)}
-                className={`px-2 py-1 text-[10px] font-heading font-bold transition-all cursor-pointer ${
+                className={`px-2 py-1 text-2xs font-heading font-bold transition-all cursor-pointer ${
                   theme === tName ? 'font-black underline' : 'opacity-70 hover:opacity-100'
                 }`}
               >
@@ -270,7 +270,7 @@ export const ZenModeView: React.FC<ZenModeViewProps> = ({
             >
               A-
             </button>
-            <span className="text-[10px] font-mono opacity-80">{fontSize}px</span>
+            <span className="text-2xs font-mono opacity-80">{fontSize}px</span>
             <button
               type="button"
               onClick={() => setFontSize(Math.min(32, fontSize + 2))}
@@ -315,7 +315,8 @@ export const ZenModeView: React.FC<ZenModeViewProps> = ({
               color: currentStyle.text,
             }}
             aria-label={title}
-            className="nb-no-focus-ring w-full flex-1 resize-none border-none font-serif tracking-normal"
+            dir="auto"
+            className="nb-no-focus-ring w-full flex-1 resize-none border-none font-prose tracking-normal"
           />
         </div>
       </div>

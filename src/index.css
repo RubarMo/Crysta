@@ -70,6 +70,8 @@
   --font-body: 'Inter', 'IBM Plex Sans Arabic', system-ui, sans-serif;
   --font-arabic: 'Cairo', 'IBM Plex Sans Arabic', system-ui, sans-serif;
   --font-mono: 'Space Mono', monospace;
+  /* Manuscript text: EB Garamond for Latin letters, Amiri for Arabic. */
+  --font-prose: 'EB Garamond', 'Amiri', Georgia, serif;
 }
 
 .dark {
@@ -79,10 +81,11 @@
   --bg-surface-hover: #323238;
   --bg-surface-raised: #2D2D33;
 
-  --border-ink: #000000;
-  /* Raised from #3D3D44 so dividers stay visible on dark surfaces. */
-  --border-subtle: #4A4A52;
-  --border-strong: #5A5A64;
+  /* Black ink disappears on graphite surfaces, so dark mode uses a
+     mid-grey ink that keeps every card and panel edge visible. */
+  --border-ink: #5A5A64;
+  --border-subtle: #46464E;
+  --border-strong: #71717A;
 
   /* Tactile Light Shadow for Dark Mode */
   --shadow-ink: rgba(255, 255, 255, 0.22);
@@ -144,6 +147,29 @@
   --color-nb-mint: #88D498;
   --color-nb-lavender: #B8A9FA;
   --color-nb-orange: #FFA552;
+
+  /* Type scale. The smallest UI text is 10px (11px in Arabic); body text in
+     the workspace is 13px (14px in Arabic). */
+  --text-3xs: 0.625rem;
+  --text-3xs--line-height: 1.4;
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1.45;
+  --text-xs: 0.8125rem;
+  --text-xs--line-height: 1.5;
+  --text-sm: 0.9375rem;
+  --text-sm--line-height: 1.5;
+}
+
+/* Arabic letterforms need a little more size to stay legible. */
+html[lang="ar"] {
+  --text-3xs: 0.6875rem;
+  --text-2xs: 0.75rem;
+  --text-xs: 0.875rem;
+  --text-sm: 1rem;
+}
+
+.font-prose {
+  font-family: var(--font-prose);
 }
 
 /* Invariant 1: STRICT 0px BORDER RADIUS EVERYWHERE */
@@ -201,7 +227,7 @@ html[dir="ltr"] body {
 
 .dark ::-webkit-scrollbar-thumb {
   background-color: #5A5A64;
-  border: 1px solid var(--border-ink);
+  border: 1px solid var(--bg-surface);
 }
 
 ::-webkit-scrollbar-thumb:hover {
@@ -228,6 +254,11 @@ input:focus, textarea:focus, select:focus {
   outline-offset: 0 !important;
 }
 
+/* Form fields are flat: offset shadows are reserved for buttons and cards. */
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), textarea, select {
+  box-shadow: none !important;
+}
+
 /* Full-page editors (chapter editor, Zen mode) where a ring would frame the whole page */
 .nb-no-focus-ring:focus, .nb-no-focus-ring:focus-visible {
   outline: none !important;
@@ -248,6 +279,28 @@ input:focus, textarea:focus, select:focus {
   .nb-row-actions {
     opacity: 1;
   }
+}
+
+/* Manuscript editor: comfortable size, ~70 characters per line, centred,
+   with the scrollbar kept at the edge of the pane. */
+.nb-manuscript {
+  font-family: var(--font-prose);
+  font-size: 1.125rem;
+  line-height: 1.8;
+  padding-block: 2rem 4rem;
+  padding-inline: max(1.5rem, calc((100% - 70ch) / 2));
+}
+html[lang="ar"] .nb-manuscript {
+  font-size: 1.1875rem;
+  line-height: 1.95;
+}
+
+/* Same column as the manuscript (measured in the prose font) for the
+   chapter title row and footer, so their edges line up with the text. */
+.nb-manuscript-column {
+  font-family: var(--font-prose);
+  font-size: 1.125rem;
+  padding-inline: max(1.5rem, calc((100% - 70ch) / 2));
 }
 
 /* Disable textarea resize globally */

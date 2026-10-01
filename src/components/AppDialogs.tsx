@@ -47,14 +47,14 @@ export const HelpDialog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             {Array.from({ length: 10 }, (_, i) => i + 1).map((num) => (
               <li key={num} className="p-3.5 bg-[var(--bg-surface-raised)] border-2 border-[var(--border-ink)] shadow-[2px_2px_0px_var(--shadow-ink)] space-y-1">
                 <div className="flex items-center gap-2">
-                  <span className="w-5 h-5 font-mono text-[10px] font-black bg-[var(--pastel-sky)] text-black border border-[var(--border-ink)] flex items-center justify-center shrink-0">
+                  <span className="w-5 h-5 font-mono text-2xs font-black bg-[var(--pastel-sky)] text-black border border-[var(--border-ink)] flex items-center justify-center shrink-0">
                     {num}
                   </span>
                   <h3 className="font-heading font-black text-[var(--text-primary)] text-xs">
                     {t(`helpStep${num}Title` as LocaleKeys)}
                   </h3>
                 </div>
-                <p className="text-[11px] text-[var(--text-secondary)] font-medium leading-relaxed ps-7">
+                <p className="text-2xs text-[var(--text-secondary)] font-medium leading-relaxed ps-7">
                   {t(`helpStep${num}Desc` as LocaleKeys)}
                 </p>
               </li>
@@ -100,7 +100,7 @@ export const ProjectPickerDialog: React.FC<{
           <h3 id="picker-dialog-title" className="text-sm font-heading font-black text-[var(--text-primary)]">
             {t('selectProjectFile')}
           </h3>
-          <p className="text-[10px] font-body text-[var(--text-muted)] mt-0.5">{t('selectProjectFileDesc')}</p>
+          <p className="text-2xs font-body text-[var(--text-muted)] mt-0.5">{t('selectProjectFileDesc')}</p>
         </div>
 
         <div className="max-h-60 overflow-y-auto divide-y-2 divide-[var(--border-subtle)] border-2 border-[var(--border-ink)] bg-[var(--bg-surface-raised)]">
@@ -108,7 +108,7 @@ export const ProjectPickerDialog: React.FC<{
             <button
               key={file}
               onClick={() => onPick(file)}
-              className="w-full text-start px-3.5 py-2.5 text-xs font-mono font-bold text-[var(--text-primary)] hover:bg-[var(--pastel-yellow)] hover:text-black cursor-pointer truncate transition-colors"
+              className="w-full text-start px-3.5 py-2.5 text-xs font-mono font-bold text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)] cursor-pointer truncate transition-colors"
               title={file}
             >
               {file}
@@ -160,7 +160,7 @@ export const UpdateDialog: React.FC<{
         className="bg-[var(--bg-surface)] border-4 border-[var(--border-ink)] shadow-[12px_12px_0px_var(--shadow-ink)] max-w-sm w-full p-6 flex flex-col gap-4 text-[var(--text-primary)]"
       >
         <div className="border-b-2 border-[var(--border-subtle)] pb-2">
-          <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-[var(--pastel-mint)] text-black border border-[var(--border-ink)] font-heading font-black text-[10px] uppercase mb-1">
+          <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-[var(--pastel-mint)] text-black border border-[var(--border-ink)] font-heading font-black text-2xs uppercase mb-1">
             {t('updateAvailable')}
           </div>
           <h3 id="update-dialog-title" className="text-sm font-heading font-black text-[var(--text-primary)] mt-1">
@@ -169,20 +169,20 @@ export const UpdateDialog: React.FC<{
         </div>
 
         {update.body && (
-          <div className="bg-[var(--bg-surface-raised)] border-2 border-[var(--border-ink)] p-3 text-[10px] font-mono max-h-32 overflow-y-auto select-text whitespace-pre-wrap">
+          <div className="bg-[var(--bg-surface-raised)] border-2 border-[var(--border-ink)] p-3 text-2xs font-mono max-h-32 overflow-y-auto select-text whitespace-pre-wrap">
             {update.body}
           </div>
         )}
 
         {update.error && (
-          <div role="alert" className="text-[10px] text-black bg-[var(--pastel-coral)] border-2 border-[var(--border-ink)] p-2 font-mono font-bold">
+          <div role="alert" className="text-2xs text-black bg-[var(--pastel-coral)] border-2 border-[var(--border-ink)] p-2 font-mono font-bold">
             {update.error}
           </div>
         )}
 
         {update.downloading ? (
           <div className="flex flex-col gap-2 mt-2" role="status">
-            <div className="flex justify-between text-[10px] font-mono font-bold text-[var(--text-secondary)] select-none">
+            <div className="flex justify-between text-2xs font-mono font-bold text-[var(--text-secondary)] select-none">
               <span>{t('updateDownloading')}</span>
               <span>{update.progress}%</span>
             </div>

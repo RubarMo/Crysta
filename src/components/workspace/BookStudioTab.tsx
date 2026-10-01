@@ -48,7 +48,7 @@ const fieldClass =
   'w-full text-xs p-2 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)]';
 const cardClass =
   'p-4 border-2 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] shadow-[3px_3px_0px_var(--shadow-ink)] space-y-3';
-const labelClass = 'text-[11px] font-heading font-bold text-[var(--text-secondary)] block mb-1';
+const labelClass = 'text-2xs font-heading font-bold text-[var(--text-secondary)] block mb-1';
 
 export const BookStudioTab: React.FC<BookStudioTabProps> = ({
   activeNovel,
@@ -204,7 +204,7 @@ export const BookStudioTab: React.FC<BookStudioTabProps> = ({
         type="button"
         onClick={() => handleExport(format)}
         disabled={isExporting !== null || !isChaptersLoaded}
-        className="w-full py-2 px-3 text-xs font-heading font-black border-2 border-black bg-white text-black shadow-[2px_2px_0px_#000000] hover:bg-[var(--pastel-yellow)] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_#000000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full py-2 px-3 text-xs font-heading font-black border-2 border-black bg-white text-black shadow-[2px_2px_0px_#000000] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_#000000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {isExporting === format ? t('exporting') : buttonLabel}
       </button>
@@ -271,7 +271,7 @@ export const BookStudioTab: React.FC<BookStudioTabProps> = ({
                   <h2 className="text-xs font-heading font-black text-[var(--text-primary)]">
                     {t('coverSectionTitle')}
                   </h2>
-                  <p className="text-[11px] text-[var(--text-secondary)] font-mono mt-0.5">
+                  <p className="text-2xs text-[var(--text-secondary)] font-mono mt-0.5">
                     {t('coverDimensionsHint')}
                   </p>
                 </div>
@@ -294,7 +294,7 @@ export const BookStudioTab: React.FC<BookStudioTabProps> = ({
 
                   <div className="flex-1 space-y-3">
                     <div>
-                      <span className="inline-block px-2 py-0.5 text-[10px] font-mono font-bold bg-[var(--pastel-mint)] text-black border border-[var(--border-ink)] shadow-[1px_1px_0px_var(--shadow-ink)] mb-1">
+                      <span className="inline-block px-2 py-0.5 text-2xs font-mono font-bold bg-[var(--pastel-mint)] text-black border border-[var(--border-ink)] shadow-[1px_1px_0px_var(--shadow-ink)] mb-1">
                         {t('coverSet')}
                       </span>
                       <p className="text-xs text-[var(--text-secondary)]">{t('coverSetDesc')}</p>
@@ -330,7 +330,7 @@ export const BookStudioTab: React.FC<BookStudioTabProps> = ({
                     <Upload className="w-6 h-6" />
                   </span>
                   <span className="text-xs font-heading font-black text-[var(--text-primary)] mt-1">{t('coverUploadBtn')}</span>
-                  <span className="text-[11px] font-mono text-[var(--text-muted)] text-center">{t('noCoverPlaceholder')}</span>
+                  <span className="text-2xs font-mono text-[var(--text-muted)] text-center">{t('noCoverPlaceholder')}</span>
                 </button>
               )}
             </div>
@@ -405,9 +405,9 @@ export const BookStudioTab: React.FC<BookStudioTabProps> = ({
                     placeholder={t('dedicationLabel')}
                     aria-label={t('dedicationLabel')}
                     rows={4}
-                    className={`${fieldClass} font-serif leading-relaxed`}
+                    className={`${fieldClass} font-prose leading-relaxed`}
                   />
-                  <p className="text-[10px] text-[var(--text-secondary)] mt-1">{t('dedicationHint')}</p>
+                  <p className="text-2xs text-[var(--text-secondary)] mt-1">{t('dedicationHint')}</p>
                 </div>
               )}
             </div>
@@ -560,7 +560,7 @@ export const BookStudioTab: React.FC<BookStudioTabProps> = ({
                   {t('sceneBreakLabel')}
                 </label>
                 <input id="book-scene-break" type="text" value={config.scene_break_ornament} onChange={(e) => updateConfig({ scene_break_ornament: e.target.value })} placeholder="* * *" className={`${fieldClass} font-mono max-w-xs`} />
-                <p className="text-[10px] text-[var(--text-secondary)] mt-1">{t('sceneBreakHint')}</p>
+                <p className="text-2xs text-[var(--text-secondary)] mt-1">{t('sceneBreakHint')}</p>
               </div>
             </div>
 
@@ -591,11 +591,11 @@ export const BookStudioTab: React.FC<BookStudioTabProps> = ({
                       {t('exportSuccess')} ({exportedResult.format})
                     </h4>
                     {exportedResult.path ? (
-                      <p className="text-[11px] font-mono text-neutral-800 break-all mt-0.5 select-text">
+                      <p className="text-2xs font-mono text-neutral-800 break-all mt-0.5 select-text">
                         {t('exportSavedTo')} <span className="font-bold underline">{exportedResult.path}</span>
                       </p>
                     ) : (
-                      <p className="text-[11px] text-neutral-800 mt-0.5">{t('printDialogOpened')}</p>
+                      <p className="text-2xs text-neutral-800 mt-0.5">{t('printDialogOpened')}</p>
                     )}
                   </div>
                 </div>

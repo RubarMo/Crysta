@@ -44,11 +44,11 @@ export const ThemeToggle: React.FC = () => {
     >
       <button onClick={() => setIsDark(false)} className={optionClass(!isDark)} title={t('themeLightTitle')} aria-pressed={!isDark}>
         <Sun className="w-3.5 h-3.5 stroke-[2.5]" aria-hidden="true" />
-        <span className="text-[11px] hidden sm:inline leading-none">{t('themeLight')}</span>
+        <span className="text-2xs hidden sm:inline leading-none">{t('themeLight')}</span>
       </button>
       <button onClick={() => setIsDark(true)} className={optionClass(isDark)} title={t('themeDarkTitle')} aria-pressed={isDark}>
         <Moon className="w-3.5 h-3.5 stroke-[2.5]" aria-hidden="true" />
-        <span className="text-[11px] hidden sm:inline leading-none">{t('themeDark')}</span>
+        <span className="text-2xs hidden sm:inline leading-none">{t('themeDark')}</span>
       </button>
     </div>
   );

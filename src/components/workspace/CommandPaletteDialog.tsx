@@ -138,7 +138,7 @@ const CommandPalette: React.FC<CommandPaletteDialogProps> = ({
             aria-activedescendant={filtered[activeIndex] ? `cmd-${filtered[activeIndex].id}` : undefined}
             className="nb-no-focus-ring w-full text-xs font-heading font-black bg-transparent text-[var(--text-primary)] placeholder:font-sans placeholder:font-normal"
           />
-          <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-mono font-bold bg-[var(--bg-surface)] border border-[var(--border-ink)] shadow-[1px_1px_0px_var(--shadow-ink)]">
+          <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-3xs font-mono font-bold bg-[var(--bg-surface)] border border-[var(--border-ink)] shadow-[1px_1px_0px_var(--shadow-ink)]">
             ESC
           </kbd>
           <button
