@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Novel, StepProgress } from '../lib';
 import { useLanguage } from '../LanguageContext';
 import { getVersion } from '@tauri-apps/api/app';
+import { openUrl } from '@tauri-apps/plugin-opener';
+import { isTauri } from '../utils/platform';
 import { 
   X, 
   Check, 
@@ -54,20 +56,26 @@ export const Sidebar: React.FC<SidebarProps> = ({
       const next = !prev;
       try {
         localStorage.setItem('crysta_sidebar_collapsed', String(next));
-      } catch {}
+      } catch {
+        // Preference just isn't remembered.
+      }
       return next;
     });
   };
 
   useEffect(() => {
-    try {
-      getVersion().then(setAppVersion).catch((err) => {
-        console.error("Failed to load app version", err);
-      });
-    } catch (e) {
-      console.warn("Tauri getVersion not available:", e);
-    }
+    if (!isTauri()) return;
+    getVersion().then(setAppVersion).catch((err) => {
+      console.error("Failed to load app version", err);
+    });
   }, []);
+
+  const openGithub = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (!isTauri()) return;
+    // Open in the system browser instead of inside the app window.
+    e.preventDefault();
+    openUrl(e.currentTarget.href).catch((err) => console.error('Failed to open link:', err));
+  };
 
   // Calculate progress (completed steps out of 10)
   const completedSteps = novel 
@@ -97,13 +105,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Sidebar Header */}
       <div className="h-16 border-b-3 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] flex items-center px-2.5 sm:px-3 shrink-0">
         {isCollapsed ? (
-          /* Collapsed Header: Hamburger / Expand Button */
+          /* Collapsed Header: Expand Button */
           <div className="w-full flex items-center justify-center">
             <button
               onClick={handleToggleCollapse}
               className="h-8 w-8 flex items-center justify-center border-2 border-[var(--border-ink)] bg-[var(--pastel-yellow)] text-black shadow-[2px_2px_0px_var(--shadow-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer shrink-0"
               title={t('expandSidebar')}
-              aria-label="Expand sidebar"
+              aria-label={t('expandSidebar')}
             >
               <Menu className="w-4 h-4" />
             </button>
@@ -131,6 +139,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     onClick={onOpenSnapshots}
                     className="h-7 w-7 flex items-center justify-center border-2 border-[var(--border-ink)] bg-[var(--pastel-lavender)] text-black shadow-[1.5px_1.5px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-yellow)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
                     title={t('backupsTitle')}
+                    aria-label={t('backupsTitle')}
                   >
                     <History className="w-3.5 h-3.5" />
                   </button>
@@ -152,7 +161,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   onClick={handleToggleCollapse}
                   className="hidden md:flex h-7 w-7 items-center justify-center border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[1.5px_1.5px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-yellow)] hover:text-black hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer shrink-0"
                   title={t('collapseSidebar')}
-                  aria-label="Collapse sidebar"
+                  aria-label={t('collapseSidebar')}
                 >
                   <PanelLeftClose className={`w-3.5 h-3.5 ${isRtl ? 'scale-x-[-1]' : ''}`} />
                 </button>
@@ -163,7 +172,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     onClick={onCloseSidebar}
                     className="md:hidden h-7 w-7 flex items-center justify-center text-[var(--text-primary)] hover:bg-[var(--pastel-coral)] hover:text-black border-2 border-[var(--border-ink)] shadow-[1.5px_1.5px_0px_var(--shadow-ink)] transition-all shrink-0 cursor-pointer"
                     title={t('closeSidebar')}
-                    aria-label="Close sidebar"
+                    aria-label={t('closeSidebar')}
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
@@ -183,7 +192,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   onClick={onCloseSidebar}
                   className="md:hidden p-1 text-[var(--text-primary)] hover:bg-[var(--pastel-coral)] hover:text-black border-2 border-[var(--border-ink)] shadow-[2px_2px_0px_var(--shadow-ink)] transition-all shrink-0 flex items-center justify-center cursor-pointer"
                   title={t('closeSidebar')}
-                  aria-label="Close sidebar"
+                  aria-label={t('closeSidebar')}
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -197,13 +206,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <>
           {/* Progress Section */}
           {isCollapsed ? (
-            <div 
-              className="py-2 border-b-3 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] flex items-center justify-center select-none" 
-              title={`${t('completedSteps')}: ${completedSteps}/10`}
+            <div
+              className="py-2 border-b-3 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] flex flex-col items-center justify-center gap-2 select-none"
             >
-              <span className="font-mono text-[9px] font-black bg-[var(--pastel-yellow)] text-black px-1 py-0.5 border border-[var(--border-ink)]">
+              <span
+                className="font-mono text-[9px] font-black bg-[var(--pastel-yellow)] text-black px-1 py-0.5 border border-[var(--border-ink)]"
+                title={`${t('completedSteps')}: ${completedSteps}/10`}
+              >
                 {completedSteps}/10
               </span>
+              {onOpenSnapshots && (
+                <button
+                  onClick={onOpenSnapshots}
+                  className="h-7 w-7 flex items-center justify-center border-2 border-[var(--border-ink)] bg-[var(--pastel-lavender)] text-black shadow-[1.5px_1.5px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-yellow)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
+                  title={t('backupsTitle')}
+                  aria-label={t('backupsTitle')}
+                >
+                  <History className="w-3.5 h-3.5" />
+                </button>
+              )}
             </div>
           ) : (
             <div className="p-3 border-b-3 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] space-y-2">
@@ -383,9 +404,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <button
             onClick={() => setLanguage(language === 'ar' ? 'en' : 'ar')}
             className="h-8 w-8 flex items-center justify-center border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-sky)] hover:text-black hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all text-[10px] font-heading font-black cursor-pointer shrink-0"
-            title={language === 'ar' ? 'Switch to English' : 'التحويل للعربية'}
+            title={t('switchLanguageTitle')}
+            aria-label={t('switchLanguageTitle')}
           >
-            <span>{language === 'ar' ? 'EN' : 'عربي'}</span>
+            <span>{t('switchLanguageShort')}</span>
           </button>
         </footer>
       ) : (
@@ -393,12 +415,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <footer className="p-3 border-t-3 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] flex items-center justify-between text-xs text-[var(--text-secondary)] shrink-0 select-text">
           <div className="flex items-center gap-1.5 font-heading font-bold text-[11px]">
             <span>{t('builtBy')}</span>
-            <a 
-              href="https://github.com/RubarMo" 
-              target="_blank" 
+            <a
+              href="https://github.com/RubarMo"
+              target="_blank"
               rel="noopener noreferrer"
+              onClick={openGithub}
               className="text-[var(--text-primary)] hover:bg-[var(--pastel-yellow)] hover:text-black hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none px-1 border border-[var(--border-ink)] shadow-[1px_1px_0px_var(--shadow-ink)] transition-all font-black"
-              title="GitHub Profile"
+              title={t('githubProfile')}
             >
               Rubar
             </a>
@@ -413,10 +436,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <button
             onClick={() => setLanguage(language === 'ar' ? 'en' : 'ar')}
             className="inline-flex items-center gap-1 px-2 py-1 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-sky)] hover:text-black hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all text-[10px] font-heading font-black cursor-pointer"
-            title={language === 'ar' ? 'Switch to English' : 'التحويل للعربية'}
+            title={t('switchLanguageTitle')}
           >
-            <Languages className="w-3 h-3" />
-            <span>{language === 'ar' ? 'EN' : 'عربي'}</span>
+            <Languages className="w-3 h-3" aria-hidden="true" />
+            <span>{t('switchLanguageShort')}</span>
           </button>
         </footer>
       )}

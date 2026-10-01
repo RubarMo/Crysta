@@ -15,13 +15,15 @@ pub fn run() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
         .manage(DbState {
-            current_db_path: Mutex::new(None),
+            project: Mutex::new(None),
         })
         .setup(|app| {
             #[cfg(desktop)]
             if let Some(main_window) = app.get_webview_window("main") {
                 let _ = main_window.set_min_size(Some(tauri::LogicalSize::new(1080.0, 650.0)));
             }
+            #[cfg(not(desktop))]
+            let _ = app;
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -49,6 +51,8 @@ pub fn run() {
             reorder_chapters,
             get_book_formatting,
             save_book_formatting,
+            get_cover_image,
+            save_cover_image,
             take_snapshot,
             list_snapshots,
             restore_snapshot,

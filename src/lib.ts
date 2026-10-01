@@ -7,7 +7,7 @@ export interface Novel {
   target_audience: string;
   target_word_count: number;
   current_word_count: number;
-  created_at?: string;
+  created_at?: string | null;
 }
 
 export interface StepProgress {
@@ -52,6 +52,8 @@ export interface Chapter {
   sort_order: number;
 }
 
+export type BookLanguage = '' | 'ar' | 'en';
+
 export interface BookFormatConfig {
   id?: number;
   novel_id: number;
@@ -91,7 +93,8 @@ export interface BookFormatConfig {
   header_verso: string;
   header_recto: string;
   include_page_numbers: boolean;
-  cover_image?: string;
+  /** '' = detect from the manuscript. */
+  book_language: BookLanguage;
 }
 
 export interface SnapshotInfo {
@@ -216,6 +219,15 @@ export async function saveBookFormatting(config: BookFormatConfig): Promise<numb
   return invoke<number>("save_book_formatting", { config });
 }
 
+/** The cover is a data URL ('' when there is no cover). */
+export async function getCoverImage(novelId: number): Promise<string> {
+  return invoke<string>("get_cover_image", { novelId });
+}
+
+export async function saveCoverImage(novelId: number, coverImage: string): Promise<void> {
+  return invoke<void>("save_cover_image", { novelId, coverImage });
+}
+
 // Snapshots & Backups
 export async function takeSnapshot(customLabel?: string, isManual = false): Promise<SnapshotInfo> {
   return invoke<SnapshotInfo>("take_snapshot", { customLabel: customLabel || null, isManual });
@@ -250,8 +262,12 @@ export async function listProjectFiles(): Promise<string[]> {
   return invoke<string[]>("list_project_files");
 }
 
-export async function openProject(path: string): Promise<Novel> {
-  return invoke<Novel>("open_project", { path });
+/**
+ * Opens a project file. With `create` false the file must already exist, so a
+ * moved or deleted project is reported instead of replaced by an empty one.
+ */
+export async function openProject(path: string, create = false): Promise<Novel> {
+  return invoke<Novel>("open_project", { path, create });
 }
 
 export async function closeProject(): Promise<void> {
