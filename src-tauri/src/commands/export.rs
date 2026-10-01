@@ -292,7 +292,8 @@ pub fn show_in_folder(path: String) -> Result<(), String> {
     }
     #[cfg(any(target_os = "android", target_os = "ios"))]
     {
-        let _ = (p, path);
+        // `p` borrows `path`, so only `p` is "used" here.
+        let _ = p;
     }
     Ok(())
 }
