@@ -14,7 +14,7 @@ export const WordCounter: React.FC<WordCounterProps> = ({ text, maxWords }) => {
 
   return (
     <div
-      className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-mono border-2 border-[var(--border-ink)] shadow-[2px_2px_0px_var(--shadow-ink)] select-none transition-all ${
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-2xs font-mono border-2 border-[var(--border-ink)] shadow-[2px_2px_0px_var(--shadow-ink)] select-none transition-all ${
         isOverLimit
           ? 'bg-[var(--pastel-coral)] text-black font-black'
           : 'bg-[var(--bg-surface-raised)] text-[var(--text-primary)] font-bold'
@@ -24,7 +24,7 @@ export const WordCounter: React.FC<WordCounterProps> = ({ text, maxWords }) => {
       {maxWords && (
         <span className="opacity-80">/ {maxWords}</span>
       )}
-      <span className="font-heading text-[10px] uppercase tracking-wider">
+      <span className="font-heading text-2xs uppercase tracking-wider">
         {wordCount === 1 ? t('word') : t('words')}
       </span>
     </div>

@@ -145,7 +145,7 @@ export const WriteNovelTab: React.FC<WriteNovelTabProps> = ({
     }`;
 
   return (
-    <div className="flex-1 flex h-full overflow-hidden bg-[var(--bg-canvas)] nb-dots relative">
+    <div className="flex-1 flex h-full overflow-hidden bg-[var(--bg-canvas)] relative">
       {/* 1. SIDE PANEL: Chapters OR Reference Companion */}
       {activeSidePanel && (
         <div className="w-80 border-e-3 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] flex flex-col h-full select-none shrink-0 z-10 overflow-hidden">
@@ -161,7 +161,7 @@ export const WriteNovelTab: React.FC<WriteNovelTabProps> = ({
               >
                 <FileText className="w-3.5 h-3.5 shrink-0" />
                 <span className="truncate">{t('chapters')}</span>
-                <span className="font-mono text-[9px] bg-black text-white px-1 font-bold shrink-0">
+                <span className="font-mono text-3xs bg-black text-white px-1 font-bold shrink-0">
                   {chapters.length}
                 </span>
               </button>
@@ -206,7 +206,7 @@ export const WriteNovelTab: React.FC<WriteNovelTabProps> = ({
           {activeSidePanel === 'chapters' ? (
             <div className="flex-1 min-h-0 flex flex-col bg-[var(--bg-surface-raised)] overflow-hidden">
               <div className="p-2.5 border-b-2 border-[var(--border-ink)] bg-[var(--bg-surface)] space-y-1 shrink-0">
-                <div className="flex justify-between items-center text-[10px] font-heading font-bold text-[var(--text-secondary)]">
+                <div className="flex justify-between items-center text-2xs font-heading font-bold text-[var(--text-secondary)]">
                   <span>{t('totalNovelWords')}</span>
                   <span className="font-mono font-black text-[var(--text-primary)]">
                     {totalNovelWords.toLocaleString()} / {targetWords.toLocaleString()}
@@ -238,10 +238,10 @@ export const WriteNovelTab: React.FC<WriteNovelTabProps> = ({
                     return (
                       <div
                         key={ch.id ?? idx}
-                        className={`nb-row group flex items-center justify-between gap-1.5 p-2 border-2 border-[var(--border-ink)] transition-all ${
+                        className={`nb-row group flex items-center justify-between gap-1.5 p-2 border-2 transition-colors ${
                           isSelected
-                            ? 'bg-[var(--pastel-yellow)] text-black font-black shadow-[3px_3px_0px_var(--shadow-ink)] translate-x-0.5'
-                            : 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[1px_1px_0px_var(--shadow-ink)] hover:bg-[var(--bg-surface-hover)]'
+                            ? 'bg-[var(--pastel-yellow)] text-black font-black border-[var(--border-ink)] shadow-[2.5px_2.5px_0px_var(--shadow-ink)]'
+                            : 'border-transparent text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)] hover:border-[var(--border-subtle)]'
                         }`}
                       >
                         <button
@@ -251,12 +251,12 @@ export const WriteNovelTab: React.FC<WriteNovelTabProps> = ({
                           aria-current={isSelected ? 'true' : undefined}
                         >
                           <div className="flex items-center gap-1.5 mb-0.5">
-                            <span className="font-mono text-[9px] px-1 bg-black text-white font-bold">
+                            <span className="font-mono text-3xs px-1 bg-black text-white font-bold">
                               #{idx + 1}
                             </span>
                             <span className="text-xs font-heading truncate">{ch.title}</span>
                           </div>
-                          <span className={`text-[10px] font-mono block ${isSelected ? 'text-black/70' : 'text-[var(--text-muted)]'}`}>
+                          <span className={`text-2xs font-mono block ${isSelected ? 'text-black/70' : 'text-[var(--text-muted)]'}`}>
                             {countWords(ch.content)} {t('words')}
                           </span>
                         </button>
@@ -329,7 +329,7 @@ export const WriteNovelTab: React.FC<WriteNovelTabProps> = ({
                     >
                       <FileText className="w-3.5 h-3.5" />
                       <span>{t('chapters')}</span>
-                      <span className="font-mono text-[9px] bg-black text-white px-1 font-bold">
+                      <span className="font-mono text-3xs bg-black text-white px-1 font-bold">
                         {chapters.length}
                       </span>
                     </button>
@@ -352,7 +352,7 @@ export const WriteNovelTab: React.FC<WriteNovelTabProps> = ({
                 <button
                   type="button"
                   onClick={() => setIsZenModeOpen(true)}
-                  className="px-2 sm:px-2.5 py-1.5 text-xs font-heading font-black border-2 border-[var(--border-ink)] bg-[var(--pastel-lavender)] text-black shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-yellow)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center gap-1.5 shrink-0"
+                  className="px-2 sm:px-2.5 py-1.5 text-xs font-heading font-black border-2 border-[var(--border-ink)] bg-[var(--pastel-lavender)] text-black shadow-[2px_2px_0px_var(--shadow-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center gap-1.5 shrink-0"
                   title={t('zenModeBtn')}
                 >
                   <Maximize2 className="w-3.5 h-3.5 stroke-[2.5]" />
@@ -361,60 +361,63 @@ export const WriteNovelTab: React.FC<WriteNovelTabProps> = ({
               </div>
             </div>
 
-            <div className="flex-1 p-3 sm:p-5 md:p-6 overflow-hidden flex justify-center bg-[var(--bg-canvas)] nb-dots min-w-0">
-              <div className="w-full max-w-4xl flex flex-col h-full min-w-0 border-3 border-[var(--border-ink)] bg-[var(--bg-surface)] shadow-[4px_4px_0px_var(--shadow-ink)] overflow-hidden">
-                <div className="p-4 sm:p-5 border-b-3 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] space-y-2.5 shrink-0">
-                  <div className="flex items-center justify-between text-xs font-mono font-bold text-[var(--text-secondary)]">
-                    <span className="bg-black text-white px-2.5 py-1 font-heading text-[11px] font-black">
-                      {t('chapter')} #{chapters.findIndex((c) => c.id === selectedChapter.id) + 1}
-                    </span>
-                    <WordCounter text={activeContent} />
-                  </div>
-                  <input
-                    key={`title-${selectedChapter.id}`}
-                    type="text"
-                    value={activeTitle}
-                    onChange={(e) => setActiveTitle(e.target.value)}
-                    placeholder={t('chapterTitlePlaceholder')}
-                    aria-label={t('chapterTitlePlaceholder')}
-                    className="w-full px-3.5 py-2 text-sm sm:text-base md:text-lg font-heading font-bold border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] focus:bg-[var(--bg-surface-raised)] placeholder:text-[var(--text-muted)] transition-all"
-                  />
+            {/* Manuscript page: no frame, no dots, just a centred text column. */}
+            <div className="flex-1 min-h-0 flex flex-col bg-[var(--bg-surface)] min-w-0">
+              <div className="nb-manuscript-column shrink-0 pt-6 pb-2">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-2xs font-heading font-black uppercase tracking-wider text-[var(--text-muted)]">
+                    {t('chapter')} {chapters.findIndex((c) => c.id === selectedChapter.id) + 1}
+                  </span>
+                  <WordCounter text={activeContent} />
                 </div>
+                <input
+                  key={`title-${selectedChapter.id}`}
+                  dir="auto"
+                  type="text"
+                  value={activeTitle}
+                  onChange={(e) => setActiveTitle(e.target.value)}
+                  placeholder={t('chapterTitlePlaceholder')}
+                  aria-label={t('chapterTitlePlaceholder')}
+                  className="nb-no-focus-ring w-full mt-2 px-0 py-1.5 bg-transparent border-0 border-b-2 border-[var(--border-subtle)] focus:border-[var(--border-ink)] text-2xl font-prose font-bold text-[var(--text-primary)] placeholder:text-[var(--text-muted)] placeholder:font-normal transition-colors"
+                />
+              </div>
 
-                <div className="flex-1 min-h-0 flex flex-col relative bg-[var(--bg-surface)]">
-                  <textarea
-                    // One element per chapter, so undo history never crosses chapters.
-                    key={`chapter-${selectedChapter.id}`}
-                    ref={editorRef}
-                    value={activeContent}
-                    onChange={(e) => setActiveContent(e.target.value)}
-                    placeholder={t('chapterContentPlaceholder')}
-                    aria-label={activeTitle || t('chapter')}
-                    className="nb-no-focus-ring w-full h-full flex-1 p-4 sm:p-6 md:p-8 text-sm sm:text-base font-serif leading-loose bg-transparent text-[var(--text-primary)] resize-none overflow-y-auto border-none"
-                    style={{ lineHeight: 1.9 }}
-                  />
-                </div>
-                <p className="px-4 py-1.5 border-t-2 border-[var(--border-subtle)] text-[10px] font-mono text-[var(--text-muted)] shrink-0 select-none">
-                  {t('editorFormattingHint')}
-                </p>
+              <textarea
+                // One element per chapter, so undo history never crosses chapters.
+                key={`chapter-${selectedChapter.id}`}
+                dir="auto"
+                ref={editorRef}
+                value={activeContent}
+                onChange={(e) => setActiveContent(e.target.value)}
+                placeholder={t('chapterContentPlaceholder')}
+                aria-label={activeTitle || t('chapter')}
+                className="nb-no-focus-ring nb-manuscript w-full flex-1 min-h-0 bg-transparent text-[var(--text-primary)] placeholder:text-[var(--text-muted)] resize-none overflow-y-auto border-none"
+              />
+
+              <div className="nb-manuscript-column py-2 border-t border-[var(--border-subtle)] shrink-0 select-none">
+                <p className="text-2xs font-mono text-[var(--text-muted)]">{t('editorFormattingHint')}</p>
               </div>
             </div>
           </>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-[var(--text-secondary)] font-heading space-y-3">
-            <div className="p-4 bg-[var(--pastel-yellow)] text-black border-3 border-[var(--border-ink)] shadow-[4px_4px_0px_var(--shadow-ink)]">
-              <BookOpen className="w-8 h-8" />
+          <div className="flex-1 flex items-start justify-center p-8 bg-[var(--bg-surface)]">
+            <div className="flex items-start gap-4 max-w-md mt-[12vh]">
+              <span className="p-2.5 bg-[var(--pastel-sky)] text-black border-2 border-[var(--border-ink)] shrink-0" aria-hidden="true">
+                <BookOpen className="w-5 h-5" />
+              </span>
+              <div className="space-y-2">
+                <h3 className="text-sm font-heading font-black text-[var(--text-primary)]">{t('noChaptersYet')}</h3>
+                <p className="text-xs text-[var(--text-secondary)] leading-relaxed">{t('noChaptersDesc')}</p>
+                <button
+                  type="button"
+                  onClick={handleAddChapter}
+                  className="px-4 py-2 text-xs font-heading font-black border-2 border-[var(--border-ink)] bg-[var(--pastel-yellow)] text-black shadow-[3px_3px_0px_var(--shadow-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer inline-flex items-center gap-1.5 mt-1"
+                >
+                  <Plus className="w-4 h-4 stroke-[3]" />
+                  <span>{t('addChapter')}</span>
+                </button>
+              </div>
             </div>
-            <h3 className="text-sm font-black text-[var(--text-primary)]">{t('noChaptersYet')}</h3>
-            <p className="text-xs max-w-sm">{t('noChaptersDesc')}</p>
-            <button
-              type="button"
-              onClick={handleAddChapter}
-              className="px-4 py-2 text-xs font-heading font-black border-2 border-[var(--border-ink)] bg-[var(--pastel-sky)] text-black shadow-[3px_3px_0px_var(--shadow-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center gap-1.5 mt-2"
-            >
-              <Plus className="w-4 h-4 stroke-[3]" />
-              <span>{t('addChapter')}</span>
-            </button>
           </div>
         )}
       </div>

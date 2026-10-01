@@ -193,7 +193,7 @@ export const SnapshotsModal: React.FC<SnapshotsModalProps> = ({
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2 mb-1">
                     <span
-                      className={`text-[9px] font-mono font-black px-1.5 border border-[var(--border-ink)] text-black ${
+                      className={`text-3xs font-mono font-black px-1.5 border border-[var(--border-ink)] text-black ${
                         snap.is_manual ? 'bg-[var(--pastel-yellow)]' : 'bg-[var(--pastel-sky)]'
                       }`}
                     >
@@ -202,7 +202,7 @@ export const SnapshotsModal: React.FC<SnapshotsModalProps> = ({
                     <span className="text-xs font-mono font-bold text-[var(--text-primary)]">
                       {formatTimestamp(snap.timestamp)}
                     </span>
-                    <span className="text-[10px] font-mono text-[var(--text-muted)]">
+                    <span className="text-2xs font-mono text-[var(--text-muted)]">
                       ({formatFileSize(snap.file_size_bytes)})
                     </span>
                   </div>

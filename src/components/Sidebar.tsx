@@ -100,6 +100,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const translateClass = isSidebarOpen ? 'translate-x-0' : (isRtl ? 'translate-x-full' : '-translate-x-full');
   const widthClass = isCollapsed ? 'w-14 sm:w-16' : 'w-72 md:w-80';
 
+  const navItemClass = (isActive: boolean) => {
+    const shape = isCollapsed
+      ? 'w-9 h-9 flex items-center justify-center shrink-0'
+      : 'w-full flex items-center gap-2.5 px-2.5 py-1.5 text-start';
+    const state = isActive
+      ? 'bg-[var(--pastel-yellow)] text-black font-black border-[var(--border-ink)] shadow-[2.5px_2.5px_0px_var(--shadow-ink)]'
+      : 'border-transparent text-[var(--text-primary)] font-bold hover:bg-[var(--bg-surface-hover)] hover:border-[var(--border-subtle)]';
+    return `${shape} text-xs font-heading border-2 transition-colors cursor-pointer select-none ${state}`;
+  };
+
   return (
     <aside className={`${widthClass} border-e-3 border-[var(--border-ink)] bg-[var(--bg-surface)] flex flex-col h-full select-none shrink-0 transition-all duration-200 ease-out fixed inset-y-0 start-0 z-40 pt-[env(safe-area-inset-top,0px)] md:pt-0 pb-[env(safe-area-inset-bottom,0px)] md:pb-0 md:relative md:translate-x-0 ${translateClass}`}>
       {/* Sidebar Header */}
@@ -125,7 +135,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   {novel.title}
                 </h2>
                 <p 
-                  className="text-[10px] font-mono text-[var(--text-muted)] truncate" 
+                  className="text-2xs font-mono text-[var(--text-muted)] truncate" 
                   title={activeProjectPath || ""}
                   dir="ltr"
                 >
@@ -137,7 +147,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 {onOpenSnapshots && (
                   <button
                     onClick={onOpenSnapshots}
-                    className="h-7 w-7 flex items-center justify-center border-2 border-[var(--border-ink)] bg-[var(--pastel-lavender)] text-black shadow-[1.5px_1.5px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-yellow)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
+                    className="h-7 w-7 flex items-center justify-center border-2 border-[var(--border-ink)] bg-[var(--pastel-lavender)] text-black shadow-[1.5px_1.5px_0px_var(--shadow-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
                     title={t('backupsTitle')}
                     aria-label={t('backupsTitle')}
                   >
@@ -147,7 +157,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
                 <button
                   onClick={onCloseProject}
-                  className="h-7 px-2 flex items-center justify-center text-[10px] font-heading font-black border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[1.5px_1.5px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-coral)] hover:text-black hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer whitespace-nowrap"
+                  className="h-7 px-2 flex items-center justify-center text-2xs font-heading font-black border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[1.5px_1.5px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-coral)] hover:text-black hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer whitespace-nowrap"
                   title={t('closeProjectTitle')}
                 >
                   {t('close')}
@@ -159,7 +169,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 {/* Collapse Sidebar Button on Desktop */}
                 <button
                   onClick={handleToggleCollapse}
-                  className="hidden md:flex h-7 w-7 items-center justify-center border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[1.5px_1.5px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-yellow)] hover:text-black hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer shrink-0"
+                  className="hidden md:flex h-7 w-7 items-center justify-center border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[1.5px_1.5px_0px_var(--shadow-ink)] hover:bg-[var(--bg-surface-hover)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer shrink-0"
                   title={t('collapseSidebar')}
                   aria-label={t('collapseSidebar')}
                 >
@@ -210,7 +220,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               className="py-2 border-b-3 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] flex flex-col items-center justify-center gap-2 select-none"
             >
               <span
-                className="font-mono text-[9px] font-black bg-[var(--pastel-yellow)] text-black px-1 py-0.5 border border-[var(--border-ink)]"
+                className="font-mono text-3xs font-black bg-[var(--pastel-yellow)] text-black px-1 py-0.5 border border-[var(--border-ink)]"
                 title={`${t('completedSteps')}: ${completedSteps}/10`}
               >
                 {completedSteps}/10
@@ -218,7 +228,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               {onOpenSnapshots && (
                 <button
                   onClick={onOpenSnapshots}
-                  className="h-7 w-7 flex items-center justify-center border-2 border-[var(--border-ink)] bg-[var(--pastel-lavender)] text-black shadow-[1.5px_1.5px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-yellow)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
+                  className="h-7 w-7 flex items-center justify-center border-2 border-[var(--border-ink)] bg-[var(--pastel-lavender)] text-black shadow-[1.5px_1.5px_0px_var(--shadow-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
                   title={t('backupsTitle')}
                   aria-label={t('backupsTitle')}
                 >
@@ -228,9 +238,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
           ) : (
             <div className="p-3 border-b-3 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] space-y-2">
-              <div className="flex justify-between items-center text-[11px] font-heading font-black">
+              <div className="flex justify-between items-center text-2xs font-heading font-black">
                 <span className="text-[var(--text-secondary)] uppercase tracking-wider">{t('completedSteps')}</span>
-                <span className="font-mono bg-[var(--pastel-yellow)] text-black px-1.5 py-0.5 border border-[var(--border-ink)] font-bold text-[10px]">
+                <span className="font-mono bg-[var(--pastel-yellow)] text-black px-1.5 py-0.5 border border-[var(--border-ink)] font-bold text-2xs">
                   {completedSteps} / 10
                 </span>
               </div>
@@ -243,25 +253,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
           )}
 
-          {/* Navigation Steps List */}
-          <nav className={`flex-1 overflow-y-auto ${isCollapsed ? 'py-2.5 px-1 space-y-2 flex flex-col items-center' : 'p-2.5 space-y-1.5'}`}>
-            {/* Dashboard Step 0 */}
+          {/* Navigation: inactive items are flat rows; the current item is
+              the only one with a fill, border and shadow. */}
+          <nav className={`flex-1 overflow-y-auto ${isCollapsed ? 'py-2.5 px-1 space-y-1.5 flex flex-col items-center' : 'p-2.5 space-y-1'}`}>
             <button
               onClick={() => onSelectStep(0)}
-              className={
-                isCollapsed
-                  ? `w-9 h-9 flex items-center justify-center border-2 border-[var(--border-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer shrink-0 ${
-                      activeStep === 0
-                        ? 'bg-[var(--pastel-yellow)] text-black shadow-[2px_2px_0px_var(--shadow-ink)] font-black'
-                        : 'bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)] shadow-[1px_1px_0px_var(--shadow-ink)]'
-                    }`
-                  : `w-full flex items-center gap-2.5 px-3 py-2 text-xs font-heading font-black border-2 border-[var(--border-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer text-start select-none ${
-                      activeStep === 0
-                        ? 'bg-[var(--pastel-yellow)] text-black shadow-[3px_3px_0px_var(--shadow-ink)] translate-x-0.5'
-                        : 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[1px_1px_0px_var(--shadow-ink)] hover:bg-[var(--bg-surface-hover)]'
-                    }`
-              }
+              className={navItemClass(activeStep === 0)}
               title={t('dashboard')}
+              aria-current={activeStep === 0 ? 'page' : undefined}
             >
               <span className={isCollapsed ? '' : 'p-1 bg-[var(--pastel-sky)] text-black border border-[var(--border-ink)] shrink-0 flex items-center justify-center'}>
                 <LayoutDashboard className="w-3.5 h-3.5" />
@@ -269,117 +268,60 @@ export const Sidebar: React.FC<SidebarProps> = ({
               {!isCollapsed && <span className="truncate">{t('dashboard')}</span>}
             </button>
 
-            <div className={isCollapsed ? 'w-full py-0.5' : 'py-0.5'}>
+            <div className={isCollapsed ? 'w-full py-1' : 'py-1'}>
               <div className="border-t-2 border-dashed border-[var(--border-subtle)]" />
             </div>
 
-            {/* Steps 1 to 10 */}
             {steps.map((step) => {
               const isStepCompleted = stepsProgress.some(p => p.step_number === step.num && p.is_completed);
               const isActive = activeStep === step.num;
-
-              if (isCollapsed) {
-                return (
-                  <button
-                    key={step.num}
-                    onClick={() => onSelectStep(step.num)}
-                    className={`w-9 h-9 flex items-center justify-center border-2 border-[var(--border-ink)] relative hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer shrink-0 ${
-                      isActive
-                        ? 'bg-[var(--pastel-yellow)] text-black shadow-[2px_2px_0px_var(--shadow-ink)] font-black'
-                        : (isStepCompleted ? 'bg-[var(--pastel-mint)] text-black font-bold shadow-[1px_1px_0px_var(--shadow-ink)]' : 'bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)] shadow-[1px_1px_0px_var(--shadow-ink)]')
-                    }`}
-                    title={`${step.num}. ${step.title}`}
-                  >
-                    <span className="font-mono text-xs font-black">
-                      {step.num}
-                    </span>
-                    {isStepCompleted && !isActive && (
-                      <span className="absolute -top-1 -end-1 w-2.5 h-2.5 bg-black text-white flex items-center justify-center border border-black">
-                        <Check className="w-2 h-2 stroke-[3]" />
-                      </span>
-                    )}
-                  </button>
-                );
-              }
 
               return (
                 <button
                   key={step.num}
                   onClick={() => onSelectStep(step.num)}
-                  className={`w-full flex items-center justify-between gap-2 px-2.5 py-1.5 text-xs font-heading font-bold border-2 border-[var(--border-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer text-start select-none ${
-                    isActive
-                      ? 'bg-[var(--pastel-yellow)] text-black font-black shadow-[3px_3px_0px_var(--shadow-ink)] translate-x-0.5'
-                      : 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[1px_1px_0px_var(--shadow-ink)] hover:bg-[var(--bg-surface-hover)]'
-                  }`}
+                  className={`${navItemClass(isActive)} relative`}
+                  title={`${step.num}. ${step.title}`}
+                  aria-current={isActive ? 'page' : undefined}
                 >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className={`w-5 h-5 font-mono text-[10px] font-black border border-[var(--border-ink)] shrink-0 flex items-center justify-center ${
-                      isActive 
-                        ? 'bg-black text-[var(--pastel-yellow)]' 
-                        : (isStepCompleted ? 'bg-[var(--pastel-mint)] text-black' : 'bg-[var(--bg-surface-raised)] text-[var(--text-primary)]')
-                    }`}>
-                      {step.num}
-                    </span>
-                    <span className="truncate text-[11px] leading-tight">{step.title}</span>
-                  </div>
-
-                  {isStepCompleted && (
-                    <span 
-                      className="p-0.5 bg-[var(--pastel-mint)] text-black border border-[var(--border-ink)] shadow-[1px_1px_0px_var(--shadow-ink)] shrink-0" 
-                      title={t('confirm')}
-                    >
-                      <Check className="w-2.5 h-2.5 stroke-[3]" />
-                    </span>
+                  <span className={`w-5 h-5 font-mono text-2xs font-black border border-[var(--border-ink)] shrink-0 flex items-center justify-center ${
+                    isActive
+                      ? 'bg-black text-[var(--pastel-yellow)]'
+                      : (isStepCompleted ? 'bg-[var(--pastel-mint)] text-black' : 'bg-[var(--bg-surface-raised)] text-[var(--text-primary)]')
+                  }`}>
+                    {step.num}
+                  </span>
+                  {!isCollapsed && (
+                    <span className="truncate leading-tight flex-1">{step.title}</span>
+                  )}
+                  {isStepCompleted && !isCollapsed && (
+                    <Check className="w-3.5 h-3.5 stroke-[3] shrink-0 text-[var(--text-secondary)]" aria-label={t('markStepComplete')} />
                   )}
                 </button>
               );
             })}
 
-            <div className={isCollapsed ? 'w-full py-0.5' : 'py-1'}>
+            <div className={isCollapsed ? 'w-full py-1' : 'py-1'}>
               <div className="border-t-2 border-dashed border-[var(--border-subtle)]" />
             </div>
 
-            {/* TAB 11: Write Novel */}
             <button
               onClick={() => onSelectStep(11)}
-              className={
-                isCollapsed
-                  ? `w-9 h-9 flex items-center justify-center border-2 border-[var(--border-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer shrink-0 ${
-                      activeStep === 11
-                        ? 'bg-[var(--pastel-sky)] text-black shadow-[2px_2px_0px_var(--shadow-ink)] font-black'
-                        : 'bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)] shadow-[1px_1px_0px_var(--shadow-ink)]'
-                    }`
-                  : `w-full flex items-center gap-2.5 px-3 py-2 text-xs font-heading font-black border-2 border-[var(--border-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer text-start select-none ${
-                      activeStep === 11
-                        ? 'bg-[var(--pastel-sky)] text-black shadow-[3px_3px_0px_var(--shadow-ink)] translate-x-0.5'
-                        : 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[1px_1px_0px_var(--shadow-ink)] hover:bg-[var(--bg-surface-hover)]'
-                    }`
-              }
+              className={navItemClass(activeStep === 11)}
               title={t('step11Title')}
+              aria-current={activeStep === 11 ? 'page' : undefined}
             >
-              <span className={isCollapsed ? '' : 'p-1 bg-[var(--pastel-yellow)] text-black border border-[var(--border-ink)] shrink-0 flex items-center justify-center'}>
+              <span className={isCollapsed ? '' : 'p-1 bg-[var(--pastel-sky)] text-black border border-[var(--border-ink)] shrink-0 flex items-center justify-center'}>
                 <PenTool className="w-3.5 h-3.5" />
               </span>
               {!isCollapsed && <span className="truncate">{t('step11Title')}</span>}
             </button>
 
-            {/* TAB 12: Book Studio */}
             <button
               onClick={() => onSelectStep(12)}
-              className={
-                isCollapsed
-                  ? `w-9 h-9 flex items-center justify-center border-2 border-[var(--border-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer shrink-0 ${
-                      activeStep === 12
-                        ? 'bg-[var(--pastel-mint)] text-black shadow-[2px_2px_0px_var(--shadow-ink)] font-black'
-                        : 'bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)] shadow-[1px_1px_0px_var(--shadow-ink)]'
-                    }`
-                  : `w-full flex items-center gap-2.5 px-3 py-2 text-xs font-heading font-black border-2 border-[var(--border-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer text-start select-none ${
-                      activeStep === 12
-                        ? 'bg-[var(--pastel-mint)] text-black shadow-[3px_3px_0px_var(--shadow-ink)] translate-x-0.5'
-                        : 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[1px_1px_0px_var(--shadow-ink)] hover:bg-[var(--bg-surface-hover)]'
-                    }`
-              }
+              className={navItemClass(activeStep === 12)}
               title={t('step12Title')}
+              aria-current={activeStep === 12 ? 'page' : undefined}
             >
               <span className={isCollapsed ? '' : 'p-1 bg-[var(--pastel-lavender)] text-black border border-[var(--border-ink)] shrink-0 flex items-center justify-center'}>
                 <BookOpen className="w-3.5 h-3.5" />
@@ -389,10 +331,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </nav>
         </>
       ) : (
-        <div className="flex-1 flex flex-col items-center justify-center p-4 text-center text-[var(--text-secondary)] font-heading">
-          <div className="p-2.5 bg-[var(--pastel-sky)] text-black border-2 border-[var(--border-ink)] shadow-[2px_2px_0px_var(--shadow-ink)] mb-2">
-            <FolderKanban className="w-5 h-5" />
-          </div>
+        <div className={`flex-1 flex items-start p-4 text-[var(--text-secondary)] font-heading ${isCollapsed ? 'justify-center' : 'gap-3'}`}>
+          <span className="p-2 bg-[var(--pastel-sky)] text-black border-2 border-[var(--border-ink)] shrink-0" aria-hidden="true">
+            <FolderKanban className="w-4 h-4" />
+          </span>
           {!isCollapsed && <p className="text-xs font-bold leading-relaxed">{t('openProjectHelp')}</p>}
         </div>
       )}
@@ -403,7 +345,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <footer className="p-2 border-t-3 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] flex items-center justify-center shrink-0">
           <button
             onClick={() => setLanguage(language === 'ar' ? 'en' : 'ar')}
-            className="h-8 w-8 flex items-center justify-center border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-sky)] hover:text-black hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all text-[10px] font-heading font-black cursor-pointer shrink-0"
+            className="h-8 w-8 flex items-center justify-center border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-sky)] hover:text-black hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all text-2xs font-heading font-black cursor-pointer shrink-0"
             title={t('switchLanguageTitle')}
             aria-label={t('switchLanguageTitle')}
           >
@@ -413,20 +355,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
       ) : (
         /* Expanded Footer */
         <footer className="p-3 border-t-3 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] flex items-center justify-between text-xs text-[var(--text-secondary)] shrink-0 select-text">
-          <div className="flex items-center gap-1.5 font-heading font-bold text-[11px]">
+          <div className="flex items-center gap-1.5 font-heading font-bold text-2xs">
             <span>{t('builtBy')}</span>
             <a
               href="https://github.com/RubarMo"
               target="_blank"
               rel="noopener noreferrer"
               onClick={openGithub}
-              className="text-[var(--text-primary)] hover:bg-[var(--pastel-yellow)] hover:text-black hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none px-1 border border-[var(--border-ink)] shadow-[1px_1px_0px_var(--shadow-ink)] transition-all font-black"
+              className="text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none px-1 border border-[var(--border-ink)] shadow-[1px_1px_0px_var(--shadow-ink)] transition-all font-black"
               title={t('githubProfile')}
             >
               Rubar
             </a>
             {appVersion && (
-              <span className="text-[9px] font-mono text-black font-bold px-1 bg-[var(--pastel-lavender)] border border-[var(--border-ink)]">
+              <span className="text-3xs font-mono text-black font-bold px-1 bg-[var(--pastel-lavender)] border border-[var(--border-ink)]">
                 v{appVersion}
               </span>
             )}
@@ -435,7 +377,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {/* Language Switcher */}
           <button
             onClick={() => setLanguage(language === 'ar' ? 'en' : 'ar')}
-            className="inline-flex items-center gap-1 px-2 py-1 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-sky)] hover:text-black hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all text-[10px] font-heading font-black cursor-pointer"
+            className="inline-flex items-center gap-1 px-2 py-1 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-sky)] hover:text-black hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all text-2xs font-heading font-black cursor-pointer"
             title={t('switchLanguageTitle')}
           >
             <Languages className="w-3 h-3" aria-hidden="true" />

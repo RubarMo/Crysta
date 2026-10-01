@@ -47,6 +47,9 @@ interface RecentProject {
   lastOpened: string;
   /** Set when the file couldn't be found the last time it was opened. */
   missing?: boolean;
+  /** Manuscript word count and goal, as of the last session. */
+  wordCount?: number;
+  targetWords?: number;
 }
 
 const RECENT_KEY = "recent_projects";
@@ -134,11 +137,32 @@ function App() {
     });
   };
 
-  const addRecentProject = (path: string, title: string) => {
-    updateRecentProjects((prev) =>
-      [{ path, title, lastOpened: new Date().toISOString() }, ...prev.filter((p) => p.path !== path)].slice(0, 10)
-    );
+  const addRecentProject = (path: string, title: string, details: Partial<RecentProject> = {}) => {
+    updateRecentProjects((prev) => {
+      const existing = prev.find((p) => p.path === path);
+      const entry: RecentProject = { ...existing, ...details, path, title, lastOpened: new Date().toISOString(), missing: undefined };
+      return [entry, ...prev.filter((p) => p.path !== path)].slice(0, 10);
+    });
   };
+
+  // Keep the launcher's word count current without writing on every keystroke.
+  const activePathRef = useRef<string | null>(null);
+  useEffect(() => {
+    activePathRef.current = activeProjectPath;
+  }, [activeProjectPath]);
+  const wordCountTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const handleWordCountChange = useCallback((words: number) => {
+    if (wordCountTimer.current) clearTimeout(wordCountTimer.current);
+    wordCountTimer.current = setTimeout(() => {
+      const path = activePathRef.current;
+      if (!path) return;
+      setRecentProjects((prev) => {
+        const next = prev.map((p) => (p.path === path ? { ...p, wordCount: words } : p));
+        storeRecentProjects(next);
+        return next;
+      });
+    }, 1500);
+  }, []);
 
   const removeRecentProject = (path: string) => {
     updateRecentProjects((prev) => prev.filter((p) => p.path !== path));
@@ -160,7 +184,7 @@ function App() {
       setActiveProjectPath(path);
       setActiveStep(0);
       setSessionKey((key) => key + 1);
-      addRecentProject(path, novel.title);
+      addRecentProject(path, novel.title, { wordCount: novel.current_word_count, targetWords: novel.target_word_count });
 
       // Automatic snapshot on open (old automatic snapshots are pruned).
       takeSnapshot(undefined, false).catch((e) => {
@@ -237,7 +261,7 @@ function App() {
 
   const handleUpdateNovelLocally = (updated: Novel) => {
     setActiveNovel(updated);
-    if (activeProjectPath) addRecentProject(activeProjectPath, updated.title);
+    if (activeProjectPath) addRecentProject(activeProjectPath, updated.title, { targetWords: updated.target_word_count });
   };
 
   const handleStepSaved = useCallback((progress: StepProgress) => {
@@ -341,7 +365,7 @@ function App() {
   };
 
   const headerButtonClass =
-    "h-8 inline-flex items-center gap-1.5 text-xs px-2.5 sm:px-3 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-yellow)] hover:text-black hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all font-heading font-black cursor-pointer shrink-0 box-border";
+    "h-8 inline-flex items-center gap-1.5 text-xs px-2.5 sm:px-3 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--bg-surface-hover)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all font-heading font-black cursor-pointer shrink-0 box-border";
 
   return (
     <div className="flex h-screen app-container bg-[var(--bg-canvas)] text-[var(--text-primary)] overflow-hidden select-none">
@@ -370,7 +394,7 @@ function App() {
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <button
               onClick={() => setIsSidebarOpen(true)}
-              className="md:hidden h-8 w-8 text-[var(--text-primary)] border-2 border-[var(--border-ink)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--pastel-yellow)] hover:text-black active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center justify-center shrink-0 box-border"
+              className="md:hidden h-8 w-8 text-[var(--text-primary)] border-2 border-[var(--border-ink)] shadow-[2px_2px_0px_var(--shadow-ink)] hover:bg-[var(--bg-surface-hover)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center justify-center shrink-0 box-border"
               title={t("openSidebar")}
               aria-label={t("openSidebar")}
             >
@@ -395,7 +419,7 @@ function App() {
               aria-label={t('commandPaletteTitle')}
             >
               <SlidersHorizontal className="w-3.5 h-3.5" />
-              <span className="font-mono text-[10px]">Ctrl+K</span>
+              <span className="font-mono text-2xs">Ctrl+K</span>
             </button>
             <button onClick={() => setShowHelpModal(true)} className={`${headerButtonClass} whitespace-nowrap`} aria-label={t("helpGuideBtn")}>
               <HelpCircle className="w-3.5 h-3.5" />
@@ -421,30 +445,33 @@ function App() {
               stepsProgress={stepsProgress}
               onStepSaved={handleStepSaved}
               activeStep={activeStep}
+              onSelectStep={goToStep}
+              onWordCountChange={handleWordCountChange}
             />
           ) : (
-            <div className="flex-1 overflow-y-auto w-full max-w-6xl mx-auto p-6 sm:p-8 space-y-8 select-text">
-              <div className="bg-[var(--bg-surface)] border-3 border-[var(--border-ink)] shadow-[6px_6px_0px_var(--shadow-ink)] p-6 sm:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                <div className="space-y-2 min-w-0 flex-1">
-                  <h1 className="text-2xl sm:text-4xl font-display font-black text-[var(--text-primary)] leading-tight">
+            <div className="flex-1 overflow-y-auto w-full max-w-5xl mx-auto p-6 sm:p-8 space-y-6 select-text">
+              {/* Compact header: the recent projects below are the main content */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b-3 border-[var(--border-ink)]">
+                <div className="min-w-0">
+                  <h1 className="text-2xl font-display font-black text-[var(--text-primary)] leading-tight">
                     {t("appName")}
                   </h1>
-                  <p className="text-xs sm:text-sm font-body font-medium text-[var(--text-secondary)] leading-relaxed max-w-xl">
+                  <p className="text-xs font-body font-medium text-[var(--text-secondary)] mt-1">
                     {t("appTagline")}
                   </p>
                 </div>
 
-                <div className="flex flex-col sm:flex-row gap-3 shrink-0 w-full sm:w-auto">
+                <div className="flex gap-2.5 shrink-0">
                   <button
                     onClick={handleOpenFileDialog}
-                    className="inline-flex items-center justify-center gap-2 px-5 py-3 text-xs font-heading font-black border-3 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[4px_4px_0px_var(--shadow-ink)] hover:bg-[var(--bg-surface-hover)] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0px_var(--shadow-ink)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer select-none"
+                    className="inline-flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-heading font-black border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[3px_3px_0px_var(--shadow-ink)] hover:bg-[var(--bg-surface-hover)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer select-none"
                   >
                     <FolderOpen className="w-4 h-4 stroke-[2.5]" />
                     <span>{t("openProjectBtn")}</span>
                   </button>
                   <button
                     onClick={handleCreateFileDialog}
-                    className="inline-flex items-center justify-center gap-2 px-5 py-3 text-xs font-heading font-black border-3 border-[var(--border-ink)] bg-[var(--accent)] text-black shadow-[4px_4px_0px_var(--shadow-ink)] hover:bg-[var(--accent-hover)] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0px_var(--shadow-ink)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer select-none"
+                    className="inline-flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-heading font-black border-2 border-[var(--border-ink)] bg-[var(--accent)] text-black shadow-[3px_3px_0px_var(--shadow-ink)] hover:bg-[var(--accent-hover)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer select-none"
                   >
                     <Plus className="w-4 h-4 stroke-[3]" />
                     <span>{t("createProjectBtn")}</span>
@@ -452,75 +479,93 @@ function App() {
                 </div>
               </div>
 
-              <section className="space-y-4" aria-labelledby="recent-projects-title">
-                <div className="flex items-center justify-between border-b-2 border-[var(--border-subtle)] pb-2">
+              <section className="space-y-3" aria-labelledby="recent-projects-title">
+                <div className="flex items-center justify-between">
                   <h2 id="recent-projects-title" className="text-xs font-heading font-black uppercase tracking-wider text-[var(--text-secondary)]">
                     {t("recentProjectsTitle")}
                   </h2>
-                  <span className="font-mono text-[11px] font-bold text-[var(--text-muted)]">
+                  <span className="font-mono text-2xs font-bold text-[var(--text-muted)]">
                     {t('projectsCount', { count: String(recentProjects.length) })}
                   </span>
                 </div>
 
                 {recentProjects.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-16 text-center space-y-3 border-3 border-dashed border-[var(--border-ink)] bg-[var(--bg-surface)] p-6">
-                    <div className="p-3 bg-[var(--pastel-sky)] text-black border-2 border-[var(--border-ink)] shadow-[3px_3px_0px_var(--shadow-ink)]">
-                      <BookOpen className="w-8 h-8" />
+                  <div className="flex items-start gap-4 border-2 border-dashed border-[var(--border-ink)] bg-[var(--bg-surface)] p-6">
+                    <span className="p-2.5 bg-[var(--pastel-sky)] text-black border-2 border-[var(--border-ink)] shrink-0" aria-hidden="true">
+                      <BookOpen className="w-5 h-5" />
+                    </span>
+                    <div className="space-y-1">
+                      <h3 className="text-sm font-heading font-black text-[var(--text-primary)]">
+                        {t("noRecentProjectsTitle")}
+                      </h3>
+                      <p className="text-xs font-body text-[var(--text-secondary)] max-w-md leading-relaxed">
+                        {t("noRecentProjectsDesc")}
+                      </p>
                     </div>
-                    <h3 className="text-sm font-heading font-black text-[var(--text-primary)]">
-                      {t("noRecentProjectsTitle")}
-                    </h3>
-                    <p className="text-xs font-body text-[var(--text-secondary)] max-w-sm leading-relaxed">
-                      {t("noRecentProjectsDesc")}
-                    </p>
                   </div>
                 ) : (
-                  <ul className="grid grid-cols-1 gap-3.5">
-                    {recentProjects.map((project) => (
-                      <li
-                        key={project.path}
-                        className="bg-[var(--bg-surface)] border-3 border-[var(--border-ink)] shadow-[4px_4px_0px_var(--shadow-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[7px_7px_0px_var(--shadow-ink)] transition-all flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 group"
-                      >
-                        <button
-                          type="button"
-                          onClick={() => handleOpenProjectPath(project.path)}
-                          className="space-y-1.5 min-w-0 flex-1 text-start p-4 sm:p-5 sm:pe-0 cursor-pointer"
-                        >
-                          <span className="flex items-center gap-2">
-                            <span className="p-1 bg-[var(--pastel-sky)] text-black border border-[var(--border-ink)] shadow-[1px_1px_0px_var(--shadow-ink)] shrink-0">
-                              <FileCode className="w-3.5 h-3.5" />
+                  <ul className="border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] shadow-[4px_4px_0px_var(--shadow-ink)] divide-y-2 divide-[var(--border-subtle)]">
+                    {recentProjects.map((project) => {
+                      const goal = project.targetWords ?? 0;
+                      const words = project.wordCount ?? 0;
+                      const percent = goal > 0 ? Math.min(100, Math.round((words / goal) * 100)) : 0;
+                      return (
+                        <li key={project.path} className="flex items-center gap-3 hover:bg-[var(--bg-surface-hover)] transition-colors">
+                          <button
+                            type="button"
+                            onClick={() => handleOpenProjectPath(project.path)}
+                            className="min-w-0 flex-1 text-start px-4 py-3.5 cursor-pointer flex items-center gap-4"
+                          >
+                            <span className="p-1.5 bg-[var(--pastel-sky)] text-black border border-[var(--border-ink)] shrink-0" aria-hidden="true">
+                              <FileCode className="w-4 h-4" />
                             </span>
-                            <span className="text-sm font-heading font-black text-[var(--text-primary)] truncate">
-                              {project.title}
+                            <span className="min-w-0 flex-1 space-y-1">
+                              <span className="flex items-center gap-2">
+                                <span className="text-sm font-heading font-black text-[var(--text-primary)] truncate">
+                                  {project.title}
+                                </span>
+                                {project.missing && (
+                                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-2xs font-heading font-black bg-[var(--pastel-coral)] text-black border border-[var(--border-ink)] shrink-0" title={t('projectMissingHint')}>
+                                    <AlertTriangle className="w-3 h-3" aria-hidden="true" />
+                                    {t('projectMissing')}
+                                  </span>
+                                )}
+                              </span>
+                              <span className="block text-2xs text-[var(--text-muted)] font-mono truncate" dir="ltr" title={project.path}>
+                                {project.path}
+                              </span>
                             </span>
-                            {project.missing && (
-                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-heading font-black bg-[var(--pastel-coral)] text-black border border-[var(--border-ink)] shrink-0" title={t('projectMissingHint')}>
-                                <AlertTriangle className="w-3 h-3" aria-hidden="true" />
-                                {t('projectMissing')}
+
+                            {project.wordCount !== undefined && (
+                              <span className="hidden sm:flex flex-col items-end gap-1 w-36 shrink-0">
+                                <span className="text-2xs font-mono font-bold text-[var(--text-secondary)]">
+                                  {words.toLocaleString()} {t('words')}
+                                </span>
+                                {goal > 0 && (
+                                  <span className="w-full h-1.5 border border-[var(--border-ink)] bg-[var(--bg-surface-raised)] overflow-hidden" aria-hidden="true">
+                                    <span className="block h-full bg-[var(--pastel-mint)]" style={{ width: `${percent}%` }} />
+                                  </span>
+                                )}
                               </span>
                             )}
-                          </span>
-                          <span className="block text-[10px] text-[var(--text-muted)] font-mono truncate w-full" dir="ltr" title={project.path}>
-                            {project.path}
-                          </span>
-                        </button>
 
-                        <div className="flex items-center gap-3 shrink-0 sm:self-center self-end px-4 pb-4 sm:p-0 sm:pe-5">
-                          <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold text-[var(--text-secondary)] bg-[var(--bg-surface-raised)] border border-[var(--border-ink)] px-2 py-1">
-                            <Clock className="w-3 h-3" aria-hidden="true" />
-                            <span>{new Date(project.lastOpened).toLocaleDateString(language === "ar" ? "ar-EG" : "en-US", { day: "numeric", month: "short", year: "numeric" })}</span>
-                          </span>
+                            <span className="hidden md:inline-flex items-center gap-1 text-2xs font-mono font-bold text-[var(--text-muted)] shrink-0" title={t('lastOpened')}>
+                              <Clock className="w-3 h-3" aria-hidden="true" />
+                              {new Date(project.lastOpened).toLocaleDateString(language === "ar" ? "ar-EG" : "en-US", { day: "numeric", month: "short", year: "numeric" })}
+                            </span>
+                          </button>
+
                           <button
                             onClick={() => removeRecentProject(project.path)}
-                            className="p-1.5 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--pastel-coral)] hover:text-black shadow-[2px_2px_0px_var(--shadow-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center justify-center"
+                            className="me-3 p-1.5 border-2 border-transparent text-[var(--text-muted)] hover:border-[var(--border-ink)] hover:bg-[var(--pastel-coral)] hover:text-black transition-colors cursor-pointer flex items-center justify-center shrink-0"
                             title={t("removeFromList")}
                             aria-label={`${t("removeFromList")}: ${project.title}`}
                           >
                             <X className="w-3.5 h-3.5 stroke-[2.5]" />
                           </button>
-                        </div>
-                      </li>
-                    ))}
+                        </li>
+                      );
+                    })}
                   </ul>
                 )}
               </section>

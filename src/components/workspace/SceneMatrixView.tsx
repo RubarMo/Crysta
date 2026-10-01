@@ -108,7 +108,7 @@ export const SceneMatrixView: React.FC<SceneMatrixViewProps> = ({
                   type="button"
                   aria-pressed={groupBy === mode}
                   onClick={() => setGroupBy(mode)}
-                  className={`px-2 py-1 text-[10px] font-heading font-bold border-2 border-[var(--border-ink)] cursor-pointer ${
+                  className={`px-2 py-1 text-2xs font-heading font-bold border-2 border-[var(--border-ink)] cursor-pointer ${
                     groupBy === mode ? 'bg-black text-white' : 'bg-[var(--bg-surface)] text-[var(--text-primary)]'
                   }`}
                 >
@@ -144,7 +144,7 @@ export const SceneMatrixView: React.FC<SceneMatrixViewProps> = ({
               >
                 <div className="flex items-start gap-3 min-w-0 flex-1">
                   <div className="flex items-center gap-1 shrink-0 pt-0.5 sm:pt-0">
-                    <span className="w-7 h-7 font-mono text-[11px] font-black bg-[var(--pastel-sky)] text-black border border-[var(--border-ink)] shadow-[1px_1px_0px_var(--shadow-ink)] flex items-center justify-center shrink-0">
+                    <span className="w-7 h-7 font-mono text-2xs font-black bg-[var(--pastel-sky)] text-black border border-[var(--border-ink)] shadow-[1px_1px_0px_var(--shadow-ink)] flex items-center justify-center shrink-0">
                       #{idx + 1}
                     </span>
                     <div className="flex flex-col gap-0.5">
@@ -177,18 +177,18 @@ export const SceneMatrixView: React.FC<SceneMatrixViewProps> = ({
                         {scene.setting || t('uncategorized')}
                       </h4>
                       {scene.pov_character_id && (
-                        <span className="px-1.5 py-0.5 font-heading font-bold text-[10px] bg-[var(--pastel-lavender)] text-black border border-[var(--border-ink)] shrink-0">
+                        <span className="px-1.5 py-0.5 font-heading font-bold text-2xs bg-[var(--pastel-lavender)] text-black border border-[var(--border-ink)] shrink-0">
                           {t('scenePovLabel')}: {getCharName(scene.pov_character_id)}
                         </span>
                       )}
                       {scene.plot_thread && (
-                        <span className="px-1.5 py-0.5 font-mono text-[10px] bg-[var(--pastel-mint)] text-black border border-[var(--border-ink)] shrink-0">
+                        <span className="px-1.5 py-0.5 font-mono text-2xs bg-[var(--pastel-mint)] text-black border border-[var(--border-ink)] shrink-0">
                           {scene.plot_thread}
                         </span>
                       )}
                     </div>
                     {scene.what_happens && (
-                      <p className="text-[11px] text-[var(--text-secondary)] font-sans line-clamp-2 leading-relaxed">
+                      <p className="text-2xs text-[var(--text-secondary)] font-sans line-clamp-2 leading-relaxed">
                         {scene.what_happens}
                       </p>
                     )}
@@ -196,7 +196,7 @@ export const SceneMatrixView: React.FC<SceneMatrixViewProps> = ({
                 </div>
 
                 <div className="flex items-center gap-2.5 shrink-0 self-end sm:self-center w-full sm:w-auto justify-between sm:justify-end border-t sm:border-t-0 pt-2 sm:pt-0 border-dashed border-[var(--border-subtle)]">
-                  <span className="text-[10px] font-mono font-bold text-[var(--text-muted)] bg-[var(--bg-surface)] px-2 py-1 border border-[var(--border-ink)]">
+                  <span className="text-2xs font-mono font-bold text-[var(--text-muted)] bg-[var(--bg-surface)] px-2 py-1 border border-[var(--border-ink)]">
                     {scene.expected_word_count} {t('words')}
                   </span>
 
@@ -204,7 +204,7 @@ export const SceneMatrixView: React.FC<SceneMatrixViewProps> = ({
                     <button
                       type="button"
                       onClick={() => setEditingScene(scene)}
-                      className="p-1.5 text-[10px] font-heading font-black border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] hover:bg-[var(--pastel-sky)] hover:text-black shadow-[1px_1px_0px_var(--shadow-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center gap-1"
+                      className="p-1.5 text-2xs font-heading font-black border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] hover:bg-[var(--pastel-sky)] hover:text-black shadow-[1px_1px_0px_var(--shadow-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center gap-1"
                       title={t('edit')}
                       aria-label={t('edit')}
                     >
@@ -214,7 +214,7 @@ export const SceneMatrixView: React.FC<SceneMatrixViewProps> = ({
                     <button
                       type="button"
                       onClick={() => scene.id && onDeleteScene(scene.id)}
-                      className="p-1.5 text-[10px] font-heading font-black border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] hover:bg-[var(--pastel-coral)] hover:text-black shadow-[1px_1px_0px_var(--shadow-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center gap-1"
+                      className="p-1.5 text-2xs font-heading font-black border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] hover:bg-[var(--pastel-coral)] hover:text-black shadow-[1px_1px_0px_var(--shadow-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center gap-1"
                       title={t('delete')}
                       aria-label={t('delete')}
                     >
@@ -242,7 +242,7 @@ export const SceneMatrixView: React.FC<SceneMatrixViewProps> = ({
               >
                 <div className="p-3 border-b-2 border-[var(--border-ink)] flex items-center justify-between text-black" style={{ backgroundColor: col.color }}>
                   <h4 className="text-xs font-heading font-black truncate">{col.title}</h4>
-                  <span className="font-mono text-[10px] font-black px-1.5 py-0.5 bg-black text-white">
+                  <span className="font-mono text-2xs font-black px-1.5 py-0.5 bg-black text-white">
                     {colScenes.length}
                   </span>
                 </div>
@@ -260,24 +260,24 @@ export const SceneMatrixView: React.FC<SceneMatrixViewProps> = ({
                         <button
                           type="button"
                           onClick={() => setEditingScene(scene)}
-                          className="p-1 hover:bg-[var(--pastel-yellow)] hover:text-black transition-colors cursor-pointer"
+                          className="p-1 hover:bg-[var(--bg-surface-hover)] transition-colors cursor-pointer"
                           title={t('edit')}
                           aria-label={t('edit')}
                         >
                           <Edit3 className="w-3 h-3" />
                         </button>
                       </div>
-                      <p className="text-[11px] text-[var(--text-secondary)] font-sans line-clamp-2">
+                      <p className="text-2xs text-[var(--text-secondary)] font-sans line-clamp-2">
                         {scene.what_happens}
                       </p>
 
-                      <div className="pt-1 flex items-center justify-between gap-2 text-[10px] font-mono text-[var(--text-muted)]">
+                      <div className="pt-1 flex items-center justify-between gap-2 text-2xs font-mono text-[var(--text-muted)]">
                         <span>{scene.expected_word_count} {t('words')}</span>
                         <select
                           value={groupBy === 'pov' ? String(scene.pov_character_id ?? '') : scene.plot_thread || ''}
                           onChange={(e) => handleMoveKanban(scene, e.target.value)}
                           aria-label={groupBy === 'pov' ? t('scenePovLabel') : t('scenePlotLabel')}
-                          className="text-[9px] font-heading font-bold border border-[var(--border-ink)] bg-[var(--bg-surface-raised)] text-[var(--text-primary)] cursor-pointer max-w-[60%]"
+                          className="text-3xs font-heading font-bold border border-[var(--border-ink)] bg-[var(--bg-surface-raised)] text-[var(--text-primary)] cursor-pointer max-w-[60%]"
                         >
                           <option value="">{groupBy === 'pov' ? t('unassignedPOV') : t('noThread')}</option>
                           {groupBy === 'pov'
