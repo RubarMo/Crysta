@@ -13,6 +13,7 @@ import { countWords, sanitizeFilename, utf8ToBase64 } from '../utils/text';
 import { isUnsupportedOnMobile } from '../utils/platform';
 import { useToast } from './Toast';
 import {
+  ArrowRight,
   Plus,
   Check,
   Copy,
@@ -27,12 +28,20 @@ interface WorkspaceProps {
   stepsProgress: StepProgress[];
   onStepSaved: (progress: StepProgress) => void;
   activeStep: number;
+  onSelectStep: (step: number) => void;
+  /** Reports the manuscript word count so the launcher can show it. */
+  onWordCountChange?: (words: number) => void;
 }
 
 const fieldClass =
-  'w-full text-xs p-2.5 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)]';
+  'w-full text-xs p-2.5 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)]';
+// Synopses and outlines are prose, so they use the manuscript font.
 const editorClass =
-  'w-full p-4 text-xs font-sans border-3 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[4px_4px_0px_var(--shadow-ink)] leading-relaxed';
+  'w-full px-5 py-4 text-base font-prose border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] leading-relaxed';
+// Method guidance is reference material, so it stays quiet: neutral surface
+// with a coloured edge instead of a filled colour block.
+const guidanceClass =
+  'p-3 bg-[var(--bg-surface-raised)] text-[var(--text-primary)] border-2 border-[var(--border-ink)] border-s-[6px] border-s-[var(--pastel-sky)] text-xs space-y-1';
 const selectClass =
   'text-xs p-2 border-2 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] text-[var(--text-primary)] font-heading font-bold shadow-[2px_2px_0px_var(--shadow-ink)] cursor-pointer';
 const emptyStateClass =
@@ -44,6 +53,8 @@ export const Workspace: React.FC<WorkspaceProps> = ({
   stepsProgress,
   onStepSaved,
   activeStep,
+  onSelectStep,
+  onWordCountChange,
 }) => {
   const { t } = useLanguage();
   const { notify } = useToast();
@@ -83,6 +94,12 @@ export const Workspace: React.FC<WorkspaceProps> = ({
     saveIndicator,
   } = data;
 
+  const totalWords = chapters.reduce((acc, c) => acc + countWords(c.content), 0);
+
+  React.useEffect(() => {
+    if (data.isLoaded) onWordCountChange?.(totalWords);
+  }, [data.isLoaded, totalWords, onWordCountChange]);
+
   const renderStepHeader = (title: string, desc: string) => (
     <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b-3 border-[var(--border-ink)] mb-4 shrink-0">
       <div>
@@ -106,7 +123,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
               className="w-4 h-4 accent-black border-2 border-[var(--border-ink)] cursor-pointer"
             />
             <span className="text-xs font-heading font-bold text-[var(--text-primary)]">
-              {t('confirm')}
+              {t('markStepComplete')}
             </span>
           </label>
         )}
@@ -124,7 +141,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
           <strong>{t('charRefStoryline')}</strong> {char.one_sentence_summary}
         </p>
       )}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 text-[11px] border-t border-black/15">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 text-2xs border-t border-black/15">
         {char.motivation && <div><strong>{t('charMotivationLabel')}:</strong> {char.motivation}</div>}
         {char.goal && <div><strong>{t('charGoalLabel')}:</strong> {char.goal}</div>}
         {char.conflict && <div><strong>{t('charConflictLabel')}:</strong> {char.conflict}</div>}
@@ -164,31 +181,77 @@ export const Workspace: React.FC<WorkspaceProps> = ({
   // STEP 0: DASHBOARD
   // ----------------------------------------------------
   if (activeStep === 0) {
-    const totalWordsCount = chapters.reduce((acc, c) => acc + countWords(c.content), 0);
+    const completed = new Set(stepsProgress.filter((p) => p.is_completed).map((p) => p.step_number));
+    const nextStep = Array.from({ length: 10 }, (_, i) => i + 1).find((n) => !completed.has(n));
+    const target = novelDraft.target_word_count;
+    const goalPercent = target > 0 ? Math.min(100, Math.round((totalWords / target) * 100)) : 0;
 
     return (
       <div className="flex-1 overflow-y-auto w-full p-4 md:p-8 max-w-6xl mx-auto space-y-6 select-text">
         {renderStepHeader(t('novelDashboardTitle'), t('novelDashboardDesc'))}
 
+        {/* Where to pick up, and progress toward the word goal */}
+        <div className="p-5 border-3 border-[var(--border-ink)] bg-[var(--bg-surface)] shadow-[5px_5px_0px_var(--shadow-ink)] space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="min-w-0">
+              <span className="text-2xs font-heading font-black uppercase tracking-wider text-[var(--text-muted)] block">
+                {t('nextStepLabel')}
+              </span>
+              <p className="text-base font-heading font-black text-[var(--text-primary)] mt-0.5">
+                {nextStep
+                  ? `${nextStep}. ${t(`step${nextStep}Title` as 'step1Title')}`
+                  : t('allStepsComplete')}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => onSelectStep(nextStep ?? 11)}
+              className="inline-flex items-center gap-2 px-4 py-2.5 text-xs font-heading font-black border-2 border-[var(--border-ink)] bg-[var(--pastel-yellow)] text-black shadow-[3px_3px_0px_var(--shadow-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer shrink-0"
+            >
+              <span>{nextStep ? t('continueWith', { num: String(nextStep) }) : t('continueWriting')}</span>
+              <ArrowRight className="w-4 h-4 stroke-[2.5] rtl:rotate-180" aria-hidden="true" />
+            </button>
+          </div>
+
+          <div className="space-y-1.5">
+            <div className="flex justify-between items-baseline text-2xs font-heading font-bold text-[var(--text-secondary)]">
+              <span>{t('totalNovelWords')}</span>
+              <span className="font-mono">
+                {totalWords.toLocaleString()} / {target.toLocaleString()} · {t('wordGoalProgress', { percent: String(goalPercent) })}
+              </span>
+            </div>
+            <div
+              className="w-full h-3 border-2 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] overflow-hidden"
+              role="progressbar"
+              aria-label={t('totalNovelWords')}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={goalPercent}
+            >
+              <div className="h-full bg-[var(--pastel-mint)] transition-all duration-300" style={{ width: `${goalPercent}%` }} />
+            </div>
+          </div>
+        </div>
+
         {/* Stats Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div className="p-3.5 border-3 border-[var(--border-ink)] bg-[var(--pastel-sky)] text-black shadow-[3px_3px_0px_var(--shadow-ink)]">
-            <span className="text-[10px] font-heading font-black uppercase block">{t('statsActualWords')}</span>
-            <span className="text-lg font-mono font-black">{totalWordsCount.toLocaleString()}</span>
+            <span className="text-2xs font-heading font-black uppercase block">{t('statsActualWords')}</span>
+            <span className="text-lg font-mono font-black">{totalWords.toLocaleString()}</span>
           </div>
 
           <div className="p-3.5 border-3 border-[var(--border-ink)] bg-[var(--pastel-yellow)] text-black shadow-[3px_3px_0px_var(--shadow-ink)]">
-            <span className="text-[10px] font-heading font-black uppercase block">{t('statsTargetWords')}</span>
+            <span className="text-2xs font-heading font-black uppercase block">{t('statsTargetWords')}</span>
             <span className="text-lg font-mono font-black">{novelDraft.target_word_count.toLocaleString()}</span>
           </div>
 
           <div className="p-3.5 border-3 border-[var(--border-ink)] bg-[var(--pastel-mint)] text-black shadow-[3px_3px_0px_var(--shadow-ink)]">
-            <span className="text-[10px] font-heading font-black uppercase block">{t('statsCharactersCount')}</span>
+            <span className="text-2xs font-heading font-black uppercase block">{t('statsCharactersCount')}</span>
             <span className="text-lg font-mono font-black">{characters.length}</span>
           </div>
 
           <div className="p-3.5 border-3 border-[var(--border-ink)] bg-[var(--pastel-lavender)] text-black shadow-[3px_3px_0px_var(--shadow-ink)]">
-            <span className="text-[10px] font-heading font-black uppercase block">{t('statsChaptersCount')}</span>
+            <span className="text-2xs font-heading font-black uppercase block">{t('statsChaptersCount')}</span>
             <span className="text-lg font-mono font-black">{chapters.length}</span>
           </div>
         </div>
@@ -269,7 +332,9 @@ export const Workspace: React.FC<WorkspaceProps> = ({
     desc: string,
     placeholder: string,
     rows: number,
-    extras?: React.ReactNode
+    extras?: React.ReactNode,
+    maxWords?: number,
+    limitHint?: string
   ) => (
     <div className="flex-1 overflow-y-auto w-full p-4 md:p-8 max-w-6xl mx-auto space-y-4">
       {renderStepHeader(title, desc)}
@@ -277,6 +342,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
       <div className="space-y-2">
         <textarea
           key={`step-${activeStep}`}
+          dir="auto"
           value={stepText}
           onChange={(e) => setStepText(e.target.value)}
           placeholder={placeholder}
@@ -284,8 +350,11 @@ export const Workspace: React.FC<WorkspaceProps> = ({
           rows={rows}
           className={editorClass}
         />
-        <div className="flex justify-end">
-          <WordCounter text={stepText} />
+        <div className="flex items-center justify-end gap-3">
+          {limitHint && maxWords && countWords(stepText) > maxWords && (
+            <span className="text-2xs font-heading font-bold text-[var(--text-secondary)]">{limitHint}</span>
+          )}
+          <WordCounter text={stepText} maxWords={maxWords} />
         </div>
       </div>
     </div>
@@ -297,12 +366,14 @@ export const Workspace: React.FC<WorkspaceProps> = ({
       t('step1HeadDesc'),
       t('step1Placeholder'),
       4,
-      <div className="p-3 bg-[var(--pastel-yellow)] text-black border-2 border-[var(--border-ink)] shadow-[3px_3px_0px_var(--shadow-ink)] text-xs font-sans space-y-1">
+      <div className={guidanceClass}>
         <span className="font-heading font-black block">{t('step1RuleTitle')}</span>
         <p>• {t('step1Rule1')}</p>
         <p>• {t('step1Rule2')}</p>
         <p>• {t('step1Rule3')}</p>
-      </div>
+      </div>,
+      15,
+      t('step1WordLimitHint')
     );
   }
 
@@ -314,7 +385,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
       6,
       <>
         <StepReferenceCard stepNumber={1} stepTitle={t('step1Title')} contentText={getStepContent(1)} />
-        <div className="p-3 bg-[var(--pastel-sky)] text-black border-2 border-[var(--border-ink)] shadow-[3px_3px_0px_var(--shadow-ink)] text-xs font-sans space-y-1">
+        <div className={guidanceClass}>
           <span className="font-heading font-black block">{t('step2RuleTitle')}</span>
           <p>1. {t('step2Rule1')}</p>
           <p>2. {t('step2Rule2')}</p>
@@ -410,7 +481,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
                   <button
                     type="button"
                     onClick={() => setEditingCharacter(char)}
-                    className="p-1.5 border border-[var(--border-ink)] bg-[var(--bg-surface)] hover:bg-[var(--pastel-yellow)] hover:text-black shadow-[1px_1px_0px_var(--shadow-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
+                    className="p-1.5 border border-[var(--border-ink)] bg-[var(--bg-surface)] hover:bg-[var(--bg-surface-hover)] shadow-[1px_1px_0px_var(--shadow-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
                     title={t('edit')}
                     aria-label={`${t('edit')}: ${char.name}`}
                   >
@@ -501,6 +572,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
                 <textarea
                   key={`step${stepNumber}-char-${selectedChar.id}`}
                   id={`step${stepNumber}-text`}
+                  dir="auto"
                   value={selectedChar[field] || ''}
                   onChange={(e) => {
                     if (!selectedChar.id) return;
@@ -611,7 +683,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
                     {t('sceneNumber')} {scenes.findIndex((s) => s.id === selectedScene.id) + 1}: {selectedScene.setting || t('uncategorized')}
                   </span>
                   {povChar && (
-                    <span className="px-2 py-0.5 font-heading font-bold text-[10px] bg-black text-white border border-black">
+                    <span className="px-2 py-0.5 font-heading font-bold text-2xs bg-black text-white border border-black">
                       {t('scenePovLabel')}: {povChar.name}
                     </span>
                   )}
@@ -621,7 +693,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
                     <strong>{t('sceneRefSummaryLabel')}</strong> {selectedScene.what_happens}
                   </p>
                 )}
-                <div className="flex gap-4 pt-1 text-[11px] border-t border-black/15">
+                <div className="flex gap-4 pt-1 text-2xs border-t border-black/15">
                   {selectedScene.plot_thread && (
                     <div><strong>{t('scenePlotLabel')}:</strong> {selectedScene.plot_thread}</div>
                   )}
@@ -636,6 +708,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
                 <textarea
                   key={`scene-${selectedScene.id}`}
                   id="step9-outline"
+                  dir="auto"
                   value={selectedScene.narrative_outline || ''}
                   onChange={(e) => selectedScene.id && updateSceneLocal(selectedScene.id, { narrative_outline: e.target.value })}
                   placeholder={t('sceneNarrativePlaceholder')}

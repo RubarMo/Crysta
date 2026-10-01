@@ -30,7 +30,7 @@ export const translations = {
     statusSaved: "تم الحفظ ✓",
 
     // Sidebar & Navigation
-    platformName: "منصة Crysta",
+    platformName: "Crysta",
     dashboard: "لوحة تحكم الرواية",
     completedSteps: "الخطوات المكتملة",
     step: "الخطوة",
@@ -57,7 +57,7 @@ export const translations = {
 
     // Landing Dashboard (App.tsx)
     appName: "Crysta",
-    appTagline: "أداة التخطيط والكتابة الذكية للروايات بطريقة سنوفليك",
+    appTagline: "خطّط لروايتك بطريقة سنوفليك، ثم اكتبها.",
     openProjectBtn: "فتح مشروع",
     createProjectBtn: "إنشاء مشروع جديد",
     recentProjectsTitle: "المشاريع الأخيرة",
@@ -65,7 +65,7 @@ export const translations = {
     noRecentProjectsDesc: "افتح ملف مشروع قائم أو أنشئ ملفاً جديداً للبدء في كتابة روايتك الأولى.",
     openedLabel: "فتح:",
     removeFromList: "إزالة من القائمة",
-    helpGuideBtn: "دليل Crysta",
+    helpGuideBtn: "الدليل",
     projectsBtn: "المشاريع",
     loadingProjectFile: "جاري تحميل ملف المشروع...",
     failedToOpenProject: "فشل فتح المشروع",
@@ -98,9 +98,9 @@ export const translations = {
 
     // Workspace Dashboard (Step 0)
     novelDashboardTitle: "لوحة التحكم الرئيسية",
-    novelDashboardDesc: "تعديل معلومات الرواية الحالية ومتابعة الإحصائيات.",
+    novelDashboardDesc: "بيانات روايتك ومدى تقدّمك.",
     writingProgress: "تقدم كتابة الرواية",
-    novelInfoTitle: "بيانات الرواية الأساسية",
+    novelInfoTitle: "بيانات الرواية",
     novelTitleLabel: "عنوان الرواية",
     novelTitlePlaceholder: "العنوان الحركي أو النهائي...",
     novelGenreLabel: "التصنيف الأدبي",
@@ -136,7 +136,7 @@ export const translations = {
     step2Placeholder: "اكتب هنا الفقرة المكونة من 5 جمل لتغطية البداية، الكوارث الثلاث، والنهاية...",
 
     // Step 3
-    step3HeadTitle: "الخطوة 3: أوراق وملخصات الشخصيات الأساسية",
+    step3HeadTitle: "الخطوة 3: الشخصيات",
     step3HeadDesc: "أنشئ ورقة تعريفية لكل شخصية رئيسية توضح دوافعها وصراعاتها وملخص مسارها في جملة واحدة.",
     charactersListTitle: "قائمة الشخصيات",
     addCharacterBtn: "إضافة شخصية جديدة",
@@ -184,7 +184,7 @@ export const translations = {
     fullSynopsisPlaceholder: "اكتب تاريخ الشخصية، سماتها الجسدية، علاقاتها، وسلوكها وتفاصيل حياتها...",
 
     // Step 8 (Scene Matrix & Kanban)
-    step8HeadTitle: "الخطوة 8: جدول ومصفوفة المشاهد",
+    step8HeadTitle: "الخطوة 8: قائمة المشاهد",
     step8HeadDesc: "قسّم الرواية إلى مشاهد متسلسلة وحدد المكان، الشخصية الراوية، والكلمات المتوقعة.",
     scenesListTitle: "قائمة المشاهد",
     addSceneBtn: "إضافة مشهد جديد",
@@ -211,7 +211,7 @@ export const translations = {
     noThread: "عام / بدون مسار",
 
     // Step 9
-    step9HeadTitle: "الخطوة 9: المخطط السردي والتفصيلي للمشاهد",
+    step9HeadTitle: "الخطوة 9: مخططات المشاهد",
     step9HeadDesc: "اكتب المخطط التفصيلي والحوارات والعقبات لكل مشهد على حدة تمهيداً لكتابة المسودة.",
     sceneNarrativesTitle: "المخطط السردي للمشاهد",
     sceneNarrativesDesc: "اختر مشهداً واكتب سرده وتفاصيله الدقيقة.",
@@ -223,13 +223,13 @@ export const translations = {
     pleaseAddScenesFirst: "الرجاء إضافة وتخطيط المشاهد في الخطوة 8 أولاً.",
 
     // Step 10
-    step10HeadTitle: "الخطوة 10: تجميع وتصدير مسودة التخطيط",
-    step10HeadDesc: "جميع الخطوات وأوراق الشخصيات والمشاهد مجمعة في مستند واحد.",
+    step10HeadTitle: "الخطوة 10: تصدير المخطط",
+    step10HeadDesc: "كل ما خطّطت له في مستند Markdown واحد.",
     exportTitle: "تجميع وتصدير مسودة التخطيط",
     exportDesc: "جميع الخطوات وأوراق الشخصيات والمشاهد مجمعة في مستند واحد جاهز للنسخ كـ Markdown.",
     exportCopied: "تم نسخ التصدير!",
     exportCopyBtn: "نسخ كـ Markdown",
-    exportConfirmLabel: "تأكيد واستعراض ملف التصدير للرواية",
+    exportConfirmLabel: "معاينة",
     exportNovelLabel: "الرواية",
     exportGenreLabel: "التصنيف",
     exportAudienceLabel: "الجمهور",
@@ -295,12 +295,12 @@ export const translations = {
     referenceShort: "المراجع",
 
     // Step 12: Book Studio Publishing Suite
-    bookStudioHeader: "استوديو التنسيق والنشر",
-    bookStudioSubtitle: "تنسيق ونشر الرواية ككتاب إلكتروني EPUB 3 ومخطوطة Word وطبعة ورقية جاهزة للطباعة PDF.",
+    bookStudioHeader: "استوديو الكتاب",
+    bookStudioSubtitle: "نسّق كتابك وصدّره إلى EPUB أو Word أو PDF.",
     tabMetadata: "الغلاف والبيانات",
-    tabBackMatter: "الملاحق والخواتيم",
-    tabFormatting: "إعدادات الطباعة والخطوط",
-    tabExport: "التصدير والتحميل",
+    tabBackMatter: "الملاحق",
+    tabFormatting: "التنسيق",
+    tabExport: "التصدير",
     coverSectionTitle: "غلاف الكتاب",
     coverUploadBtn: "رفع صورة الغلاف",
     coverReplaceBtn: "تغيير صورة الغلاف",
@@ -365,7 +365,7 @@ export const translations = {
 
     // Command Palette
     commandPaletteTitle: "لوحة الأوامر السريعة",
-    commandPaletteSearchPlaceholder: "ابحث عن خطوة، فصل، أو أمر سريع...",
+    commandPaletteSearchPlaceholder: "ابحث عن خطوة أو أمر…",
     navToStep: "الانتقال إلى",
     navToWriteNovel: "الانتقال إلى كتابة الرواية",
     navToBookStudio: "الانتقال إلى استوديو التنسيق والنشر",
@@ -468,6 +468,16 @@ export const translations = {
 
     // Step 10
     saveAsMarkdown: "حفظ كملف Markdown",
+
+    // Progress & dashboard
+    markStepComplete: "الخطوة مكتملة",
+    continueWith: "تابع: الخطوة {num}",
+    continueWriting: "تابع كتابة الرواية",
+    allStepsComplete: "اكتملت خطوات التخطيط العشر.",
+    nextStepLabel: "الخطوة التالية",
+    wordGoalProgress: "{percent}% من الهدف",
+    step1WordLimitHint: "حاول ألا تتجاوز 15 كلمة.",
+    lastOpened: "آخر فتح",
   },
   en: {
     // General
@@ -500,7 +510,7 @@ export const translations = {
     statusSaved: "Saved ✓",
 
     // Sidebar & Navigation
-    platformName: "Crysta Studio",
+    platformName: "Crysta",
     dashboard: "Novel Dashboard",
     completedSteps: "Completed Steps",
     step: "Step",
@@ -527,7 +537,7 @@ export const translations = {
 
     // Landing Dashboard (App.tsx)
     appName: "Crysta",
-    appTagline: "Smart Snowflake Method Outlining & Novel Writing Studio",
+    appTagline: "Plan your novel with the Snowflake Method, then write it.",
     openProjectBtn: "Open Project",
     createProjectBtn: "Create New Project",
     recentProjectsTitle: "Recent Projects",
@@ -535,7 +545,7 @@ export const translations = {
     noRecentProjectsDesc: "Open an existing project file or create a new one to start writing your novel.",
     openedLabel: "Opened:",
     removeFromList: "Remove from list",
-    helpGuideBtn: "Crysta Guide",
+    helpGuideBtn: "Guide",
     projectsBtn: "Projects",
     loadingProjectFile: "Loading project file...",
     failedToOpenProject: "Failed to open project",
@@ -568,9 +578,9 @@ export const translations = {
 
     // Workspace Dashboard (Step 0)
     novelDashboardTitle: "Novel Dashboard",
-    novelDashboardDesc: "Edit novel metadata and monitor your writing statistics.",
+    novelDashboardDesc: "Your novel's details and progress.",
     writingProgress: "Writing Progress",
-    novelInfoTitle: "Core Novel Details",
+    novelInfoTitle: "Novel Details",
     novelTitleLabel: "Novel Title",
     novelTitlePlaceholder: "Working or final title...",
     novelGenreLabel: "Genre",
@@ -606,7 +616,7 @@ export const translations = {
     step2Placeholder: "Write the 5-sentence overview covering setup, 3 disasters, and resolution...",
 
     // Step 3
-    step3HeadTitle: "Step 3: Character Bios & Sheets",
+    step3HeadTitle: "Step 3: Characters",
     step3HeadDesc: "Define motivations, goals, conflicts, epiphanies, and storyline summaries for your cast.",
     charactersListTitle: "Characters List",
     addCharacterBtn: "Add New Character",
@@ -654,7 +664,7 @@ export const translations = {
     fullSynopsisPlaceholder: "Detail physical appearance, personal history, relationships, and mannerisms...",
 
     // Step 8 (Scene Matrix & Kanban)
-    step8HeadTitle: "Step 8: Scene Matrix & List",
+    step8HeadTitle: "Step 8: Scene List",
     step8HeadDesc: "Map out all scenes with POV character assignments and target word counts.",
     scenesListTitle: "Scenes List",
     addSceneBtn: "Add New Scene",
@@ -681,7 +691,7 @@ export const translations = {
     noThread: "General / No Thread",
 
     // Step 9
-    step9HeadTitle: "Step 9: Scene Outlines & Detailed Narrative",
+    step9HeadTitle: "Step 9: Scene Outlines",
     step9HeadDesc: "Write a detailed narrative beat-by-beat outline and scene breakdown for each scene.",
     sceneNarrativesTitle: "Scene Narrative & Detailed Outlines",
     sceneNarrativesDesc: "Select a scene and write its detailed narrative breakdown.",
@@ -693,13 +703,13 @@ export const translations = {
     pleaseAddScenesFirst: "Please add and plan your scenes in Step 8 first.",
 
     // Step 10
-    step10HeadTitle: "Step 10: Assemble & Export Draft",
-    step10HeadDesc: "All written steps, character profiles, and scene drafts compiled into a single markdown document.",
+    step10HeadTitle: "Step 10: Export Outline",
+    step10HeadDesc: "Everything you planned, in one Markdown document.",
     exportTitle: "Assemble & Export Draft",
     exportDesc: "All written steps, character profiles, and scene drafts compiled into a single markdown document ready to copy.",
     exportCopied: "Export copied!",
     exportCopyBtn: "Copy as Markdown",
-    exportConfirmLabel: "Confirm compilation and export of the novel draft",
+    exportConfirmLabel: "Preview",
     exportNovelLabel: "Novel",
     exportGenreLabel: "Genre",
     exportAudienceLabel: "Target Audience",
@@ -765,12 +775,12 @@ export const translations = {
     referenceShort: "References",
 
     // Step 12: Book Studio Publishing Suite
-    bookStudioHeader: "Book Studio & Publishing",
-    bookStudioSubtitle: "Format and publish your novel as reflowable EPUB 3, Word DOCX, and print-ready PDF with alternating binding gutters.",
-    tabMetadata: "Metadata & Cover",
-    tabBackMatter: "Back Matter & Bios",
-    tabFormatting: "Typography & Layout",
-    tabExport: "Export & Download",
+    bookStudioHeader: "Book Studio",
+    bookStudioSubtitle: "Format your book and export it to EPUB, Word or PDF.",
+    tabMetadata: "Cover & Details",
+    tabBackMatter: "Back Matter",
+    tabFormatting: "Layout",
+    tabExport: "Export",
     coverSectionTitle: "Book Cover",
     coverUploadBtn: "Upload Cover Image",
     coverReplaceBtn: "Replace Cover Image",
@@ -835,7 +845,7 @@ export const translations = {
 
     // Command Palette
     commandPaletteTitle: "Command Palette",
-    commandPaletteSearchPlaceholder: "Search for a step, chapter, or action...",
+    commandPaletteSearchPlaceholder: "Search steps and actions…",
     navToStep: "Jump to",
     navToWriteNovel: "Jump to Write Novel",
     navToBookStudio: "Jump to Book Studio",
@@ -938,6 +948,16 @@ export const translations = {
 
     // Step 10
     saveAsMarkdown: "Save as Markdown",
+
+    // Progress & dashboard
+    markStepComplete: "Step complete",
+    continueWith: "Continue: Step {num}",
+    continueWriting: "Continue writing",
+    allStepsComplete: "All ten planning steps are complete.",
+    nextStepLabel: "Next step",
+    wordGoalProgress: "{percent}% of goal",
+    step1WordLimitHint: "Aim for 15 words or fewer.",
+    lastOpened: "Last opened",
   }
 };
 

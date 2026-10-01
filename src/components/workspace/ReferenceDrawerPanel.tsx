@@ -133,7 +133,7 @@ export const ReferenceDrawerPanel: React.FC<ReferenceDrawerPanelProps> = ({
         <button
           type="button"
           onClick={() => setActiveTab('scenes')}
-          className={`py-1.5 px-1 text-[10px] font-heading font-bold flex flex-col items-center gap-0.5 border-2 border-[var(--border-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer min-w-0 overflow-hidden ${
+          className={`py-1.5 px-1 text-2xs font-heading font-bold flex flex-col items-center gap-0.5 border-2 border-[var(--border-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer min-w-0 overflow-hidden ${
             activeTab === 'scenes'
               ? 'bg-[var(--pastel-sky)] text-black shadow-[2px_2px_0px_var(--shadow-ink)] font-black'
               : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:bg-[var(--bg-surface-hover)] shadow-[1px_1px_0px_var(--shadow-ink)]'
@@ -147,7 +147,7 @@ export const ReferenceDrawerPanel: React.FC<ReferenceDrawerPanelProps> = ({
         <button
           type="button"
           onClick={() => setActiveTab('characters')}
-          className={`py-1.5 px-1 text-[10px] font-heading font-bold flex flex-col items-center gap-0.5 border-2 border-[var(--border-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer min-w-0 overflow-hidden ${
+          className={`py-1.5 px-1 text-2xs font-heading font-bold flex flex-col items-center gap-0.5 border-2 border-[var(--border-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer min-w-0 overflow-hidden ${
             activeTab === 'characters'
               ? 'bg-[var(--pastel-mint)] text-black shadow-[2px_2px_0px_var(--shadow-ink)] font-black'
               : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:bg-[var(--bg-surface-hover)] shadow-[1px_1px_0px_var(--shadow-ink)]'
@@ -161,7 +161,7 @@ export const ReferenceDrawerPanel: React.FC<ReferenceDrawerPanelProps> = ({
         <button
           type="button"
           onClick={() => setActiveTab('synopses')}
-          className={`py-1.5 px-1 text-[10px] font-heading font-bold flex flex-col items-center gap-0.5 border-2 border-[var(--border-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer min-w-0 overflow-hidden ${
+          className={`py-1.5 px-1 text-2xs font-heading font-bold flex flex-col items-center gap-0.5 border-2 border-[var(--border-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer min-w-0 overflow-hidden ${
             activeTab === 'synopses'
               ? 'bg-[var(--pastel-lavender)] text-black shadow-[2px_2px_0px_var(--shadow-ink)] font-black'
               : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:bg-[var(--bg-surface-hover)] shadow-[1px_1px_0px_var(--shadow-ink)]'
@@ -175,7 +175,7 @@ export const ReferenceDrawerPanel: React.FC<ReferenceDrawerPanelProps> = ({
         <button
           type="button"
           onClick={() => setActiveTab('scratchpad')}
-          className={`py-1.5 px-1 text-[10px] font-heading font-bold flex flex-col items-center gap-0.5 border-2 border-[var(--border-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer min-w-0 overflow-hidden ${
+          className={`py-1.5 px-1 text-2xs font-heading font-bold flex flex-col items-center gap-0.5 border-2 border-[var(--border-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer min-w-0 overflow-hidden ${
             activeTab === 'scratchpad'
               ? 'bg-[var(--pastel-yellow)] text-black shadow-[2px_2px_0px_var(--shadow-ink)] font-black'
               : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:bg-[var(--bg-surface-hover)] shadow-[1px_1px_0px_var(--shadow-ink)]'
@@ -211,7 +211,7 @@ export const ReferenceDrawerPanel: React.FC<ReferenceDrawerPanelProps> = ({
                   <select
                     value={selectedPovId}
                     onChange={(e) => setSelectedPovId(e.target.value === 'all' ? 'all' : Number(e.target.value))}
-                    className="w-full text-[11px] font-heading font-bold py-1 px-2 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[1px_1px_0px_var(--shadow-ink)] cursor-pointer"
+                    className="w-full text-2xs font-heading font-bold py-1 px-2 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[1px_1px_0px_var(--shadow-ink)] cursor-pointer"
                   >
                     <option value="all">{t('allCharacters')}</option>
                     {characters.map((c) => (
@@ -246,10 +246,10 @@ export const ReferenceDrawerPanel: React.FC<ReferenceDrawerPanelProps> = ({
                           onClick={() => setExpandedSceneId(isExpanded ? null : (scene.id || null))}
                         >
                           <div className="flex items-center gap-1.5 mb-1">
-                            <span className="font-mono text-[10px] font-black px-1.5 py-0.2 bg-[var(--pastel-sky)] text-black border border-[var(--border-ink)]">
+                            <span className="font-mono text-2xs font-black px-1.5 py-0.2 bg-[var(--pastel-sky)] text-black border border-[var(--border-ink)]">
                               #{idx + 1}
                             </span>
-                            <span className="text-[10px] font-heading font-bold text-[var(--text-secondary)] truncate">
+                            <span className="text-2xs font-heading font-bold text-[var(--text-secondary)] truncate">
                               {getCharName(scene.pov_character_id)}
                             </span>
                           </div>
@@ -265,7 +265,7 @@ export const ReferenceDrawerPanel: React.FC<ReferenceDrawerPanelProps> = ({
                             e.stopPropagation();
                             setSelectedOutlineScene(scene);
                           }}
-                          className="px-2 py-1 text-[10px] font-heading font-black border-2 border-[var(--border-ink)] bg-[var(--pastel-yellow)] text-black shadow-[2px_2px_0px_var(--shadow-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center gap-1 shrink-0"
+                          className="px-2 py-1 text-2xs font-heading font-black border-2 border-[var(--border-ink)] bg-[var(--pastel-yellow)] text-black shadow-[2px_2px_0px_var(--shadow-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center gap-1 shrink-0"
                           title={t('viewSceneOutline')}
                         >
                           <FileText className="w-3 h-3 stroke-[2.5]" />
@@ -277,13 +277,13 @@ export const ReferenceDrawerPanel: React.FC<ReferenceDrawerPanelProps> = ({
                       {isExpanded && (
                         <div className="p-2.5 bg-[var(--bg-surface)] border-t border-[var(--border-subtle)] text-xs text-[var(--text-primary)] space-y-2">
                           {scene.plot_thread && (
-                            <div className="text-[10px] font-mono text-[var(--text-secondary)]">
+                            <div className="text-2xs font-mono text-[var(--text-secondary)]">
                               <span className="font-bold">{t('scenePlotLabel')}:</span> {scene.plot_thread}
                             </div>
                           )}
                           {scene.what_happens && (
                             <div>
-                              <span className="text-[10px] font-mono font-bold text-[var(--text-muted)] uppercase block mb-0.5">
+                              <span className="text-2xs font-mono font-bold text-[var(--text-muted)] uppercase block mb-0.5">
                                 {t('exportSceneWhatHappens')}
                               </span>
                               <p className="whitespace-pre-wrap font-sans text-xs leading-relaxed">
@@ -293,7 +293,7 @@ export const ReferenceDrawerPanel: React.FC<ReferenceDrawerPanelProps> = ({
                           )}
                           {scene.narrative_outline && (
                             <div>
-                              <span className="text-[10px] font-mono font-bold text-[var(--text-muted)] uppercase block mb-0.5">
+                              <span className="text-2xs font-mono font-bold text-[var(--text-muted)] uppercase block mb-0.5">
                                 {t('exportSceneOutline')}
                               </span>
                               <p className="whitespace-pre-wrap font-sans text-xs leading-relaxed max-h-32 overflow-y-auto">
@@ -301,7 +301,7 @@ export const ReferenceDrawerPanel: React.FC<ReferenceDrawerPanelProps> = ({
                               </p>
                             </div>
                           )}
-                          <div className="text-[10px] font-mono text-[var(--text-muted)] pt-1 border-t border-dashed border-[var(--border-subtle)]">
+                          <div className="text-2xs font-mono text-[var(--text-muted)] pt-1 border-t border-dashed border-[var(--border-subtle)]">
                             <span>{t('sceneExpectedWordsLabel')}: {scene.expected_word_count}</span>
                           </div>
                         </div>
@@ -352,12 +352,12 @@ export const ReferenceDrawerPanel: React.FC<ReferenceDrawerPanelProps> = ({
                             {char.name}
                           </h4>
                           {char.motivation && (
-                            <p className="text-[10px] text-[var(--text-secondary)] truncate">
+                            <p className="text-2xs text-[var(--text-secondary)] truncate">
                               {char.motivation}
                             </p>
                           )}
                         </div>
-                        <span className="text-[10px] font-mono font-bold text-[var(--text-muted)] px-1.5 py-0.5 border border-[var(--border-subtle)]" aria-hidden="true">
+                        <span className="text-2xs font-mono font-bold text-[var(--text-muted)] px-1.5 py-0.5 border border-[var(--border-subtle)]" aria-hidden="true">
                           {isExpanded ? '▲' : '▼'}
                         </span>
                       </button>
@@ -367,7 +367,7 @@ export const ReferenceDrawerPanel: React.FC<ReferenceDrawerPanelProps> = ({
                         <div className="p-2.5 bg-[var(--bg-surface)] border-t border-[var(--border-subtle)] text-xs text-[var(--text-primary)] space-y-2">
                           {char.one_sentence_summary && (
                             <div>
-                              <span className="text-[10px] font-mono font-bold text-[var(--text-muted)] uppercase block">
+                              <span className="text-2xs font-mono font-bold text-[var(--text-muted)] uppercase block">
                                 {t('charSummaryLabel')}
                               </span>
                               <p className="text-xs font-medium">{char.one_sentence_summary}</p>
@@ -375,7 +375,7 @@ export const ReferenceDrawerPanel: React.FC<ReferenceDrawerPanelProps> = ({
                           )}
                           {char.motivation && (
                             <div>
-                              <span className="text-[10px] font-mono font-bold text-[var(--text-muted)] uppercase block">
+                              <span className="text-2xs font-mono font-bold text-[var(--text-muted)] uppercase block">
                                 {t('charMotivationLabel')}
                               </span>
                               <p className="text-xs">{char.motivation}</p>
@@ -383,7 +383,7 @@ export const ReferenceDrawerPanel: React.FC<ReferenceDrawerPanelProps> = ({
                           )}
                           {char.goal && (
                             <div>
-                              <span className="text-[10px] font-mono font-bold text-[var(--text-muted)] uppercase block">
+                              <span className="text-2xs font-mono font-bold text-[var(--text-muted)] uppercase block">
                                 {t('charGoalLabel')}
                               </span>
                               <p className="text-xs">{char.goal}</p>
@@ -391,7 +391,7 @@ export const ReferenceDrawerPanel: React.FC<ReferenceDrawerPanelProps> = ({
                           )}
                           {char.conflict && (
                             <div>
-                              <span className="text-[10px] font-mono font-bold text-[var(--text-muted)] uppercase block">
+                              <span className="text-2xs font-mono font-bold text-[var(--text-muted)] uppercase block">
                                 {t('charConflictLabel')}
                               </span>
                               <p className="text-xs">{char.conflict}</p>
@@ -399,7 +399,7 @@ export const ReferenceDrawerPanel: React.FC<ReferenceDrawerPanelProps> = ({
                           )}
                           {char.epiphany && (
                             <div>
-                              <span className="text-[10px] font-mono font-bold text-[var(--text-muted)] uppercase block">
+                              <span className="text-2xs font-mono font-bold text-[var(--text-muted)] uppercase block">
                                 {t('charEpiphanyLabel')}
                               </span>
                               <p className="text-xs">{char.epiphany}</p>
@@ -407,7 +407,7 @@ export const ReferenceDrawerPanel: React.FC<ReferenceDrawerPanelProps> = ({
                           )}
                           {char.one_paragraph_summary && (
                             <div>
-                              <span className="text-[10px] font-mono font-bold text-[var(--text-muted)] uppercase block">
+                              <span className="text-2xs font-mono font-bold text-[var(--text-muted)] uppercase block">
                                 {t('charSynopsisLabel')}
                               </span>
                               <p className="text-xs whitespace-pre-wrap leading-relaxed">{char.one_paragraph_summary}</p>
@@ -415,7 +415,7 @@ export const ReferenceDrawerPanel: React.FC<ReferenceDrawerPanelProps> = ({
                           )}
                           {char.full_synopsis && (
                             <div>
-                              <span className="text-[10px] font-mono font-bold text-[var(--text-muted)] uppercase block">
+                              <span className="text-2xs font-mono font-bold text-[var(--text-muted)] uppercase block">
                                 {t('fullSynopsisLabel')}
                               </span>
                               <p className="text-xs whitespace-pre-wrap leading-relaxed">{char.full_synopsis}</p>
@@ -445,7 +445,7 @@ export const ReferenceDrawerPanel: React.FC<ReferenceDrawerPanelProps> = ({
                   key={step}
                   type="button"
                   onClick={() => setSelectedSynopsisStep(step)}
-                  className={`py-1.5 px-2 text-[10px] font-heading font-black border-2 border-[var(--border-ink)] transition-all cursor-pointer text-center ${
+                  className={`py-1.5 px-2 text-2xs font-heading font-black border-2 border-[var(--border-ink)] transition-all cursor-pointer text-center ${
                     selectedSynopsisStep === step
                       ? 'bg-[var(--pastel-lavender)] text-black shadow-[2px_2px_0px_var(--shadow-ink)]'
                       : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:bg-[var(--bg-surface-hover)]'
@@ -479,7 +479,7 @@ export const ReferenceDrawerPanel: React.FC<ReferenceDrawerPanelProps> = ({
         {/* TAB 4: SCRATCHPAD */}
         {activeTab === 'scratchpad' && (
           <div className="h-full flex flex-col space-y-2">
-            <p className="text-[11px] text-[var(--text-secondary)] font-heading leading-tight">
+            <p className="text-2xs text-[var(--text-secondary)] font-heading leading-tight">
               {t('scratchpadPlaceholder')}
             </p>
             <textarea
@@ -535,7 +535,7 @@ export const ReferenceDrawerPanel: React.FC<ReferenceDrawerPanelProps> = ({
                   </div>
                 )}
 
-                <div className="flex items-center gap-1.5 px-2.5 py-1 border-2 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] font-mono text-[11px] font-bold text-[var(--text-muted)] sm:ms-auto">
+                <div className="flex items-center gap-1.5 px-2.5 py-1 border-2 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] font-mono text-2xs font-bold text-[var(--text-muted)] sm:ms-auto">
                   <span>{t('sceneExpectedWordsLabel')}: {selectedOutlineScene.expected_word_count}</span>
                 </div>
               </div>
@@ -543,7 +543,7 @@ export const ReferenceDrawerPanel: React.FC<ReferenceDrawerPanelProps> = ({
               {/* Scene Summary (Step 8) */}
               {selectedOutlineScene.what_happens && (
                 <div className="p-3 border-2 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] space-y-1">
-                  <span className="text-[11px] font-heading font-black uppercase text-[var(--text-secondary)] block">
+                  <span className="text-2xs font-heading font-black uppercase text-[var(--text-secondary)] block">
                     {t('sceneSummaryLabel')}
                   </span>
                   <p className="text-xs font-sans text-[var(--text-primary)] leading-relaxed whitespace-pre-wrap">
@@ -558,7 +558,7 @@ export const ReferenceDrawerPanel: React.FC<ReferenceDrawerPanelProps> = ({
                   {t('sceneOutlineLabel')}
                 </span>
                 {selectedOutlineScene.narrative_outline ? (
-                  <div className="p-4 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] shadow-[3px_3px_0px_var(--shadow-ink)] text-sm font-serif text-[var(--text-primary)] leading-relaxed whitespace-pre-wrap max-h-[340px] overflow-y-auto">
+                  <div className="p-4 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] shadow-[3px_3px_0px_var(--shadow-ink)] text-sm font-prose text-[var(--text-primary)] leading-relaxed whitespace-pre-wrap max-h-[340px] overflow-y-auto">
                     {selectedOutlineScene.narrative_outline}
                   </div>
                 ) : (
@@ -571,7 +571,7 @@ export const ReferenceDrawerPanel: React.FC<ReferenceDrawerPanelProps> = ({
 
             {/* Modal Footer Actions */}
             <div className="p-3 sm:px-6 border-t-3 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] flex items-center justify-between gap-2 shrink-0">
-              <span className="text-[11px] font-mono font-bold text-[var(--text-secondary)]">
+              <span className="text-2xs font-mono font-bold text-[var(--text-secondary)]">
                 {countWords(selectedOutlineScene.narrative_outline || '')} {t('words')}
               </span>
 
