@@ -3,6 +3,7 @@ pub mod db;
 pub mod commands;
 
 use std::sync::Mutex;
+#[cfg(desktop)]
 use tauri::Manager;
 use models::DbState;
 use commands::*;
