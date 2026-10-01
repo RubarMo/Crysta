@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { translations, LocaleKeys } from './locales';
 
 type Language = 'ar' | 'en';
@@ -11,35 +11,45 @@ interface LanguageContextType {
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
-export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [language, setLanguageState] = useState<Language>(() => {
-    return (localStorage.getItem('crysta_lang') as Language) || 'ar';
-  });
+function readStoredLanguage(): Language {
+  try {
+    return localStorage.getItem('crysta_lang') === 'en' ? 'en' : 'ar';
+  } catch {
+    return 'ar';
+  }
+}
 
-  const setLanguage = (lang: Language) => {
+export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [language, setLanguageState] = useState<Language>(readStoredLanguage);
+
+  const setLanguage = useCallback((lang: Language) => {
     setLanguageState(lang);
-    localStorage.setItem('crysta_lang', lang);
-  };
+    try {
+      localStorage.setItem('crysta_lang', lang);
+    } catch {
+      // Language just isn't remembered.
+    }
+  }, []);
 
   useEffect(() => {
     document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
     document.documentElement.lang = language;
   }, [language]);
 
-  const t = (key: LocaleKeys, replacements?: Record<string, string>): string => {
-    let text = translations[language]?.[key] || translations['en']?.[key] || String(key);
-    
+  const t = useCallback((key: LocaleKeys, replacements?: Record<string, string>): string => {
+    let text: string = translations[language]?.[key] || translations.en?.[key] || String(key);
     if (replacements) {
-      Object.entries(replacements).forEach(([placeholder, value]) => {
-        text = text.replace(`{${placeholder}}`, value);
-      });
+      for (const [placeholder, value] of Object.entries(replacements)) {
+        text = text.split(`{${placeholder}}`).join(value);
+      }
     }
-    
     return text;
-  };
+  }, [language]);
+
+  const value = useMemo(() => ({ language, setLanguage, t }), [language, setLanguage, t]);
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+    <LanguageContext.Provider value={value}>
       {children}
     </LanguageContext.Provider>
   );

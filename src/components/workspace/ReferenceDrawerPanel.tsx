@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Scene, Character, StepProgress } from '../../lib';
 import { useLanguage } from '../../LanguageContext';
+import { useModal } from '../../hooks/useModal';
+import { countWords } from '../../utils/text';
 import { 
   X, 
   Search, 
@@ -19,6 +21,8 @@ interface ReferenceDrawerPanelProps {
   scenes: Scene[];
   characters: Character[];
   stepsProgress: StepProgress[];
+  /** Returns a step's latest text, including unsaved edits. */
+  getStepContent?: (stepNumber: number) => string;
   onClose?: () => void;
   onInsertText: (text: string) => void;
   scratchpadText: string;
@@ -30,6 +34,7 @@ export const ReferenceDrawerPanel: React.FC<ReferenceDrawerPanelProps> = ({
   scenes,
   characters,
   stepsProgress,
+  getStepContent,
   onClose,
   onInsertText,
   scratchpadText,
@@ -67,24 +72,27 @@ export const ReferenceDrawerPanel: React.FC<ReferenceDrawerPanelProps> = ({
   };
 
   // Filtered scenes
+  const sceneQuery = sceneSearch.toLowerCase();
   const filteredScenes = scenes.filter((s) => {
-    const matchesSearch = 
-      s.setting.toLowerCase().includes(sceneSearch.toLowerCase()) ||
-      s.what_happens.toLowerCase().includes(sceneSearch.toLowerCase()) ||
-      s.plot_thread.toLowerCase().includes(sceneSearch.toLowerCase());
+    const matchesSearch =
+      (s.setting || '').toLowerCase().includes(sceneQuery) ||
+      (s.what_happens || '').toLowerCase().includes(sceneQuery) ||
+      (s.plot_thread || '').toLowerCase().includes(sceneQuery);
     const matchesPov = selectedPovId === 'all' || s.pov_character_id === selectedPovId;
     return matchesSearch && matchesPov;
   });
 
   // Filtered characters
-  const filteredCharacters = characters.filter((c) => 
-    c.name.toLowerCase().includes(charSearch.toLowerCase()) ||
-    c.motivation.toLowerCase().includes(charSearch.toLowerCase()) ||
-    c.goal.toLowerCase().includes(charSearch.toLowerCase())
+  const charQuery = charSearch.toLowerCase();
+  const filteredCharacters = characters.filter((c) =>
+    (c.name || '').toLowerCase().includes(charQuery) ||
+    (c.motivation || '').toLowerCase().includes(charQuery) ||
+    (c.goal || '').toLowerCase().includes(charQuery)
   );
 
   // Helper to find synopsis content
   const getSynopsisContent = (stepNum: number) => {
+    if (getStepContent) return getStepContent(stepNum);
     const p = stepsProgress.find((s) => s.step_number === stepNum);
     return p ? p.content_text : '';
   };
@@ -219,7 +227,7 @@ export const ReferenceDrawerPanel: React.FC<ReferenceDrawerPanelProps> = ({
             {/* Scenes List */}
             {filteredScenes.length === 0 ? (
               <div className="p-4 border-2 border-dashed border-[var(--border-subtle)] text-center text-[var(--text-muted)] text-xs">
-                {scenes.length === 0 ? t('noScenesYet') : t('noRecentProjectsTitle')}
+                {scenes.length === 0 ? t('noScenesYet') : t('noMatchingResults')}
               </div>
             ) : (
               <div className="space-y-2">
@@ -231,8 +239,10 @@ export const ReferenceDrawerPanel: React.FC<ReferenceDrawerPanelProps> = ({
                       className="border-2 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] shadow-[2px_2px_0px_var(--shadow-ink)] overflow-hidden"
                     >
                       <div className="p-2.5 flex items-start justify-between gap-2">
-                        <div 
-                          className="min-w-0 flex-1 cursor-pointer"
+                        <button
+                          type="button"
+                          aria-expanded={isExpanded}
+                          className="min-w-0 flex-1 text-start cursor-pointer"
                           onClick={() => setExpandedSceneId(isExpanded ? null : (scene.id || null))}
                         >
                           <div className="flex items-center gap-1.5 mb-1">
@@ -246,7 +256,7 @@ export const ReferenceDrawerPanel: React.FC<ReferenceDrawerPanelProps> = ({
                           <h4 className="text-xs font-heading font-black text-[var(--text-primary)] truncate">
                             {scene.setting || t('uncategorized')}
                           </h4>
-                        </div>
+                        </button>
 
                         {/* Button to open Scene Outline Popup */}
                         <button
@@ -291,9 +301,8 @@ export const ReferenceDrawerPanel: React.FC<ReferenceDrawerPanelProps> = ({
                               </p>
                             </div>
                           )}
-                          <div className="text-[10px] font-mono text-[var(--text-muted)] flex justify-between pt-1 border-t border-dashed border-[var(--border-subtle)]">
+                          <div className="text-[10px] font-mono text-[var(--text-muted)] pt-1 border-t border-dashed border-[var(--border-subtle)]">
                             <span>{t('sceneExpectedWordsLabel')}: {scene.expected_word_count}</span>
-                            <span>{t('sceneActualWordsLabel')}: {scene.actual_word_count}</span>
                           </div>
                         </div>
                       )}
@@ -321,7 +330,7 @@ export const ReferenceDrawerPanel: React.FC<ReferenceDrawerPanelProps> = ({
 
             {filteredCharacters.length === 0 ? (
               <div className="p-4 border-2 border-dashed border-[var(--border-subtle)] text-center text-[var(--text-muted)] text-xs">
-                {t('noCharactersYet')}
+                {characters.length === 0 ? t('noCharactersYet') : t('noMatchingResults')}
               </div>
             ) : (
               <div className="space-y-2">
@@ -332,8 +341,10 @@ export const ReferenceDrawerPanel: React.FC<ReferenceDrawerPanelProps> = ({
                       key={char.id}
                       className="border-2 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] shadow-[2px_2px_0px_var(--shadow-ink)] overflow-hidden"
                     >
-                      <div 
-                        className="p-2.5 flex items-center justify-between gap-2 cursor-pointer hover:bg-[var(--bg-surface-hover)] transition-colors"
+                      <button
+                        type="button"
+                        aria-expanded={isExpanded}
+                        className="w-full text-start p-2.5 flex items-center justify-between gap-2 cursor-pointer hover:bg-[var(--bg-surface-hover)] transition-colors"
                         onClick={() => setExpandedCharId(isExpanded ? null : (char.id || null))}
                       >
                         <div className="min-w-0 flex-1">
@@ -346,10 +357,10 @@ export const ReferenceDrawerPanel: React.FC<ReferenceDrawerPanelProps> = ({
                             </p>
                           )}
                         </div>
-                        <span className="text-[10px] font-mono font-bold text-[var(--text-muted)] px-1.5 py-0.5 border border-[var(--border-subtle)]">
+                        <span className="text-[10px] font-mono font-bold text-[var(--text-muted)] px-1.5 py-0.5 border border-[var(--border-subtle)]" aria-hidden="true">
                           {isExpanded ? '▲' : '▼'}
                         </span>
-                      </div>
+                      </button>
 
                       {/* Expandable Character Bio Details */}
                       {isExpanded && (
@@ -482,22 +493,15 @@ export const ReferenceDrawerPanel: React.FC<ReferenceDrawerPanelProps> = ({
       </div>
 
       {/* Scene Outline Detail Modal Dialog (Portaled to document.body with z-[100] so it always stays on top) */}
-      {selectedOutlineScene && typeof document !== 'undefined' && createPortal(
-        <div 
-          className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 select-text"
-          onClick={() => setSelectedOutlineScene(null)}
-        >
-          <div 
-            className="w-full max-w-2xl max-h-[85vh] flex flex-col border-3 border-[var(--border-ink)] bg-[var(--bg-surface)] shadow-[6px_6px_0px_var(--shadow-ink)] overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
+      {selectedOutlineScene && (
+        <OutlineDialogFrame onClose={() => setSelectedOutlineScene(null)}>
             {/* Modal Header */}
             <div className="h-14 border-b-3 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] flex items-center justify-between px-4 shrink-0 gap-2">
               <div className="flex items-center gap-2 min-w-0">
                 <span className="font-mono text-xs font-black px-2 py-0.5 bg-[var(--pastel-sky)] text-black border-2 border-[var(--border-ink)] shrink-0">
                   #{scenes.findIndex((s) => s.id === selectedOutlineScene.id) + 1}
                 </span>
-                <h3 className="text-sm font-heading font-black text-[var(--text-primary)] truncate">
+                <h3 id="outline-dialog-title" className="text-sm font-heading font-black text-[var(--text-primary)] truncate">
                   {selectedOutlineScene.setting || t('uncategorized')}
                 </h3>
               </div>
@@ -506,6 +510,7 @@ export const ReferenceDrawerPanel: React.FC<ReferenceDrawerPanelProps> = ({
                 onClick={() => setSelectedOutlineScene(null)}
                 className="p-1.5 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--pastel-coral)] hover:text-black shadow-[2px_2px_0px_var(--shadow-ink)] transition-all cursor-pointer"
                 title={t('close')}
+                aria-label={t('closeDialog')}
               >
                 <X className="w-4 h-4" />
               </button>
@@ -532,8 +537,6 @@ export const ReferenceDrawerPanel: React.FC<ReferenceDrawerPanelProps> = ({
 
                 <div className="flex items-center gap-1.5 px-2.5 py-1 border-2 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] font-mono text-[11px] font-bold text-[var(--text-muted)] sm:ms-auto">
                   <span>{t('sceneExpectedWordsLabel')}: {selectedOutlineScene.expected_word_count}</span>
-                  <span>•</span>
-                  <span>{t('sceneActualWordsLabel')}: {selectedOutlineScene.actual_word_count}</span>
                 </div>
               </div>
 
@@ -569,9 +572,7 @@ export const ReferenceDrawerPanel: React.FC<ReferenceDrawerPanelProps> = ({
             {/* Modal Footer Actions */}
             <div className="p-3 sm:px-6 border-t-3 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] flex items-center justify-between gap-2 shrink-0">
               <span className="text-[11px] font-mono font-bold text-[var(--text-secondary)]">
-                {selectedOutlineScene.narrative_outline 
-                  ? `${selectedOutlineScene.narrative_outline.trim().split(/\s+/).filter(Boolean).length} ${t('words')}` 
-                  : `0 ${t('words')}`}
+                {countWords(selectedOutlineScene.narrative_outline || '')} {t('words')}
               </span>
 
               <div className="flex items-center gap-2">
@@ -580,9 +581,12 @@ export const ReferenceDrawerPanel: React.FC<ReferenceDrawerPanelProps> = ({
                   type="button"
                   onClick={() => {
                     if (selectedOutlineScene.narrative_outline) {
-                      navigator.clipboard.writeText(selectedOutlineScene.narrative_outline);
-                      setCopiedOutline(true);
-                      setTimeout(() => setCopiedOutline(false), 2000);
+                      navigator.clipboard.writeText(selectedOutlineScene.narrative_outline)
+                        .then(() => {
+                          setCopiedOutline(true);
+                          setTimeout(() => setCopiedOutline(false), 2000);
+                        })
+                        .catch((err) => console.error('Copy failed:', err));
                     }
                   }}
                   disabled={!selectedOutlineScene.narrative_outline}
@@ -634,10 +638,33 @@ export const ReferenceDrawerPanel: React.FC<ReferenceDrawerPanelProps> = ({
                 </button>
               </div>
             </div>
-          </div>
-        </div>,
-        document.body
+        </OutlineDialogFrame>
       )}
     </div>
+  );
+};
+
+const OutlineDialogFrame: React.FC<{ onClose: () => void; children: React.ReactNode }> = ({ onClose, children }) => {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useModal(dialogRef, onClose);
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 select-text"
+      onClick={onClose}
+    >
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="outline-dialog-title"
+        tabIndex={-1}
+        className="w-full max-w-2xl max-h-[85vh] flex flex-col border-3 border-[var(--border-ink)] bg-[var(--bg-surface)] shadow-[6px_6px_0px_var(--shadow-ink)] overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {children}
+      </div>
+    </div>,
+    document.body
   );
 };

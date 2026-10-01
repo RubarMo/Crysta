@@ -360,6 +360,8 @@ export const translations = {
     zenWidthWide: "عريض (1000px)",
     zenWidthFull: "كامل الشاشة",
     zenWords: "كلمة",
+    zenFontSmaller: "تصغير الخط",
+    zenFontLarger: "تكبير الخط",
 
     // Command Palette
     commandPaletteTitle: "لوحة الأوامر السريعة",
@@ -397,6 +399,75 @@ export const translations = {
     mentionCharacter: "إشارة إلى شخصية",
     entityInspectorTitle: "بطاقة الشخصية / بطاقة المعرفة",
     viewCharacterBio: "عرض بطاقة الشخصية الكاملة",
+
+    // Saving & notifications
+    statusSaveFailed: "تعذّر الحفظ",
+    saveFailedDetail: "تعذّر حفظ التغييرات: {error}",
+    dismiss: "إخفاء",
+    closeDialog: "إغلاق النافذة",
+    featureUnsupportedMobile: "هذه الميزة غير متاحة على الهاتف بعد.",
+
+    // Projects launcher
+    projectsCount: "{count} مشاريع",
+    noLocalProjects: "لم يتم العثور على ملفات مشاريع محفوظة محلياً.",
+    enterProjectName: "أدخل اسم المشروع الجديد:",
+    defaultProjectName: "مشروع جديد",
+    selectProjectFile: "اختر ملف المشروع",
+    selectProjectFileDesc: "اختر أحد الملفات المخزنة محلياً لفتحه:",
+    projectMissing: "الملف غير موجود",
+    projectMissingHint: "تعذّر العثور على الملف. ربما نُقل أو حُذف.",
+    newCharacterName: "شخصية جديدة",
+
+    // Updater
+    updateAvailable: "تحديث متوفر",
+    updateNewVersion: "إصدار جديد للتطبيق: v{version}",
+    updateDownloading: "جاري التحميل والتثبيت...",
+    updateLater: "لاحقاً",
+    updateNow: "تحديث وإعادة تشغيل",
+
+    // Theme & language
+    themeSelector: "اختيار المظهر",
+    themeLight: "مضيء",
+    themeLightTitle: "الوضع المضيء",
+    themeDark: "مظلم",
+    themeDarkTitle: "الوضع المظلم",
+    switchLanguageTitle: "Switch to English",
+    switchLanguageShort: "EN",
+    githubProfile: "حساب المطوّر على GitHub",
+
+    // Lists & editor
+    moveUp: "تحريك لأعلى",
+    moveDown: "تحريك لأسفل",
+    noMatchingCommands: "لا توجد أوامر مطابقة",
+    noMatchingResults: "لا توجد نتائج مطابقة",
+    editorFormattingHint: "تنسيق: **عريض** و *مائل* و *** في سطر مستقل لفاصل المشهد",
+
+    // Book Studio additions
+    coverSet: "تم تعيين الغلاف",
+    coverSetDesc: "سيظهر هذا الغلاف في بداية الكتاب في ملفات EPUB و PDF.",
+    coverTooLarge: "حجم الصورة كبير جداً، يرجى اختيار صورة أقل من 5 ميجابايت.",
+    dedicationHint: "كل سطر في الإهداء يظهر كسطر مستقل في الكتاب.",
+    printDialogOpened: "تم فتح نافذة الطباعة لاختيار الحفظ كـ PDF أو الطباعة.",
+    bookLanguageLabel: "لغة الكتاب",
+    bookLanguageAuto: "تلقائي (حسب نص الرواية)",
+    bookLanguageAr: "العربية (من اليمين لليسار)",
+    bookLanguageEn: "الإنجليزية (من اليسار لليمين)",
+    trimSizeLabel: "مقاس الصفحة المطبوعة",
+    trimUsTrade: "6 × 9 إنش (US Trade)",
+    trimDigest: "5.5 × 8.5 إنش (Digest)",
+    trimPocket: "4.25 × 6.87 إنش (Pocket)",
+    trimA5: "A5 (148 × 210 مم)",
+    trimA4: "A4 (210 × 297 مم)",
+    trimLetter: "US Letter (8.5 × 11 إنش)",
+    chapterNumberingNumberTitle: "الرقم والعنوان",
+    chapterNumberingTitleOnly: "العنوان فقط",
+    chapterNumberingNumberOnly: "الرقم فقط",
+    sceneBreakLabel: "رمز فاصل المشاهد",
+    sceneBreakHint: "اكتب *** في سطر مستقل داخل الفصل لإدراج فاصل مشهد.",
+    exportFrontMatterTitle: "بداية الكتاب",
+
+    // Step 10
+    saveAsMarkdown: "حفظ كملف Markdown",
   },
   en: {
     // General
@@ -413,8 +484,8 @@ export const translations = {
     loading: "Loading...",
     yes: "Yes",
     no: "No",
-    word: "Word",
-    words: "Words",
+    word: "word",
+    words: "words",
     actions: "Actions",
     success: "Success",
     copyMarkdown: "Copy as Markdown",
@@ -759,6 +830,8 @@ export const translations = {
     zenWidthWide: "Wide (1000px)",
     zenWidthFull: "Full Width",
     zenWords: "Words",
+    zenFontSmaller: "Smaller text",
+    zenFontLarger: "Larger text",
 
     // Command Palette
     commandPaletteTitle: "Command Palette",
@@ -796,7 +869,82 @@ export const translations = {
     mentionCharacter: "Mention Character",
     entityInspectorTitle: "Character / Entity Card",
     viewCharacterBio: "View Full Character Card",
+
+    // Saving & notifications
+    statusSaveFailed: "Save failed",
+    saveFailedDetail: "Couldn't save your changes: {error}",
+    dismiss: "Dismiss",
+    closeDialog: "Close dialog",
+    featureUnsupportedMobile: "This isn't available on mobile yet.",
+
+    // Projects launcher
+    projectsCount: "{count} projects",
+    noLocalProjects: "No saved project files found.",
+    enterProjectName: "Enter new project name:",
+    defaultProjectName: "New Project",
+    selectProjectFile: "Select Project File",
+    selectProjectFileDesc: "Select a locally stored file to open:",
+    projectMissing: "File not found",
+    projectMissingHint: "The file couldn't be found. It may have been moved or deleted.",
+    newCharacterName: "New Character",
+
+    // Updater
+    updateAvailable: "Update Available",
+    updateNewVersion: "New Crysta release: v{version}",
+    updateDownloading: "Downloading & installing...",
+    updateLater: "Remind Me Later",
+    updateNow: "Update & Restart",
+
+    // Theme & language
+    themeSelector: "Theme",
+    themeLight: "Light",
+    themeLightTitle: "Light Mode",
+    themeDark: "Dark",
+    themeDarkTitle: "Dark Mode",
+    switchLanguageTitle: "التحويل للعربية",
+    switchLanguageShort: "عربي",
+    githubProfile: "Developer's GitHub profile",
+
+    // Lists & editor
+    moveUp: "Move up",
+    moveDown: "Move down",
+    noMatchingCommands: "No matching commands",
+    noMatchingResults: "No matching results",
+    editorFormattingHint: "Formatting: **bold**, *italic*, and *** on its own line for a scene break",
+
+    // Book Studio additions
+    coverSet: "Cover Set",
+    coverSetDesc: "This cover appears at the front of the EPUB and PDF exports.",
+    coverTooLarge: "Image is too large. Please select an image smaller than 5MB.",
+    dedicationHint: "Each line of the dedication appears on its own line in the book.",
+    printDialogOpened: "Print dialog opened to save as PDF or print.",
+    bookLanguageLabel: "Book language",
+    bookLanguageAuto: "Auto-detect from the manuscript",
+    bookLanguageAr: "Arabic (right-to-left)",
+    bookLanguageEn: "English (left-to-right)",
+    trimSizeLabel: "Print page size",
+    trimUsTrade: "6 × 9 in (US Trade)",
+    trimDigest: "5.5 × 8.5 in (Digest)",
+    trimPocket: "4.25 × 6.87 in (Pocket)",
+    trimA5: "A5 (148 × 210 mm)",
+    trimA4: "A4 (210 × 297 mm)",
+    trimLetter: "US Letter (8.5 × 11 in)",
+    chapterNumberingNumberTitle: "Number and title",
+    chapterNumberingTitleOnly: "Title only",
+    chapterNumberingNumberOnly: "Number only",
+    sceneBreakLabel: "Scene break symbol",
+    sceneBreakHint: "Type *** on its own line in a chapter to insert a scene break.",
+    exportFrontMatterTitle: "Front Matter",
+
+    // Step 10
+    saveAsMarkdown: "Save as Markdown",
   }
 };
 
 export type LocaleKeys = keyof typeof translations.ar;
+
+// Compile-time check that both languages define exactly the same keys.
+export const localeKeyCheck: [
+  Record<LocaleKeys, string>,
+  Record<keyof typeof translations.en, string>,
+] = [translations.en, translations.ar];

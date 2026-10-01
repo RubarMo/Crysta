@@ -80,7 +80,8 @@
   --bg-surface-raised: #2D2D33;
 
   --border-ink: #000000;
-  --border-subtle: #3D3D44;
+  /* Raised from #3D3D44 so dividers stay visible on dark surfaces. */
+  --border-subtle: #4A4A52;
   --border-strong: #5A5A64;
 
   /* Tactile Light Shadow for Dark Mode */
@@ -215,15 +216,38 @@ html[dir="ltr"] body {
   padding-right: env(safe-area-inset-right, 0px);
 }
 
-/* Focus Visible for interactive buttons, links, etc. (excludes inputs & textareas) */
-:focus-visible:not(input):not(textarea):not([contenteditable="true"]) {
-  outline: 2px solid var(--border-ink) !important;
-  outline-offset: 1px !important;
+/* Visible keyboard focus for buttons, links and other controls */
+:focus-visible:not(input):not(textarea):not(select):not([contenteditable="true"]) {
+  outline: 3px solid var(--pastel-sky) !important;
+  outline-offset: 2px !important;
 }
 
-input:focus, textarea:focus, input:focus-visible, textarea:focus-visible {
+/* Text fields always show where the caret is */
+input:focus, textarea:focus, select:focus {
+  outline: 3px solid var(--pastel-sky) !important;
+  outline-offset: 0 !important;
+}
+
+/* Full-page editors (chapter editor, Zen mode) where a ring would frame the whole page */
+.nb-no-focus-ring:focus, .nb-no-focus-ring:focus-visible {
   outline: none !important;
-  box-shadow: none;
+}
+
+/* Row actions (move / delete) appear on hover, keyboard focus, for the
+   selected row, and always on touch screens. */
+.nb-row-actions {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.nb-row:hover .nb-row-actions,
+.nb-row:focus-within .nb-row-actions,
+.nb-row-actions.nb-row-actions-visible {
+  opacity: 1;
+}
+@media (hover: none) {
+  .nb-row-actions {
+    opacity: 1;
+  }
 }
 
 /* Disable textarea resize globally */

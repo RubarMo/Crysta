@@ -1,20 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { SnapshotInfo, listSnapshots, takeSnapshot, restoreSnapshot, deleteSnapshot, openBackupsDirectory } from '../../lib';
 import { useLanguage } from '../../LanguageContext';
-import { 
-  X, 
-  History, 
-  Camera, 
-  RotateCcw, 
-  Trash2, 
-  FolderOpen, 
-  Check, 
+import { useModal } from '../../hooks/useModal';
+import { flushAllAutosaves } from '../../utils/autosave';
+import { isUnsupportedOnMobile } from '../../utils/platform';
+import { errorMessage, useToast } from '../Toast';
+import {
+  X,
+  History,
+  Camera,
+  RotateCcw,
+  Trash2,
+  FolderOpen,
   Tag
 } from 'lucide-react';
 
 interface SnapshotsModalProps {
   onClose: () => void;
+  /** Called after a restore so the app reloads the project from disk. */
   onRestored: () => void;
 }
 
@@ -22,46 +26,41 @@ export const SnapshotsModal: React.FC<SnapshotsModalProps> = ({
   onClose,
   onRestored,
 }) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const { notify } = useToast();
   const [snapshots, setSnapshots] = useState<SnapshotInfo[]>([]);
   const [customLabel, setCustomLabel] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useModal(dialogRef, onClose);
+
+  const reportError = (err: unknown) => notify(`${t('error')}: ${errorMessage(err)}`);
 
   const loadList = async () => {
     try {
-      const list = await listSnapshots();
-      setSnapshots(list);
+      setSnapshots(await listSnapshots());
     } catch (err) {
-      console.error('Failed to list snapshots:', err);
+      reportError(err);
     }
   };
 
   useEffect(() => {
     loadList();
+    // Load once when the dialog opens.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  // Global escape key listener
-  useEffect(() => {
-    const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    };
-    window.addEventListener('keydown', handleGlobalKeyDown);
-    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
-  }, [onClose]);
 
   const handleTakeSnapshot = async () => {
     setIsLoading(true);
     try {
+      // Include edits that are still waiting to be autosaved.
+      await flushAllAutosaves();
       await takeSnapshot(customLabel || undefined, true);
       setCustomLabel('');
-      setSuccessMessage(t('snapshotCreatedSuccess'));
+      notify(t('snapshotCreatedSuccess'), 'success');
       await loadList();
-      setTimeout(() => setSuccessMessage(null), 2500);
     } catch (err) {
-      alert(`${t('error')}: ${err}`);
+      reportError(err);
     } finally {
       setIsLoading(false);
     }
@@ -72,14 +71,15 @@ export const SnapshotsModal: React.FC<SnapshotsModalProps> = ({
 
     setIsLoading(true);
     try {
+      // Pending edits are written first so they are part of the automatic
+      // "before restore" snapshot and can't overwrite the restored data later.
+      await flushAllAutosaves();
       await restoreSnapshot(snap.file_path);
-      setSuccessMessage(t('backupRestoredSuccess'));
+      notify(t('backupRestoredSuccess'), 'success');
+      onClose();
       onRestored();
-      setTimeout(() => {
-        onClose();
-      }, 1200);
     } catch (err) {
-      alert(`${t('error')}: ${err}`);
+      reportError(err);
     } finally {
       setIsLoading(false);
     }
@@ -87,12 +87,11 @@ export const SnapshotsModal: React.FC<SnapshotsModalProps> = ({
 
   const handleDelete = async (snap: SnapshotInfo) => {
     if (!window.confirm(t('deleteSnapshotConfirm'))) return;
-
     try {
       await deleteSnapshot(snap.file_path);
       await loadList();
     } catch (err) {
-      alert(`${t('error')}: ${err}`);
+      reportError(err);
     }
   };
 
@@ -100,7 +99,11 @@ export const SnapshotsModal: React.FC<SnapshotsModalProps> = ({
     try {
       await openBackupsDirectory();
     } catch (err) {
-      console.error('Failed to open backups folder:', err);
+      if (isUnsupportedOnMobile(err)) {
+        notify(t('featureUnsupportedMobile'), 'info');
+      } else {
+        reportError(err);
+      }
     }
   };
 
@@ -113,84 +116,85 @@ export const SnapshotsModal: React.FC<SnapshotsModalProps> = ({
   const formatTimestamp = (ts: string) => {
     const num = Number(ts);
     if (!num) return ts;
-    const date = new Date(num * 1000);
-    return date.toLocaleString();
+    return new Date(num * 1000).toLocaleString(language === 'ar' ? 'ar-EG' : 'en-US');
   };
 
-  const content = (
-    <div 
+  return createPortal(
+    <div
       className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4"
       onClick={onClose}
     >
-      <div 
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="snapshots-dialog-title"
+        tabIndex={-1}
         className="bg-[var(--bg-surface)] border-3 border-[var(--border-ink)] shadow-[6px_6px_0px_var(--shadow-ink)] w-full max-w-2xl p-5 space-y-4 max-h-[85vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
         <div className="flex items-center justify-between border-b-2 border-[var(--border-ink)] pb-3 shrink-0">
           <div className="flex items-center gap-2">
             <span className="p-1.5 bg-[var(--pastel-lavender)] text-black border-2 border-[var(--border-ink)] shadow-[2px_2px_0px_var(--shadow-ink)]">
               <History className="w-4 h-4" />
             </span>
-            <h3 className="text-sm font-heading font-black text-[var(--text-primary)]">
+            <h3 id="snapshots-dialog-title" className="text-sm font-heading font-black text-[var(--text-primary)]">
               {t('backupsTitle')}
             </h3>
           </div>
           <button
+            type="button"
             onClick={onClose}
             className="p-1 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--pastel-coral)] hover:text-black shadow-[2px_2px_0px_var(--shadow-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
+            title={t('close')}
+            aria-label={t('closeDialog')}
           >
             <X className="w-3.5 h-3.5" />
           </button>
         </div>
 
-        {/* Feedback Alert */}
-        {successMessage && (
-          <div className="p-2.5 bg-[var(--pastel-mint)] text-black border-2 border-[var(--border-ink)] font-heading font-bold text-xs flex items-center gap-2">
-            <Check className="w-4 h-4 stroke-[3]" />
-            <span>{successMessage}</span>
-          </div>
-        )}
-
-        {/* Create Manual Snapshot Box */}
-        <div className="p-3 border-2 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] shadow-[2px_2px_0px_var(--shadow-ink)] flex flex-wrap items-center gap-2 shrink-0">
+        <form
+          className="p-3 border-2 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] shadow-[2px_2px_0px_var(--shadow-ink)] flex flex-wrap items-center gap-2 shrink-0"
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleTakeSnapshot();
+          }}
+        >
           <input
             type="text"
             value={customLabel}
             onChange={(e) => setCustomLabel(e.target.value)}
             placeholder={t('snapshotLabelHint')}
-            className="flex-1 min-w-[200px] text-xs p-2 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)] focus:outline-none"
+            aria-label={t('snapshotLabelHint')}
+            maxLength={60}
+            className="flex-1 min-w-[200px] text-xs p-2 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[2px_2px_0px_var(--shadow-ink)]"
           />
           <button
-            type="button"
+            type="submit"
             disabled={isLoading}
-            onClick={handleTakeSnapshot}
             className="px-3 py-2 text-xs font-heading font-black border-2 border-[var(--border-ink)] bg-[var(--pastel-yellow)] text-black shadow-[2px_2px_0px_var(--shadow-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
           >
             <Camera className="w-3.5 h-3.5 stroke-[2.5]" />
             <span>{t('takeSnapshotBtn')}</span>
           </button>
-        </div>
+        </form>
 
-        {/* Snapshots List */}
-        <div className="flex-1 overflow-y-auto space-y-2 pe-1">
+        <div className="flex-1 overflow-y-auto space-y-2 pe-1 select-text">
           {snapshots.length === 0 ? (
             <div className="p-8 border-2 border-dashed border-[var(--border-subtle)] text-center text-[var(--text-muted)] text-xs">
               {t('noBackupsFound')}
             </div>
           ) : (
-            snapshots.map((snap, idx) => (
+            snapshots.map((snap) => (
               <div
-                key={snap.file_path || idx}
+                key={snap.file_path}
                 className="p-3 border-2 border-[var(--border-ink)] bg-[var(--bg-surface-raised)] shadow-[2px_2px_0px_var(--shadow-ink)] flex items-center justify-between gap-3"
               >
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 mb-1">
+                  <div className="flex flex-wrap items-center gap-2 mb-1">
                     <span
-                      className={`text-[9px] font-mono font-black px-1.5 py-0.2 border border-[var(--border-ink)] ${
-                        snap.is_manual
-                          ? 'bg-[var(--pastel-yellow)] text-black'
-                          : 'bg-[var(--pastel-sky)] text-black'
+                      className={`text-[9px] font-mono font-black px-1.5 border border-[var(--border-ink)] text-black ${
+                        snap.is_manual ? 'bg-[var(--pastel-yellow)]' : 'bg-[var(--pastel-sky)]'
                       }`}
                     >
                       {snap.is_manual ? t('manualSnapshotTag') : t('autoSnapshotTag')}
@@ -205,7 +209,7 @@ export const SnapshotsModal: React.FC<SnapshotsModalProps> = ({
 
                   {snap.custom_label && (
                     <div className="text-xs font-heading font-bold text-[var(--text-primary)] flex items-center gap-1">
-                      <Tag className="w-3 h-3 text-[var(--text-muted)]" />
+                      <Tag className="w-3 h-3 text-[var(--text-muted)]" aria-hidden="true" />
                       <span>{snap.custom_label}</span>
                     </div>
                   )}
@@ -214,18 +218,20 @@ export const SnapshotsModal: React.FC<SnapshotsModalProps> = ({
                 <div className="flex items-center gap-1.5 shrink-0">
                   <button
                     type="button"
+                    disabled={isLoading}
                     onClick={() => handleRestore(snap)}
-                    className="px-2.5 py-1 text-xs font-heading font-black border-2 border-[var(--border-ink)] bg-[var(--pastel-mint)] text-black shadow-[1px_1px_0px_var(--shadow-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center gap-1"
-                    title={t('restoreBackupBtn')}
+                    className="px-2.5 py-1 text-xs font-heading font-black border-2 border-[var(--border-ink)] bg-[var(--pastel-mint)] text-black shadow-[1px_1px_0px_var(--shadow-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center gap-1 disabled:opacity-50"
                   >
                     <RotateCcw className="w-3 h-3 stroke-[2.5]" />
                     <span>{t('restoreBackupBtn')}</span>
                   </button>
                   <button
                     type="button"
+                    disabled={isLoading}
                     onClick={() => handleDelete(snap)}
-                    className="p-1 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--pastel-coral)] hover:text-black shadow-[1px_1px_0px_var(--shadow-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
+                    className="p-1 border-2 border-[var(--border-ink)] bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--pastel-coral)] hover:text-black shadow-[1px_1px_0px_var(--shadow-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer disabled:opacity-50"
                     title={t('delete')}
+                    aria-label={t('delete')}
                   >
                     <Trash2 className="w-3 h-3" />
                   </button>
@@ -235,7 +241,6 @@ export const SnapshotsModal: React.FC<SnapshotsModalProps> = ({
           )}
         </div>
 
-        {/* Footer */}
         <div className="pt-3 border-t-2 border-[var(--border-ink)] flex items-center justify-between shrink-0">
           <button
             type="button"
@@ -254,8 +259,7 @@ export const SnapshotsModal: React.FC<SnapshotsModalProps> = ({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
-
-  return typeof document !== 'undefined' ? createPortal(content, document.body) : content;
 };

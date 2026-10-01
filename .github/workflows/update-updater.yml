@@ -1,0 +1,38 @@
+name: "Update updater.json"
+
+# Runs only after a release is published (not while it is a draft), so the
+# download URLs written to updater.json already work for users.
+on:
+  release:
+    types: [published]
+
+jobs:
+  update-updater-json:
+    if: startsWith(github.event.release.tag_name, 'v')
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run updater sync script
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: node scripts/update-updater.cjs
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add updater.json
+          git commit -m "chore(release): automated updater.json update for ${{ github.event.release.tag_name }}" || echo "No changes to commit"
+          git push origin main

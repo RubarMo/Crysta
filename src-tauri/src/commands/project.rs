@@ -1,8 +1,8 @@
 use rusqlite::params;
 #[cfg(any(target_os = "android", target_os = "ios"))]
 use tauri::Manager;
-use crate::models::{DbState, Novel};
-use crate::db::get_db_conn;
+use crate::models::{DbState, Novel, OpenProject};
+use crate::db::open_project_db;
 
 #[tauri::command]
 pub fn select_project_file() -> Result<Option<String>, String> {
@@ -73,9 +73,9 @@ pub fn list_project_files(app: tauri::AppHandle) -> Result<Vec<String>, String> 
 
 #[tauri::command]
 #[allow(unused_variables, unused_mut)]
-pub fn open_project(app: tauri::AppHandle, state: tauri::State<'_, DbState>, path: String) -> Result<Novel, String> {
+pub fn open_project(app: tauri::AppHandle, state: tauri::State<'_, DbState>, path: String, create: Option<bool>) -> Result<Novel, String> {
     let mut path_buf = std::path::PathBuf::from(&path);
-    
+
     #[cfg(any(target_os = "android", target_os = "ios"))]
     {
         if !path_buf.is_absolute() {
@@ -84,54 +84,52 @@ pub fn open_project(app: tauri::AppHandle, state: tauri::State<'_, DbState>, pat
             path_buf = app_dir.join(path_buf);
         }
     }
-    
-    // Set the path in state
-    {
-        let mut path_guard = state.current_db_path.lock().map_err(|e| e.to_string())?;
-        *path_guard = Some(path_buf.clone());
-    }
-    
-    // Open connection to test and migrate
-    let conn = get_db_conn(&state)?;
-    
-    // Check if a novel record exists. If not, create a default one!
-    let mut stmt = conn.prepare("SELECT count(*) FROM novels").map_err(|e| e.to_string())?;
-    let count: i64 = stmt.query_row([], |row| row.get(0)).map_err(|e| e.to_string())?;
-    
+
+    // Open and migrate first; the previously open project (if any) stays
+    // untouched when this fails.
+    let conn = open_project_db(&path_buf, create.unwrap_or(false))?;
+
+    let count: i64 = conn
+        .query_row("SELECT count(*) FROM novels", [], |row| row.get(0))
+        .map_err(|e| e.to_string())?;
+
     if count == 0 {
         let default_title = path_buf
             .file_stem()
             .and_then(|s| s.to_str())
-            .unwrap_or("رواية جديدة");
-        // Insert default novel
+            .unwrap_or("Novel");
         conn.execute(
-            "INSERT INTO novels (title, genre, target_audience, target_word_count, current_word_count) VALUES (?, ?, ?, ?, ?)",
-            params![default_title, "عام", "كافة القراء", 50000, 0],
+            "INSERT INTO novels (title, genre, target_audience, target_word_count, current_word_count) VALUES (?, '', '', ?, 0)",
+            params![default_title, 50000],
         ).map_err(|e| e.to_string())?;
     }
-    
-    // Load the active novel (there should only be one in the project database)
-    let mut stmt = conn.prepare("SELECT id, title, genre, target_audience, target_word_count, current_word_count, created_at FROM novels LIMIT 1")
-        .map_err(|e| e.to_string())?;
-        
-    let novel = stmt.query_row([], |row| {
-        Ok(Novel {
-            id: Some(row.get(0)?),
-            title: row.get(1)?,
-            genre: row.get(2)?,
-            target_audience: row.get(3)?,
-            target_word_count: row.get(4)?,
-            current_word_count: row.get(5)?,
-            created_at: Some(row.get(6)?),
-        })
-    }).map_err(|e| e.to_string())?;
-    
+
+    // There is one novel per project file.
+    let novel = conn.query_row(
+        "SELECT id, title, genre, target_audience, target_word_count, current_word_count, created_at FROM novels ORDER BY id LIMIT 1",
+        [],
+        |row| {
+            Ok(Novel {
+                id: Some(row.get(0)?),
+                title: row.get(1)?,
+                genre: row.get::<_, Option<String>>(2)?.unwrap_or_default(),
+                target_audience: row.get::<_, Option<String>>(3)?.unwrap_or_default(),
+                target_word_count: row.get::<_, Option<i64>>(4)?.unwrap_or(0),
+                current_word_count: row.get::<_, Option<i64>>(5)?.unwrap_or(0),
+                created_at: row.get(6)?,
+            })
+        },
+    ).map_err(|e| e.to_string())?;
+
+    let mut project = state.project.lock().map_err(|e| e.to_string())?;
+    *project = Some(OpenProject { path: path_buf, conn });
+
     Ok(novel)
 }
 
 #[tauri::command]
 pub fn close_project(state: tauri::State<'_, DbState>) -> Result<(), String> {
-    let mut path_guard = state.current_db_path.lock().map_err(|e| e.to_string())?;
-    *path_guard = None;
+    let mut project = state.project.lock().map_err(|e| e.to_string())?;
+    *project = None;
     Ok(())
 }

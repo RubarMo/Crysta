@@ -8,17 +8,17 @@ pub fn get_novels(state: tauri::State<'_, DbState>) -> Result<Vec<Novel>, String
     let mut stmt = conn
         .prepare("SELECT id, title, genre, target_audience, target_word_count, current_word_count, created_at FROM novels ORDER BY id DESC")
         .map_err(|e| e.to_string())?;
-        
+
     let novel_iter = stmt
         .query_map([], |row| {
             Ok(Novel {
                 id: Some(row.get(0)?),
                 title: row.get(1)?,
-                genre: row.get(2)?,
-                target_audience: row.get(3)?,
-                target_word_count: row.get(4)?,
-                current_word_count: row.get(5)?,
-                created_at: Some(row.get(6)?),
+                genre: row.get::<_, Option<String>>(2)?.unwrap_or_default(),
+                target_audience: row.get::<_, Option<String>>(3)?.unwrap_or_default(),
+                target_word_count: row.get::<_, Option<i64>>(4)?.unwrap_or(0),
+                current_word_count: row.get::<_, Option<i64>>(5)?.unwrap_or(0),
+                created_at: row.get(6)?,
             })
         })
         .map_err(|e| e.to_string())?;
@@ -44,9 +44,8 @@ pub fn create_novel(
         params![title, genre, target_audience, target_word_count],
     )
     .map_err(|e| e.to_string())?;
-    
-    let id = conn.last_insert_rowid();
-    Ok(id)
+
+    Ok(conn.last_insert_rowid())
 }
 
 #[tauri::command]
@@ -81,7 +80,7 @@ pub fn get_steps_progress(state: tauri::State<'_, DbState>, novel_id: i64) -> Re
     let mut stmt = conn
         .prepare("SELECT id, novel_id, step_number, content_text, is_completed FROM steps_progress WHERE novel_id = ?")
         .map_err(|e| e.to_string())?;
-        
+
     let step_iter = stmt
         .query_map(params![novel_id], |row| {
             let is_comp_val: i64 = row.get(4)?;
@@ -106,9 +105,10 @@ pub fn get_steps_progress(state: tauri::State<'_, DbState>, novel_id: i64) -> Re
 pub fn save_step_progress(state: tauri::State<'_, DbState>, progress: StepProgress) -> Result<(), String> {
     let conn = get_db_conn(&state)?;
     let is_completed_val = if progress.is_completed { 1 } else { 0 };
-    
+
     conn.execute(
-        "INSERT OR REPLACE INTO steps_progress (novel_id, step_number, content_text, is_completed) VALUES (?, ?, ?, ?)",
+        "INSERT INTO steps_progress (novel_id, step_number, content_text, is_completed) VALUES (?1, ?2, ?3, ?4)
+         ON CONFLICT(novel_id, step_number) DO UPDATE SET content_text = excluded.content_text, is_completed = excluded.is_completed",
         params![progress.novel_id, progress.step_number, progress.content_text, is_completed_val],
     )
     .map_err(|e| e.to_string())?;
