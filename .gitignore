@@ -26,3 +26,8 @@ dist-ssr
 
 # Local SQLite databases
 snowflake_data.db
+
+# Updater signing keys must never be committed (keep them in CI secrets)
+*.key
+!*.key.pub
+

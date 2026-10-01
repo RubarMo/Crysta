@@ -1,119 +1,97 @@
+// Rebuilds updater.json from the assets of a published GitHub release.
+// Runs from .github/workflows/update-updater.yml when a release is published,
+// so the download URLs it writes are live.
 const fs = require('fs');
 const path = require('path');
 
 const token = process.env.GITHUB_TOKEN;
 const repo = process.env.GITHUB_REPOSITORY; // "owner/repo"
-const tag = process.env.GITHUB_REF_NAME; // "v2.5.0"
+const tag = process.env.RELEASE_TAG || process.env.GITHUB_REF_NAME; // "v2.5.0"
 
 if (!token || !repo || !tag) {
-  console.error("Missing required environment variables (GITHUB_TOKEN, GITHUB_REPOSITORY, GITHUB_REF_NAME)");
+  console.error("Missing required environment variables (GITHUB_TOKEN, GITHUB_REPOSITORY, RELEASE_TAG)");
   process.exit(1);
 }
 
 const version = tag.replace(/^v/, '');
+const headers = {
+  Authorization: `Bearer ${token}`,
+  Accept: 'application/vnd.github.v3+json',
+  'User-Agent': 'Crysta-Updater-Sync',
+};
 
-async function run() {
-  try {
-    // 1. Fetch all releases to find draft release matching tag
-    console.log(`Fetching releases list for ${repo} to find tag ${tag}...`);
-    const releasesRes = await fetch(`https://api.github.com/repos/${repo}/releases`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Accept': 'application/vnd.github.v3+json',
-        'User-Agent': 'Tauri-Updater-Updater'
-      }
-    });
+// The updater looks for "{os}-{arch}-{installer}" first and falls back to
+// "{os}-{arch}", so each installer type gets its own entry and the fallback
+// keeps pointing at the package older builds were installed from.
+const ASSET_RULES = [
+  { suffix: '.msi', keys: ['windows-x86_64-msi', 'windows-x86_64'] },
+  { suffix: '-setup.exe', keys: ['windows-x86_64-nsis'] },
+  { suffix: '.deb', keys: ['linux-x86_64-deb', 'linux-x86_64'] },
+  { suffix: '.rpm', keys: ['linux-x86_64-rpm'] },
+  { suffix: '.AppImage', keys: ['linux-x86_64-appimage'] },
+  {
+    suffix: '.app.tar.gz',
+    keys: ['darwin-x86_64-app', 'darwin-aarch64-app', 'darwin-x86_64', 'darwin-aarch64'],
+  },
+];
 
-    if (!releasesRes.ok) {
-      throw new Error(`Failed to fetch releases: ${releasesRes.statusText} (${releasesRes.status})`);
-    }
-
-    const releases = await releasesRes.json();
-    const release = releases.find(r => r.tag_name === tag);
-
-    if (!release) {
-      throw new Error(`No release found for tag: ${tag}`);
-    }
-
-    console.log(`Found release: ${release.name} (Draft: ${release.draft})`);
-
-    const assets = release.assets;
-    console.log(`Found ${assets.length} assets.`);
-
-    // Helper to download signature content
-    const downloadSignature = async (assetId) => {
-      const res = await fetch(`https://api.github.com/repos/${repo}/releases/assets/${assetId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: 'application/octet-stream',
-          'User-Agent': 'Tauri-Updater-Updater'
-        }
-      });
-      if (!res.ok) {
-        throw new Error(`Failed to download signature asset ${assetId}: ${res.statusText}`);
-      }
-      const text = await res.text();
-      return text.trim();
-    };
-
-    // Initialize mapping
-    const platformData = {
-      'windows-x86_64': { url: '', sigAssetId: null },
-      'darwin-x86_64': { url: '', sigAssetId: null },
-      'darwin-aarch64': { url: '', sigAssetId: null },
-      'linux-x86_64': { url: '', sigAssetId: null }
-    };
-
-    // Group assets
-    for (const asset of assets) {
-      const name = asset.name;
-      const url = `https://github.com/${repo}/releases/download/${tag}/${name}`;
-
-      if (name.endsWith('.msi')) {
-        platformData['windows-x86_64'].url = url;
-      } else if (name.endsWith('.msi.sig')) {
-        platformData['windows-x86_64'].sigAssetId = asset.id;
-      } else if (name.endsWith('.deb')) {
-        platformData['linux-x86_64'].url = url;
-      } else if (name.endsWith('.deb.sig')) {
-        platformData['linux-x86_64'].sigAssetId = asset.id;
-      } else if (name.endsWith('.app.tar.gz') && !name.endsWith('.sig')) {
-        platformData['darwin-x86_64'].url = url;
-        platformData['darwin-aarch64'].url = url;
-      } else if (name.endsWith('.app.tar.gz.sig')) {
-        platformData['darwin-x86_64'].sigAssetId = asset.id;
-        platformData['darwin-aarch64'].sigAssetId = asset.id;
-      }
-    }
-
-    // Load updater.json
-    const updaterPath = path.join(__dirname, '..', 'updater.json');
-    const updater = JSON.parse(fs.readFileSync(updaterPath, 'utf8'));
-
-    // Update basic info
-    updater.version = version;
-    updater.notes = `Release version ${version}.`;
-
-    // Fetch and assign signatures
-    for (const [platform, data] of Object.entries(platformData)) {
-      if (data.url) {
-        updater.platforms[platform].url = data.url;
-      }
-      if (data.sigAssetId) {
-        console.log(`Downloading signature for ${platform}...`);
-        const signature = await downloadSignature(data.sigAssetId);
-        updater.platforms[platform].signature = signature;
-      }
-    }
-
-    // Save updated updater.json
-    fs.writeFileSync(updaterPath, JSON.stringify(updater, null, 2) + '\n', 'utf8');
-    console.log(`Successfully updated updater.json for version ${version}!`);
-
-  } catch (error) {
-    console.error("Error updating updater.json:", error);
-    process.exit(1);
+async function github(url, accept) {
+  const res = await fetch(url, { headers: accept ? { ...headers, Accept: accept } : headers });
+  if (!res.ok) {
+    throw new Error(`GitHub request failed: ${url} → ${res.status} ${res.statusText}`);
   }
+  return res;
 }
 
-run();
+async function run() {
+  console.log(`Fetching release ${tag} of ${repo}...`);
+  const release = await (await github(`https://api.github.com/repos/${repo}/releases/tags/${encodeURIComponent(tag)}`)).json();
+
+  if (release.draft) {
+    throw new Error(`Release ${tag} is still a draft; updater.json must only point at published assets.`);
+  }
+
+  const assetsByName = new Map(release.assets.map((asset) => [asset.name, asset]));
+  const platforms = {};
+
+  for (const asset of release.assets) {
+    const rule = ASSET_RULES.find((r) => asset.name.endsWith(r.suffix));
+    if (!rule) continue;
+
+    const sigAsset = assetsByName.get(`${asset.name}.sig`);
+    if (!sigAsset) {
+      console.warn(`No signature for ${asset.name}; skipping.`);
+      continue;
+    }
+
+    const signature = (await (await github(sigAsset.url, 'application/octet-stream')).text()).trim();
+    const url = `https://github.com/${repo}/releases/download/${tag}/${asset.name}`;
+    for (const key of rule.keys) {
+      platforms[key] = { signature, url };
+    }
+    console.log(`  ${asset.name} → ${rule.keys.join(', ')}`);
+  }
+
+  if (Object.keys(platforms).length === 0) {
+    throw new Error('No signed updater assets found in the release.');
+  }
+
+  const updaterPath = path.join(__dirname, '..', 'updater.json');
+  const previous = JSON.parse(fs.readFileSync(updaterPath, 'utf8'));
+  const updater = {
+    version,
+    notes: (release.body || '').trim() || `Release version ${version}.`,
+    pub_date: release.published_at || new Date().toISOString(),
+    // Kept for reference; the app verifies with the pubkey in tauri.conf.json.
+    ...(previous.pubkey ? { pubkey: previous.pubkey } : {}),
+    platforms,
+  };
+
+  fs.writeFileSync(updaterPath, JSON.stringify(updater, null, 2) + '\n', 'utf8');
+  console.log(`updater.json updated for version ${version}.`);
+}
+
+run().catch((error) => {
+  console.error('Error updating updater.json:', error);
+  process.exit(1);
+});

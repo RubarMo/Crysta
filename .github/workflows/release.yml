@@ -45,7 +45,16 @@ jobs:
           sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev rpm
 
       - name: Install frontend dependencies
-        run: npm ci || npm install
+        run: npm ci
+
+      - name: Run tests
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          npm test
+          npm run lint
+          # Tauri's generate_context! needs the built frontend (dist/) to compile.
+          npm run build
+          cd src-tauri && cargo test --lib
 
       - name: Build and Publish Release
         id: tauri_build
@@ -53,7 +62,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           tagName: ${{ github.ref_name }}
           releaseName: "Crysta v__VERSION__"
@@ -122,7 +131,7 @@ jobs:
           targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
 
       - name: Install frontend dependencies
-        run: npm ci || npm install
+        run: npm ci
 
       - name: Setup Android signing
         if: ${{ env.ANDROID_KEY_BASE64 != '' }}
@@ -153,31 +162,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  update-updater-json:
-    needs: publish-tauri
-    permissions:
-      contents: write
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          ref: main
 
-      - name: Install Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Run updater sync script
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: node scripts/update-updater.cjs
-
-      - name: Commit and push changes
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add updater.json
-          git commit -m "chore(release): automated updater.json update for ${{ github.ref_name }}" || echo "No changes to commit"
-          git push origin main
+  # updater.json is updated by update-updater.yml once the draft release is published,
+  # so it never points at assets that are not downloadable yet.

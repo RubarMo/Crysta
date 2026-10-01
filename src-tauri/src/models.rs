@@ -1,9 +1,17 @@
+use rusqlite::Connection;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use std::sync::Mutex;
 
+/// The project that is currently open: its file path and a single, long-lived
+/// SQLite connection that every command reuses.
+pub struct OpenProject {
+    pub path: PathBuf,
+    pub conn: Connection,
+}
+
 pub struct DbState {
-    pub current_db_path: Mutex<Option<PathBuf>>,
+    pub project: Mutex<Option<OpenProject>>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -65,6 +73,9 @@ pub struct Chapter {
     pub sort_order: i64,
 }
 
+/// Book Studio settings. The cover image is stored in the same table but is
+/// loaded and saved through its own commands so the (large) image is not sent
+/// over IPC on every settings change.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct BookFormatConfig {
     pub id: Option<i64>,
@@ -105,7 +116,9 @@ pub struct BookFormatConfig {
     pub header_verso: String,
     pub header_recto: String,
     pub include_page_numbers: bool,
-    pub cover_image: String,
+    /// "" = detect from the manuscript, otherwise "ar" or "en".
+    #[serde(default)]
+    pub book_language: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

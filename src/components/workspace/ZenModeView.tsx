@@ -1,9 +1,30 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { getCurrentWindow } from '@tauri-apps/api/window';
 import { useLanguage } from '../../LanguageContext';
 import { WordCounter } from '../WordCounter';
-import { 
+import { useModal } from '../../hooks/useModal';
+import { isMobileDevice, isTauri } from '../../utils/platform';
+import {
   Minimize2
 } from 'lucide-react';
+
+const ZEN_SETTINGS_KEY = 'crysta_zen_settings';
+
+interface ZenSettings {
+  theme: ZenTheme;
+  width: ZenWidth;
+  fontSize: number;
+}
+
+function loadZenSettings(): ZenSettings {
+  const defaults: ZenSettings = { theme: 'crysta', width: 'medium', fontSize: 18 };
+  try {
+    const saved = JSON.parse(localStorage.getItem(ZEN_SETTINGS_KEY) || '{}');
+    return { ...defaults, ...saved };
+  } catch {
+    return defaults;
+  }
+}
 
 interface ZenModeViewProps {
   title: string;
@@ -22,28 +43,51 @@ export const ZenModeView: React.FC<ZenModeViewProps> = ({
   onClose,
 }) => {
   const { t, language } = useLanguage();
-  const [theme, setTheme] = useState<ZenTheme>('crysta');
-  const [width, setWidth] = useState<ZenWidth>('medium');
-  const [fontSize, setFontSize] = useState<number>(18);
+  const [settings, setSettings] = useState<ZenSettings>(loadZenSettings);
+  const { theme, width, fontSize } = settings;
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  // Focus textarea on mount
+  // Esc exits; Tab stays inside the overlay.
+  useModal(containerRef, onClose, { autoFocus: false });
+
+  const updateSettings = (patch: Partial<ZenSettings>) => {
+    setSettings((prev) => {
+      const next = { ...prev, ...patch };
+      try {
+        localStorage.setItem(ZEN_SETTINGS_KEY, JSON.stringify(next));
+      } catch {
+        // Settings just aren't remembered.
+      }
+      return next;
+    });
+  };
+  const setTheme = (value: ZenTheme) => updateSettings({ theme: value });
+  const setWidth = (value: ZenWidth) => updateSettings({ width: value });
+  const setFontSize = (value: number) => updateSettings({ fontSize: value });
+
   useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.focus();
-    }
+    textareaRef.current?.focus();
   }, []);
 
-  // Keyboard shortcut: Esc to exit
+  // Use real OS fullscreen on desktop while Zen mode is open.
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose();
+    if (!isTauri() || isMobileDevice()) return;
+    const appWindow = getCurrentWindow();
+    let enteredFullscreen = false;
+    appWindow.isFullscreen()
+      .then((already) => {
+        if (already) return;
+        enteredFullscreen = true;
+        return appWindow.setFullscreen(true);
+      })
+      .catch((err) => console.warn('Fullscreen unavailable:', err));
+    return () => {
+      if (enteredFullscreen) {
+        appWindow.setFullscreen(false).catch((err) => console.warn('Failed to leave fullscreen:', err));
       }
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onClose]);
+  }, []);
 
   // Theme style configurations
   const themeStyles: Record<ZenTheme, { bg: string; text: string; subtext: string; toolbarBg: string; border: string }> = {
@@ -135,7 +179,12 @@ export const ZenModeView: React.FC<ZenModeViewProps> = ({
   const currentStyle = themeStyles[theme];
 
   return (
-    <div 
+    <div
+      ref={containerRef}
+      role="dialog"
+      aria-modal="true"
+      aria-label={t('zenModeBtn')}
+      tabIndex={-1}
       className="fixed inset-0 z-50 flex flex-col transition-colors duration-200 select-text overflow-hidden"
       style={{ backgroundColor: currentStyle.bg, color: currentStyle.text }}
       dir={language === 'ar' ? 'rtl' : 'ltr'}
@@ -164,11 +213,11 @@ export const ZenModeView: React.FC<ZenModeViewProps> = ({
               <button
                 key={tName}
                 type="button"
+                aria-pressed={theme === tName}
                 onClick={() => setTheme(tName)}
                 className={`px-2 py-1 text-[10px] font-heading font-bold transition-all cursor-pointer ${
                   theme === tName ? 'font-black underline' : 'opacity-70 hover:opacity-100'
                 }`}
-                title={tName}
               >
                 {tName === 'crysta' ? t('zenThemeCrysta') :
                  tName === 'obsidian' ? t('zenThemeObsidian') :
@@ -216,7 +265,8 @@ export const ZenModeView: React.FC<ZenModeViewProps> = ({
               type="button"
               onClick={() => setFontSize(Math.max(14, fontSize - 2))}
               className="px-1.5 py-0.5 text-xs font-mono font-bold hover:opacity-100 opacity-70 cursor-pointer"
-              title="Decrease Font"
+              title={t('zenFontSmaller')}
+              aria-label={t('zenFontSmaller')}
             >
               A-
             </button>
@@ -225,7 +275,8 @@ export const ZenModeView: React.FC<ZenModeViewProps> = ({
               type="button"
               onClick={() => setFontSize(Math.min(32, fontSize + 2))}
               className="px-1.5 py-0.5 text-xs font-mono font-bold hover:opacity-100 opacity-70 cursor-pointer"
-              title="Increase Font"
+              title={t('zenFontLarger')}
+              aria-label={t('zenFontLarger')}
             >
               A+
             </button>
@@ -263,8 +314,8 @@ export const ZenModeView: React.FC<ZenModeViewProps> = ({
               backgroundColor: 'transparent',
               color: currentStyle.text,
             }}
-            className="w-full flex-1 resize-none border-none outline-none font-serif tracking-normal focus:outline-none"
-            spellCheck={false}
+            aria-label={title}
+            className="nb-no-focus-ring w-full flex-1 resize-none border-none font-serif tracking-normal"
           />
         </div>
       </div>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { useLanguage } from '../LanguageContext';
+import { countWords } from '../utils/text';
 
 interface WordCounterProps {
   text: string;
@@ -7,9 +8,8 @@ interface WordCounterProps {
 }
 
 export const WordCounter: React.FC<WordCounterProps> = ({ text, maxWords }) => {
-  const { language } = useLanguage();
-  const cleanText = text.trim();
-  const wordCount = cleanText === "" ? 0 : cleanText.split(/\s+/).length;
+  const { t } = useLanguage();
+  const wordCount = countWords(text);
   const isOverLimit = maxWords ? wordCount > maxWords : false;
 
   return (
@@ -25,9 +25,7 @@ export const WordCounter: React.FC<WordCounterProps> = ({ text, maxWords }) => {
         <span className="opacity-80">/ {maxWords}</span>
       )}
       <span className="font-heading text-[10px] uppercase tracking-wider">
-        {language === 'ar' 
-          ? (wordCount === 1 ? 'كلمة' : 'كلمات') 
-          : (wordCount === 1 ? 'word' : 'words')}
+        {wordCount === 1 ? t('word') : t('words')}
       </span>
     </div>
   );
